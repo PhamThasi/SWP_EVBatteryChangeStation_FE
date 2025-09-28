@@ -23,7 +23,6 @@ const NavBar = () => {
       </ul>
       <div className="navbar-logo">
         <img src={logo} alt="" />
-        EV Swap
       </div>
     </nav>
   );
