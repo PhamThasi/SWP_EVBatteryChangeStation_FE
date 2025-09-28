@@ -1,0 +1,14 @@
+.service-card {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2rem;
+    border-radius: 15px;
+    width: 250px;
+    text-align: center;
+    transition: transform 0.4s ease, background 0.4s;
+  }
+  
+  .service-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    background: rgba(255, 255, 255, 0.3);
+  }
+  

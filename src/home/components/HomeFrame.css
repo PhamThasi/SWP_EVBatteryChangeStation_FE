@@ -1,0 +1,50 @@
+.home-frame {
+    padding: 2rem;
+    color: white;
+    background: linear-gradient(90deg, #001f54, #0077b6, #00b4d8);
+    min-height: 100vh;
+  }
+  
+  .map-placeholder {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .map-animation {
+    margin-top: 1rem;
+    padding: 4rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+  }
+  
+  /* Car section */
+  .car-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .car-section li {
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0.5rem 0;
+    padding: 0.7rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .car-section li:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Service section */
+  .service-section {
+    margin-top: 2rem;
+  }
+  
+  .service-cards {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+  }
+  
