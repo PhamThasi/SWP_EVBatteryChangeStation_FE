@@ -1,0 +1,96 @@
+.signUp {
+    color: #fff;
+    height: 100%;
+    width: 100%;
+    background: #2A7B9B;
+    background: linear-gradient(90deg, rgba(42, 123, 155, 1) 0%, rgba(119, 87, 199, 0.98) 15%, rgba(84, 216, 223, 1) 100%, rgba(83, 219, 237, 1) 100%);
+    border-radius: 1rem;
+}
+
+.signUp-header {
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 4rem 0 0.5rem 0;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 4rem;
+}
+
+.form-block label {
+    display: block;
+    margin-top: 1rem;
+}
+
+.form-block input {
+    outline: none;
+    border: 1px solid black;
+    padding: 1.4rem 1rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+    text-align: left;
+    width: 90%;
+}
+
+.btn-signUp h6 {
+    display: inline-block;
+}
+
+.btn-signUp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem auto;
+    gap: 1rem;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #fff;
+    /* màu chữ, đổi cho phù hợp */
+    font-size: 3rem;
+    margin: 1rem 0;
+    width: 60%;
+    /* đồng bộ với input */
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #fff;
+    /* màu line */
+}
+
+.divider::before {
+    margin-right: 0.75em;
+}
+
+.divider::after {
+    margin-left: 0.75em;
+}
+
+.btn-google {
+    background: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.footer-signUp {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.footer-signUp a {
+    color: #2A7B9B;
+    color: linear-gradient(90deg, rgba(42, 123, 155, 1) 0%, rgba(87, 199, 133, 1) 69%, rgba(83, 219, 237, 1) 100%);
+}
