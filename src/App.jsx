@@ -9,6 +9,8 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
+import Admin from "./home/page/Admin";
+import AdminNav from "./home/components/AdminNav";
 
 function App() {
   const route = createBrowserRouter([
@@ -36,6 +38,15 @@ function App() {
         <div>
           <NavBar/>
           <HomeFrame/>
+        </div>
+      ),
+    },
+    {
+      path: "/adminpage",
+      element: (
+        <div>
+          <AdminNav/>
+          <Admin/>
         </div>
       ),
     },
