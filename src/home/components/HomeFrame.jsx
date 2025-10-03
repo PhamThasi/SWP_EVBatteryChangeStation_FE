@@ -8,10 +8,13 @@ import destination from "../../assets/destination_charging-removebg-preview.png"
 import charger from "../../assets/charger-removebg-preview.png";
 import onclickforpower from "../../assets/onclickforpower-removebg-preview.png";
 import mapPower from "../../assets/powerMap-removebg-preview.png";
+import SectionVideo from "../../assets/swapingCar.mp4";
+import tramsac_evt from "./../../assets/tramsac_evt.jpg";
+import tramsac_testla from "./../../assets/tramsac_testla.jpg";
+import tramsac_vinfast from "./../../assets/tramsac_vinfast.jpg";
 const HomeFrame = () => {
-  const [carInfo, setCarInfo] = useState(null);
   useEffect(() => {
-    const reveals = document.querySelectorAll(".reveal"); // <-- ALL
+    const reveals = document.querySelectorAll(".reveal");
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -26,63 +29,77 @@ const HomeFrame = () => {
 
     reveals.forEach((el) => observer.observe(el));
 
-    // cleanup để tránh memory leak
     return () => {
       reveals.forEach((el) => observer.unobserve(el));
     };
   }, []);
-  const cars = [
-    { id: 1, name: "VinFast VF8", year: 2023 },
-    { id: 2, name: "Tesla Model 3", year: 2022 },
-    { id: 3, name: "Hyundai Ioniq 5", year: 2024 },
-  ];
 
-  const handleSelectCar = (car) => {
-    setCarInfo({
-      ...car,
-      battery: "Dung lượng khả dụng: 82 kWh",
-      charging: "Sạc nhanh DC: 250kW",
-      warranty: "Bảo hành pin: 8 năm hoặc 160.000 km",
-    });
-  };
+  // fake data các trạm pin
+  const stations = [
+    {
+      id: 1,
+      name: "THACO BMW Sala",
+      address: "Quận 2, TP. HCM",
+      status: "Available",
+      openTime: "06:00 - 22:00",
+      imageUrl: tramsac_evt,
+    },
+    {
+      id: 2,
+      name: "Porsche Sài Gòn",
+      address: "Quận 1, TP. HCM",
+      status: "Busy",
+      openTime: "07:00 - 23:00",
+      imageUrl: tramsac_testla,
+    },
+    {
+      id: 3,
+      name: "EBOOST BigC Thảo Điền",
+      address: "Thảo Điền, TP. HCM",
+      status: "Available",
+      openTime: "24/7",
+      imageUrl: tramsac_vinfast,
+    },
+  ];
 
   return (
     <div className="home-frame">
-      <div className="car-video" autoPlay muted loop playsInline>
-        <video src={carVideo}></video>
+      {/* video nền xe */}
+      <div className="car-video">
+        <video src={carVideo} autoPlay muted loop playsInline></video>
       </div>
-      {/* giới thiệu về trạm sạc */}
+
+      {/* Genki Power section */}
       <div className="power-service-container reveal">
         <h1>An Innovative Smart Power Service Solution</h1>
         <p className="genki-text">
-          Genki Power is a mobile internet-based power solution with extensive
-          networks for battery charging and battery swap facilities. Enhanced by
-          Power Cloud, it offers a power service system with chargeable,
-          swappable and upgradable batteries to provide users with power
-          services catering to all scenarios.
+          Genki Power là giải pháp năng lượng di động dựa trên internet với mạng
+          lưới rộng khắp phục vụ sạc pin và thay pin. Được hỗ trợ bởi Power
+          Cloud, Genki Power cung cấp hệ thống dịch vụ điện năng với pin có thể
+          sạc, thay thế và nâng cấp, đáp ứng mọi nhu cầu của người dùng.
         </p>
         <div className="power-service-block">
           <div className="power-service-items">
             <div className="power-service-logo">
               <ul className="power-service-logo-ui">
                 <li>
-                  <img src={swapBatter} alt="" />
+                  <img src={swapBatter} alt="Power Swap Station" />
                   <p>Power Swap Station</p>
                 </li>
                 <li>
-                  <img src={charger} alt="" />
+                  <img src={charger} alt="Power Charger" />
                   <p>Power Charger</p>
                 </li>
                 <li>
-                  <img src={destination} alt="" />
+                  <img src={destination} alt="Destination Charging" />
                   <p>Destination Charging</p>
                 </li>
                 <li>
-                  <img src={onclickforpower}alt="" />
+                  <img src={onclickforpower} alt="One Click for Power" />
                   <p>One Click for Power</p>
                 </li>
                 <li>
-                  <img src={mapPower} alt="" />
+                  <img src={mapPower} alt="Power Map" />
                   <p>Power Map</p>
                 </li>
               </ul>
@@ -92,47 +109,47 @@ const HomeFrame = () => {
           </div>
         </div>
       </div>
-      {/* Chọn xe */}
-      <div className="car-section">
-        <h3>Chọn xe của bạn</h3>
-        <ul>
-          {cars.map((car) => (
-            <li key={car.id} onClick={() => handleSelectCar(car)}>
-              {car.name} - {car.year}
-            </li>
-          ))}
-        </ul>
+
+      {/* video section */}
+      <div className="Section-video reveal">
+        <video src={SectionVideo} autoPlay muted loop playsInline></video>
       </div>
 
-      {/* Thông tin pin */}
-      {carInfo && (
-        <div className="battery-info">
-          <h3>Thông tin pin cho {carInfo.name}</h3>
-          <p>{carInfo.battery}</p>
-          <p>{carInfo.charging}</p>
-          <p>{carInfo.warranty}</p>
+      {/* section trạm pin */}
+      <div className="station-section">
+        <h3>Trạm pin tiêu biểu</h3>
+        <div className="station-cards">
+          {stations.map((station) => (
+            <div key={station.id} className="station-card">
+              {/* //   <img src={station.imageUrl} alt={station.name} />
+              // <h4>{station.name}</h4> */}
+              <ServiceCard image={station.imageUrl} title={station.name}>
+                <p>📍 {station.address}</p>
+                <p>⏰ {station.openTime}</p>
+                <p>⚡ Trạng thái: {station.status}</p>
+              </ServiceCard>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Gói dịch vụ */}
+      {/* service packages */}
       <div className="service-section">
         <h3>Các gói dịch vụ Swap Pin</h3>
         <div className="service-cards">
-          <ServiceCard
-            title="Gói Cơ Bản"
-            content="Swap từng lần. Thanh toán theo lượt."
-          />
-          <ServiceCard
-            title="Gói Tiết Kiệm"
-            content="Thuê pin theo tháng. Bao gồm số lần swap cố định."
-          />
-          <ServiceCard
-            title="Gói Premium"
-            content="Swap không giới hạn + bảo dưỡng pin nâng cao."
-          />
+          <ServiceCard title="Gói Cơ Bản">
+            <p>Swap từng lần. Thanh toán theo lượt</p>
+          </ServiceCard>
+          <ServiceCard title="Gói Tiết Kiệm">
+            <p>Thuê pin theo tháng. Bao gồm số lần swap cố định</p>
+          </ServiceCard>
+          <ServiceCard title="Gói Premium">
+            <p>Swap không giới hạn + bảo dưỡng pin nâng cao</p>
+          </ServiceCard>
         </div>
       </div>
-      {/* Map Placeholder */}
+
+      {/* map placeholder */}
       <div className="map-placeholder">
         <h2>Bản đồ trạm đổi pin gần nhất (Google Map API sau này)</h2>
         <div className="map-animation">🌍 [Map nền hoặc animation ở đây]</div>

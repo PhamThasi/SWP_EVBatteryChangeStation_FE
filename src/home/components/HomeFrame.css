@@ -13,6 +13,7 @@
   /* chiếm hết chiều cao viewport */
   overflow: hidden;
   /* cắt bớt phần dư */
+  box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.3)
 }
 
 .car-video video {
@@ -32,7 +33,7 @@
   margin: 0 auto;
   padding: 4rem 2rem;
   text-align: center;
-
+ 
 }
 
 .power-service-container h1 {
@@ -78,7 +79,7 @@
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  color: #333;
+  color: #e8f00e;
   transition: transform 0.3s ease;
 }
 
@@ -96,45 +97,72 @@
 
 /* Caption dưới */
 .power-service-items p {
+  font-size: 2rem;
   font-weight: 600;
-  margin-top: 0.5rem;
-  color: #000;
-}
-
-.map-placeholder {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.map-animation {
   margin-top: 1rem;
-  padding: 4rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  color: #001f54;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
 }
+
+.Section-video {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.Section-video video {
+  width: 70%;
+  box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.3)
+}
+
+
 
 /* Car section */
-.car-section ul {
-  list-style: none;
-  padding: 0;
+.station-section {
+  margin: 2rem 0;
+  text-align: center;
+  color: white;
 }
 
-.car-section li {
-  background: rgba(255, 255, 255, 0.15);
-  margin: 0.5rem 0;
-  padding: 0.7rem;
+.station-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* căn giữa */
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.station-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  backdrop-filter: blur(6px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.station-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.station-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
   border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s;
+  margin-bottom: 0.5rem;
 }
 
-.car-section li:hover {
-  background: rgba(255, 255, 255, 0.3);
+.station-card h4 {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  color: #00b4d8;
 }
+
 
 /* Service section */
 .service-section {
   margin-top: 2rem;
+  text-align: center;
 }
 
 .service-cards {
@@ -142,4 +170,14 @@
   gap: 1.5rem;
   margin-top: 1rem;
   justify-content: center;
+}
+.map-placeholder {
+  text-align: center;
+}
+
+.map-animation {
+  margin-top: 1rem;
+  padding: 4rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
