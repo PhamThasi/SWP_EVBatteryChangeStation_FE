@@ -1,14 +1,16 @@
 .service-card {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 2rem;
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.2);       
+  backdrop-filter: blur(8px);                 
+  -webkit-backdrop-filter: blur(8px);
+  padding: 2rem 1.5rem;
+  border-radius: 20px;
   width: 20rem;
-  height: 30rem;
-  text-align: center;
-  transition: transform 0.4s ease, background 0.4s;
-  border: 1px solid #00b894;
-  box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
-
+  min-height: 32rem;                         
+  text-align: left;                           
+  color: #f8f9fa;                             
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: all 0.4s ease;
 }
 
 .service-card img {

@@ -138,13 +138,39 @@ const HomeFrame = () => {
         <h3>Các gói dịch vụ Swap Pin</h3>
         <div className="service-cards">
           <ServiceCard title="Gói Cơ Bản">
-            <p>Swap từng lần. Thanh toán theo lượt</p>
+            <ul style={{listStyle:"none"}}>
+              <li>🔁 Swap từng lần – trả tiền theo mỗi lượt đổi pin</li>
+              <li>
+                💡 Phù hợp với tài xế ít di chuyển hoặc sử dụng không thường
+                xuyên
+              </li>
+              <li>💸 Không cần cam kết tháng – linh hoạt, dùng khi cần</li>
+              <li>📱 Quản lý và thanh toán dễ dàng qua ứng dụng</li>
+            </ul>
           </ServiceCard>
+
           <ServiceCard title="Gói Tiết Kiệm">
-            <p>Thuê pin theo tháng. Bao gồm số lần swap cố định</p>
+            <ul style={{listStyle:"none"}}> 
+              <li>
+                📦 Thuê pin theo tháng, giá thấp hơn 20–30% so với gói cơ bản
+              </li>
+              <li>
+                🔁 Bao gồm <b>10–15 lượt swap miễn phí mỗi tháng</b>
+              </li>
+              <li>⚡ Ưu tiên tại trạm khi đổi pin trong giờ cao điểm</li>
+              <li>📊 Theo dõi số lần swap còn lại ngay trên app</li>
+              <li>💳 Thanh toán tự động – có thể gia hạn gói dễ dàng</li>
+            </ul>
           </ServiceCard>
+
           <ServiceCard title="Gói Premium">
-            <p>Swap không giới hạn + bảo dưỡng pin nâng cao</p>
+            <ul style={{listStyle:"none"}} >
+              <li>🔋 Swap không giới hạn – đổi pin bất cứ lúc nào</li>
+              <li>🧰 Bảo dưỡng & kiểm tra tình trạng pin định kỳ miễn phí</li>
+              <li>🚗 Ưu tiên hàng đầu tại mọi trạm trên hệ thống</li>
+              <li>💬 Hỗ trợ kỹ thuật 24/7 qua hotline hoặc app</li>
+              <li>🎁 Giảm giá 10–15% khi đăng ký thêm phương tiện khác</li>
+            </ul>
           </ServiceCard>
         </div>
       </div>
