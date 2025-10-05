@@ -10,6 +10,10 @@ import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
 
+import HomePage from "./home/page/HomePage";
+import ServiceCard from "./home/components/ServiceCard";
+// debug
+// import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
   const route = createBrowserRouter([
     {
@@ -34,8 +38,8 @@ function App() {
       path: "/homepage",
       element: (
         <div>
-          <NavBar/>
-          <HomeFrame/>
+          <HomePage/>
+          {/* <ServiceCard image={tramsac_evt} title={"Trạm sạc như lz"} content={"nhìn con cặc"} /> */}
         </div>
       ),
     },

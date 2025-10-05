@@ -14,6 +14,8 @@ const Navbar = () =>{
         <a href="#">Gói Pin</a>
       </nav>
     </div>
+
+
   );
 }
 export default Navbar;

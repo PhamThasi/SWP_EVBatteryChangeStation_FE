@@ -1,23 +1,25 @@
 .navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2.5rem 4rem;
-  background: linear-gradient(90deg, #001f54, #0077b6, #00b4d8);
+  padding: 2.3rem 3.4rem;
+  background-color: transparent;
   color: white;
 
-  position: relative;
 }
 
 .navbar-logo {
   font-size: 1.5rem;
   font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+
   position: absolute;
-  position: absolute;
-  top: 60%;
+  top: 65%;
+
   left: 50%;
   transform: translate(-50%, -50%);
 }
@@ -31,6 +33,8 @@
   list-style: none;
   display: flex;
   gap: 2rem;
+
+
 
 }
 
