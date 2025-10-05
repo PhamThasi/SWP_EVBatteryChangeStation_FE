@@ -16,7 +16,10 @@
   height: 60%;
   border-radius: 10px;
 }
-
+.service-card h4{
+  color: #E0FFFA;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
 .service-card:hover {
   transform: translateY(-10px) scale(1.05);
   background: rgba(255, 255, 255, 0.3);

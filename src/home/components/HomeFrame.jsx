@@ -38,7 +38,7 @@ const HomeFrame = () => {
   const stations = [
     {
       id: 1,
-      name: "THACO BMW Sala",
+      name: "Ev-ONE",
       address: "Quận 2, TP. HCM",
       status: "Available",
       openTime: "06:00 - 22:00",
@@ -46,7 +46,7 @@ const HomeFrame = () => {
     },
     {
       id: 2,
-      name: "Porsche Sài Gòn",
+      name: "TESLAT",
       address: "Quận 1, TP. HCM",
       status: "Busy",
       openTime: "07:00 - 23:00",
@@ -54,7 +54,7 @@ const HomeFrame = () => {
     },
     {
       id: 3,
-      name: "EBOOST BigC Thảo Điền",
+      name: "VINFAST-Thảo Điền",
       address: "Thảo Điền, TP. HCM",
       status: "Available",
       openTime: "24/7",
