@@ -49,7 +49,7 @@ const SignUp = () => {
       <div className="footer-signUp">
         <p>
           You already have an account{" "}
-          <Link to="/">
+          <Link to="/login">
             Sign In
           </Link>
         </p>

@@ -33,7 +33,7 @@ const NavBar = () => {
       {/*  đăng nhập  */}
       <div className="navbar-account">
         {/* <a href="/SignIn" className="login-btn">Đăng nhập</a> */}
-        <Link to="/">Đăng nhập</Link>
+        <Link to="/login">Đăng nhập</Link>
       </div>
     </nav>
   );

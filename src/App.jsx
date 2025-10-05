@@ -17,7 +17,7 @@ import ServiceCard from "./home/components/ServiceCard";
 function App() {
   const route = createBrowserRouter([
     {
-      path: "/",
+      path: "/login",
       element: (
         <AuthLayout>
           {/* <SignUp/> */}
@@ -35,7 +35,7 @@ function App() {
       ),
     },
     {
-      path: "/homepage",
+      path: "/",
       element: (
         <div>
           <HomePage/>
