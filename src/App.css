@@ -12,3 +12,6 @@ html{
 body{
     font-size: 1.6rem   ;
 }
+.page-content {
+  padding-top: 45px; 
+}

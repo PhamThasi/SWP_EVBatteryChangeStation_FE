@@ -9,8 +9,9 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
-import Admin from "./home/page/Admin";
+import AdminDash from "./home/page/AdminDash";
 import AdminNav from "./home/components/AdminNav";
+import AccountManagement from "./home/page/AccountManagement";
 
 function App() {
   const route = createBrowserRouter([
@@ -46,10 +47,25 @@ function App() {
       element: (
         <div>
           <AdminNav/>
-          <Admin/>
+          <div className= "page-content">
+            <AdminDash/>
+          </div>
+          
         </div>
       ),
     },
+    {
+      path: "/admin/accounts",
+      element: (
+        <div>
+          <AdminNav/>
+          <div className= "page-content">
+            <AccountManagement/>
+          </div>
+          
+        </div>
+      ),
+    },  
   ]);
   return (
     <div>

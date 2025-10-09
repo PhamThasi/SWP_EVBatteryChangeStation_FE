@@ -1,0 +1,62 @@
+.summary-section {
+  display: flex;
+  justify-content: space-around;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 1.2rem 2rem;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 200px;
+  transition: 0.3s;
+}
+
+.summary-card:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.chart-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.activity-section,
+.inventory-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.activity-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.activity-section li {
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0.5rem 0;
+  padding: 0.8rem;
+  border-radius: 8px;
+}
+
+.inventory-section table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inventory-section th,
+.inventory-section td {
+  padding: 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.page-content {
+  padding-top: 45px; 
+}
