@@ -12,6 +12,7 @@ import HomeFrame from "./home/components/HomeFrame";
 
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
+import SideBarApp from "./users/components/side-bar-form/SideBar";
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
@@ -39,7 +40,14 @@ function App() {
       element: (
         <div>
           <HomePage/>
-          {/* <ServiceCard image={tramsac_evt} title={"Trạm sạc như lz"} content={"nhìn con cặc"} /> */}
+        </div>
+      ),
+    },
+    {
+      path: "/userPage",
+      element: (
+        <div>
+          <SideBarApp/>
         </div>
       ),
     },
