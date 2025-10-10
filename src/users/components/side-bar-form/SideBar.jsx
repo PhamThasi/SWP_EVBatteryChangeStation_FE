@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-
+import { Link } from "react-router-dom";
 const SideBarApp = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [active, setActive] = useState("");
   const [menus, setMenus] = useState([
     {
       header: "THÔNG TIN XE",
-      items: [{ icon: "🚗", label: "Xe của tôi", path: "/my-vehicle" }],
+      items: [{ icon: "🚗", label: "Xe của tôi", path: "/profileCar" }],
     },
     {
       header: "ĐẶT HÀNG VÀ DỊCH VỤ",
@@ -80,23 +80,23 @@ const SideBarApp = () => {
 
               <div className="space-y-2">
                 {section.items.map((item, itemIndex) => (
-                  <button
+                  <Link
                     key={itemIndex}
+                    to={item.path}
                     onClick={() => {
                       setActive(item.path);
-                      console.log(`Navigate to: ${item.path}`);
                       setIsOpen(false);
                     }}
                     className={`w-full flex items-center gap-4 px-5 py-4 text-left rounded-lg text-gray-700 text-lg font-medium transition-all duration-150
-                  ${
-                    active === item.path
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "hover:bg-blue-100 hover:text-blue-700"
-                  }`}
+  ${
+    active === item.path
+      ? "bg-blue-600 text-white shadow-md"
+      : "hover:bg-blue-100 hover:text-blue-700"
+  }`}
                   >
                     <span className="text-2xl">{item.icon}</span>
                     <span>{item.label}</span>
-                  </button>
+                  </Link>
                 ))}
               </div>
 
@@ -110,14 +110,14 @@ const SideBarApp = () => {
       </div>
 
       {/* Nội dung chính (demo) */}
-      <div className="ml-16 mt-16">
+      {/* <div className="ml-16 mt-16">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
           Ứng dụng của tôi
         </h1>
         <p className="text-gray-600">
           Nhấn vào nút menu ở góc trên bên trái để mở sidebar to hơn.
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-.btn {
+.auth-btn {
     border: transparent;
     outline: none;
     width: 20rem;
@@ -6,8 +6,14 @@
     padding: 1rem;
     border-radius: 10px;
     background: #2A7B9B;
-    background: linear-gradient(90deg, rgba(42, 123, 155, 1) 0%, rgba(87, 199, 133, 1) 69%, rgba(83, 219, 237, 1) 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(42, 123, 155, 1) 0%,
+      rgba(87, 199, 133, 1) 69%,
+      rgba(83, 219, 237, 1) 100%
+    );
     color: #fff;
     font-weight: 700;
     text-transform: uppercase;
-}
+  }
+  

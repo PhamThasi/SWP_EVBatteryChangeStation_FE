@@ -13,6 +13,9 @@ import HomeFrame from "./home/components/HomeFrame";
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
 import SideBarApp from "./users/components/side-bar-form/SideBar";
+import ProfileCar from "./users/components/profile-car/profileCar";
+import { User } from "lucide-react";
+import UserLayout from "./users/Layout/UserLayout";
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
@@ -39,7 +42,7 @@ function App() {
       path: "/",
       element: (
         <div>
-          <HomePage/>
+          <HomePage />
         </div>
       ),
     },
@@ -47,9 +50,17 @@ function App() {
       path: "/userPage",
       element: (
         <div>
-          <SideBarApp/>
+          <SideBarApp />
         </div>
       ),
+    },
+    {
+      path: "/profileCar",
+      element: <UserLayout />,
+      children: [
+        { path: "profileCar", element: <ProfileCar /> },
+        // sau này thêm: history, maintenance, support...
+      ],
     },
   ]);
   return (

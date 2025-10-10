@@ -8,7 +8,7 @@ const SignIn = () => {
   return (
     <div className="signIn">
       <div className="header-signIn">
-        <h1>Welcome Back!</h1>
+        <h1>WELCOME BACK!</h1>
         <p>Please login to your account</p>
       </div>
       <form className="signIn-Group">
@@ -47,3 +47,4 @@ const SignIn = () => {
 };
 
 export default SignIn;
+
