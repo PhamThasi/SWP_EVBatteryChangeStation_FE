@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 const SideBarApp = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -6,30 +6,35 @@ const SideBarApp = () => {
   const [menus, setMenus] = useState([
     {
       header: "THÔNG TIN XE",
-      items: [{ icon: "🚗", label: "Xe của tôi", path: "/profileCar" }],
+      items: [{ icon: "", label: "Xe của tôi", path: "/profileCar" }],
     },
     {
       header: "ĐẶT HÀNG VÀ DỊCH VỤ",
       items: [
-        { icon: "🔄", label: "Lịch sử giao dịch", path: "/history" },
-        { icon: "🔧", label: "Bảo dưỡng - Sửa chữa", path: "/maintenance" },
-        { icon: "🔋", label: "Thuê Pin", path: "/battery-rental" },
-        { icon: "🔋", label: "Lịch sử Sạc Pin", path: "/charging-history" },
+        { icon: "", label: "Lịch sử giao dịch", path: "/history" },
+        { icon: "", label: "Bảo dưỡng - Sửa chữa", path: "/maintenance" },
+        { icon: "", label: "Thuê Pin", path: "/battery-rental" },
+        { icon: "", label: "Lịch sử Sạc Pin", path: "/charging-history" },
       ],
     },
     {
       header: "TÀI KHOẢN",
       items: [
-        { icon: "👤", label: "Thông tin cá nhân", path: "/profile" },
-        { icon: "❓", label: "Yêu cầu hỗ trợ", path: "/support" },
-        { icon: "🎧", label: "Liên hệ", path: "/contact" },
+        { icon: "", label: "Thông tin cá nhân", path: "/profile" },
+        { icon: "", label: "Yêu cầu hỗ trợ", path: "/support" },
+        { icon: "", label: "Liên hệ", path: "/contact" },
       ],
     },
     {
       header: null,
-      items: [{ icon: "🚪", label: "Đăng xuất", path: "/logout" }],
+      items: [{ icon: "", label: "Đăng xuất", path: "/logout" }],
     },
   ]);
+  useEffect(()=>{
+    return()=>{
+      
+    }
+  },[])
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 font-sans">
