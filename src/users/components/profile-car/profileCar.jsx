@@ -14,7 +14,7 @@ const ProfileCar = () => {
     createDate: "2024-12-20",
     batteryLevel: 76,
   });
-
+  // const [car, setCar] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
   // Cấu hình các field cho ModalForm
@@ -42,7 +42,7 @@ const ProfileCar = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#001f54] to-[#0077b6] flex items-center justify-center p-10 font-[Inter]">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#001f54] to-[#0077b6] flex items-center justify-center p-10 font-[Roboto Condensed]">
       {car ? (
         /* --- Nếu đã có xe --- */
         <div className="bg-white rounded-3xl shadow-2xl flex flex-col md:flex-row items-center p-10 w-[100rem] h-[60rem]">
@@ -63,7 +63,7 @@ const ProfileCar = () => {
 
             <div className="space-y-3 text-4xl">
               <p>
-                <span className="font-semibold text-[#0077b6]">🚗 Model:</span>{" "}
+                <span className="font-semibold text-[#0077b6]">Model:</span>{" "}
                 {car.model}
               </p>
               <p>

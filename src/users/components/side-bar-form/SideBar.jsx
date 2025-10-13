@@ -6,7 +6,7 @@ const SideBarApp = () => {
   const [menus, setMenus] = useState([
     {
       header: "THÔNG TIN XE",
-      items: [{ icon: "", label: "Xe của tôi", path: "/profileCar" }],
+      items: [{ icon: "", label: "Xe của tôi", path: "/userPage/profileCar" }],
     },
     {
       header: "ĐẶT HÀNG VÀ DỊCH VỤ",
@@ -20,7 +20,7 @@ const SideBarApp = () => {
     {
       header: "TÀI KHOẢN",
       items: [
-        { icon: "", label: "Thông tin cá nhân", path: "/profile" },
+        { icon: "", label: "Thông tin cá nhân", path: "/userPage/userProfile" },
         { icon: "", label: "Yêu cầu hỗ trợ", path: "/support" },
         { icon: "", label: "Liên hệ", path: "/contact" },
       ],
@@ -47,12 +47,12 @@ const SideBarApp = () => {
       </button>
 
       {/* Overlay (nền tối sau khi mở menu) */}
-      {isOpen && (
+      {/* {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-40 z-40"
           onClick={() => setIsOpen(false)}
         />
-      )}
+      )} */}
 
       {/* Sidebar chính */}
       <div
