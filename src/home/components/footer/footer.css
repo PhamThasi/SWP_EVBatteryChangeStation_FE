@@ -1,0 +1,9 @@
+.footer-block{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(90deg, #001f54, #0077b6, #00b4d8);
+    color: aliceblue;
+    margin: 0;
+}
