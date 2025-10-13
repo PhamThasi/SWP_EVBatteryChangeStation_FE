@@ -4,54 +4,62 @@ import "./signUp.css";
 
 const SignUp = () => {
   return (
-    <div className="signUp">
-      <div className="signUp-header">
+    <div className="auth-signup-container">
+      <div className="auth-signup-header">
         <h1>Sign Up</h1>
-        <p>Please login to your account</p>
+        <p>Create a new account</p>
       </div>
-      <div className="form-group">
-        <div className="form-block">
-          <label htmlFor="Email">Email</label>
+
+      <div className="auth-form-group">
+        <div className="auth-form-block">
+          <label htmlFor="email">Email</label>
           <input
-            type="text"
-            id="Email"
-            name="Email"
+            type="email"
+            id="email"
+            name="email"
             placeholder="Enter email address"
+            required
           />
         </div>
-        <div className="form-block">
+
+        <div className="auth-form-block">
           <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
             name="password"
             placeholder="Password"
+            required
+            minLength="6"
           />
         </div>
-        <div className="form-block">
-          <label htmlFor="confirmPassword">Confirm password</label>
+
+        <div className="auth-form-block">
+          <label htmlFor="confirmPassword">Confirm Password</label>
           <input
             type="password"
             id="confirmPassword"
             name="confirmPassword"
             placeholder="Confirm password"
+            required
+            minLength="6"
           />
         </div>
       </div>
-      <div className="btn-signUp">
-        <Button>Sign up</Button>
-        <div className="divider">
+
+      <div className="auth-btn-group">
+        <Button>Sign Up</Button>
+
+        <div className="auth-divider">
           <h6>or</h6>
         </div>
 
-        <Button className="btn-google">Sign up with Google</Button>
+        <Button className="auth-btn-google">Sign up with Google</Button>
       </div>
-      <div className="footer-signUp">
+
+      <div className="auth-footer">
         <p>
-          You already have an account{" "}
-          <Link to="/">
-            Sign In
-          </Link>
+          Already have an account? <Link to="/login">Sign In</Link>
         </p>
       </div>
     </div>

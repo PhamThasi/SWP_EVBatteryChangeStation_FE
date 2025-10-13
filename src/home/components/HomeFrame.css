@@ -106,9 +106,11 @@
 .Section-video {
   margin: 0 auto;
   text-align: center;
+  /* border: 1px saddlebrown solid; */
 }
 
 .Section-video video {
+  display: inline-block;
   width: 70%;
   box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.3)
 }

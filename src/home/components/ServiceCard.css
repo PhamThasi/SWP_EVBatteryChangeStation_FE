@@ -1,4 +1,5 @@
 .service-card {
+
   background: rgba(255, 255, 255, 0.2);       
   backdrop-filter: blur(8px);                 
   -webkit-backdrop-filter: blur(8px);
@@ -26,3 +27,4 @@
   transform: translateY(-10px) scale(1.05);
   background: rgba(255, 255, 255, 0.3);
 }
+

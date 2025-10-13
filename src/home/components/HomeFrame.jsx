@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 
 import "./HomeFrame.css";
@@ -12,6 +13,7 @@ import SectionVideo from "../../assets/swapingCar.mp4";
 import tramsac_evt from "./../../assets/tramsac_evt.jpg";
 import tramsac_testla from "./../../assets/tramsac_testla.jpg";
 import tramsac_vinfast from "./../../assets/tramsac_vinfast.jpg";
+import GoogleMapPlaces from "@/components/MapAPI/GoogleMapPlaces";
 const HomeFrame = () => {
   useEffect(() => {
     const reveals = document.querySelectorAll(".reveal");
@@ -46,7 +48,7 @@ const HomeFrame = () => {
     },
     {
       id: 2,
-      name: "TESLAT",
+      name: "TESLA",
       address: "Quận 1, TP. HCM",
       status: "Busy",
       openTime: "07:00 - 23:00",
@@ -111,7 +113,7 @@ const HomeFrame = () => {
       </div>
 
       {/* video section */}
-      <div className="Section-video reveal">
+      <div className="Section-video reveal ">
         <video src={SectionVideo} autoPlay muted loop playsInline></video>
       </div>
 
@@ -178,7 +180,9 @@ const HomeFrame = () => {
       {/* map placeholder */}
       <div className="map-placeholder">
         <h2>Bản đồ trạm đổi pin gần nhất (Google Map API sau này)</h2>
-        <div className="map-animation">🌍 [Map nền hoặc animation ở đây]</div>
+        <div className="map-animation">
+          <GoogleMapPlaces/>
+        </div>
       </div>
     </div>
   );

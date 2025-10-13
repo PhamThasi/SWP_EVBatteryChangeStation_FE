@@ -9,9 +9,13 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
+
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
-import AdminDash from "./home/page/AdminDash";
+import SideBarApp from "./users/components/side-bar-form/SideBar";
+import ProfileCar from "./users/components/profile-car/profileCar";
+import { User } from "lucide-react";
+import UserLayout from "./users/Layout/UserLayout";import AdminDash from "./home/page/AdminDash";
 import AdminNav from "./home/components/AdminNav";
 import AccountManagement from "./home/page/AccountManagement";
 
@@ -20,7 +24,7 @@ import AccountManagement from "./home/page/AccountManagement";
 function App() {
   const route = createBrowserRouter([
     {
-      path: "/",
+      path: "/login",
       element: (
         <AuthLayout>
           {/* <SignUp/> */}
@@ -38,13 +42,28 @@ function App() {
       ),
     },
     {
-      path: "/homepage",
+      path: "/",
       element: (
         <div>
-          <HomePage/>
-          {/* <ServiceCard image={tramsac_evt} title={"Trạm sạc như lz"} content={"nhìn con cặc"} /> */}
+          <HomePage />
         </div>
       ),
+    },
+    {
+      path: "/userPage",
+      element: (
+        <div>
+          <SideBarApp />
+        </div>
+      ),
+    },
+    {
+      path: "/profileCar",
+      element: <UserLayout />,
+      children: [
+        { path: "profileCar", element: <ProfileCar /> },
+        // sau này thêm: history, maintenance, support...
+      ],
     },
   ]);
   return (

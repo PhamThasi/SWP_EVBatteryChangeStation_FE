@@ -2,35 +2,39 @@
     color: #fff;
     height: 100%;
     width: 100%;
-    background: #2A7B9B;
-    background: linear-gradient(90deg, rgba(42, 123, 155, 1) 0%, rgba(119, 87, 199, 0.98) 15%, rgba(84, 216, 223, 1) 100%, rgba(83, 219, 237, 1) 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(42, 123, 155, 1) 0%,
+      rgba(119, 87, 199, 0.98) 15%,
+      rgba(84, 216, 223, 1) 100%,
+      rgba(83, 219, 237, 1) 100%
+    );
     border-radius: 1rem;
     box-sizing: border-box;
-}
-
-.header-signIn {
+  }
+  
+  .header-signIn {
     font-weight: 700;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     margin: 6rem 0;
-
-}
-
-.signIn-Group {
+  }
+  
+  .signIn-Group {
     display: flex;
     flex-direction: column;
     justify-content: center;
     margin-left: 4rem;
-}
-
-.signIn-block label {
+  }
+  
+  .signIn-block label {
     display: block;
     margin-top: 1rem;
-}
-
-.signIn-block input {
+  }
+  
+  .signIn-block input {
     outline: none;
     border: 1px solid black;
     padding: 1.4rem 1rem;
@@ -38,22 +42,39 @@
     margin-top: 1rem;
     text-align: left;
     width: 90%;
-}
-
-.signIn-block input ::placeholder {
+  }
+  
+  .signIn-block input::placeholder {
     text-align: left;
-}
-
-.butt {
+  }
+  
+  .butt {
     margin: 5rem auto;
-}
-
-.footer-text {
+  }
+  
+  .footer-text {
     margin-top: 6rem;
     text-align: center;
-}
-
-.footer-text a {
-    color: #2A7B9B;
-    color: linear-gradient(90deg, rgba(42, 123, 155, 1) 0%, rgba(87, 199, 133, 1) 69%, rgba(83, 219, 237, 1) 100%);
-}
+  }
+  
+  /* ✅ Chỉnh đoạn này */
+  .footer-text a {
+    font-weight: 700;
+    text-decoration: none;
+    background: linear-gradient(
+      90deg,
+      rgba(131, 58, 180, 1) 0%,
+      rgba(253, 29, 29, 1) 50%,
+      rgba(120, 104, 70, 1) 100%
+    );
+    -webkit-background-clip: text; /* cho phép background gradient chỉ đổ trong vùng text */
+    -webkit-text-fill-color: transparent; /* biến background thành màu chữ */
+    background-clip: text;
+    color: transparent; /* bắt buộc để hiện gradient chữ */
+    transition: opacity 0.2s ease-in-out;
+  }
+  
+  .footer-text a:hover {
+    opacity: 0.8;
+  }
+  
