@@ -43,6 +43,7 @@ function App() {
       element: (
         <div>
           <HomePage />
+          
         </div>
       ),
     },
@@ -75,6 +76,7 @@ function App() {
   return (
     <div>
       <RouterProvider router={route}></RouterProvider>
+      
     </div>
   );
 }
