@@ -13,7 +13,7 @@ const ModalForm = ({
 }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-[50rem]">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-[50rem] max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
         <h3 className="text-3xl font-bold mb-6 text-[#001f54]">{title}</h3>
 
         <Formik
