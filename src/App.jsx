@@ -16,6 +16,7 @@ import { User } from "lucide-react";
 import UserLayout from "./users/Layout/UserLayout";
 import ModalForm from "./components/modalForm/ModalForm";
 import UserProfile from "./users/components/user-profile/UserProfile";
+import SupportRequest from "./users/components/support-request/SupportRequest";
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
@@ -61,6 +62,7 @@ function App() {
       children: [
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
+        { path: "supportRequest", element: <SupportRequest/> },
         // sau này thêm: history, maintenance, support...
       ],
     },

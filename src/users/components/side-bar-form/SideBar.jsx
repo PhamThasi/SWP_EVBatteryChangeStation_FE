@@ -21,7 +21,7 @@ const SideBarApp = () => {
       header: "TÀI KHOẢN",
       items: [
         { icon: "", label: "Thông tin cá nhân", path: "/userPage/userProfile" },
-        { icon: "", label: "Yêu cầu hỗ trợ", path: "/support" },
+        { icon: "", label: "Yêu cầu hỗ trợ", path: "/userPage/supportRequest" },
         { icon: "", label: "Liên hệ", path: "/contact" },
       ],
     },
