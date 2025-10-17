@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import Button from "./components/button";
 import AuthLayout from "./components/AuthLayout/AuthLayout";
@@ -17,9 +17,21 @@ import UserLayout from "./users/Layout/UserLayout";
 import ModalForm from "./components/modalForm/ModalForm";
 import UserProfile from "./users/components/user-profile/UserProfile";
 import SupportRequest from "./users/components/support-request/SupportRequest";
+import authService from "./api/authService";
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
+  useEffect(() => {
+    const testAPI = async () => {
+      try {
+        const data = await authService.getAll();
+        console.log(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    testAPI();
+  },[]);
   const route = createBrowserRouter([
     {
       path: "/login",
@@ -44,7 +56,6 @@ function App() {
       element: (
         <div>
           <HomePage />
-          
         </div>
       ),
     },
@@ -62,7 +73,7 @@ function App() {
       children: [
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
-        { path: "supportRequest", element: <SupportRequest/> },
+        { path: "supportRequest", element: <SupportRequest /> },
         // sau này thêm: history, maintenance, support...
       ],
     },
@@ -78,7 +89,6 @@ function App() {
   return (
     <div>
       <RouterProvider router={route}></RouterProvider>
-      
     </div>
   );
 }

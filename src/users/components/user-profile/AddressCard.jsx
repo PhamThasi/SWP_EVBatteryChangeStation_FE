@@ -1,0 +1,33 @@
+import Card from "@/components/card/Card";
+import CardHeader from "@/components/card/CardHeader";
+import InfoField from "@/components/card/InfoField";
+
+const AddressCard = ({
+  address,
+  tempAddress,
+  isEditing,
+  onEdit,
+  onCancel,
+  onChange,
+}) => {
+  const displayAddress = isEditing ? tempAddress : address;
+
+  return (
+    <Card>
+      <CardHeader
+        title="Address"
+        isEditing={isEditing}
+        onEdit={onEdit}
+        onCancel={onCancel}
+      />
+      <InfoField
+        label="Street Address"
+        value={displayAddress}
+        isEditing={isEditing}
+        onChange={onChange}
+        name="address"
+      />
+    </Card>
+  );
+};
+export default AddressCard;

@@ -9,7 +9,6 @@ const SupportRequestForm = ({ isOpen, onClose, onSubmit }) => {
     supportType: "Hỗ trợ dịch vụ Xe",
     title: "",
     vehicle: "Không",
-    topic: "",
     details: "",
     name: "",
     phone: "",
@@ -21,7 +20,6 @@ const SupportRequestForm = ({ isOpen, onClose, onSubmit }) => {
   const validationSchema = Yup.object({
     title: Yup.string().required("Vui lòng nhập tiêu đề"),
     topic: Yup.string().required("Vui lòng chọn chủ đề"),
-    details: Yup.string().required("Vui lòng nhập chi tiết"),
     name: Yup.string().required("Vui lòng nhập họ tên"),
     phone: Yup.string()
       .matches(/^[0-9]+$/, "Số điện thoại chỉ được chứa số")
@@ -47,13 +45,6 @@ const SupportRequestForm = ({ isOpen, onClose, onSubmit }) => {
       as: "select",
       type: "select",
       options: ["Không", "Xe máy", "Ô tô"],
-    },
-    {
-      name: "topic",
-      label: "Chủ đề",
-      as: "select",
-      type: "select",
-      options: ["Vấn đề kỹ thuật", "Thanh toán", "Dịch vụ khách hàng", "Khác"],
     },
     { name: "details", label: "Chi tiết", as: "textarea" },
     { name: "name", label: "Họ tên", placeholder: "Nguyễn Văn A" },
