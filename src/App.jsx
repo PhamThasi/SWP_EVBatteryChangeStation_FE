@@ -65,6 +65,14 @@ function App() {
         // sau này thêm: history, maintenance, support...
       ],
     },
+    {
+      path: "/admin",
+      element: (
+        <div>
+          <AccountManagement />
+        </div>
+      ),
+    },
   ]);
   return (
     <div>
