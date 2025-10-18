@@ -14,7 +14,7 @@ const SideBarApp = () => {
         { icon: "", label: "Lịch sử giao dịch", path: "/history" },
         { icon: "", label: "Bảo dưỡng - Sửa chữa", path: "/maintenance" },
         { icon: "", label: "Thuê Pin", path: "/battery-rental" },
-        { icon: "", label: "Lịch sử Sạc Pin", path: "/charging-history" },
+        { icon: "", label: "Lịch sử Đổi Pin", path: "/charging-history" },
       ],
     },
     {
