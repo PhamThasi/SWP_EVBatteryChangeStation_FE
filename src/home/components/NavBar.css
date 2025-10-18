@@ -10,7 +10,8 @@
   padding: 2.3rem 3.4rem;
   background-color: transparent;
   color: white;
-
+  transition: 0.3s;
+  height: 8rem;
 }
 
 .navbar-logo {
@@ -33,9 +34,6 @@
   list-style: none;
   display: flex;
   gap: 2rem;
-
-
-
 }
 
 .navbar-links a {
@@ -46,4 +44,9 @@
 
 .navbar-links a:hover {
   color: #90e0ef;
+}
+.navbar.scrolled{
+  background: rgba(0, 119, 182, 0.4);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3);
 }

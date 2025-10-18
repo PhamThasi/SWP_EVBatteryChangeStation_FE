@@ -1,0 +1,93 @@
+.account-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.account-toolbar input {
+  padding: 0.7rem 1rem;
+  width: 60%;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+}
+
+.create-btn {
+  background: #00b4d8;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.create-btn:hover {
+  background: #0077b6;
+}
+
+.account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.account-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  transition: 0.3s;
+}
+
+.account-card:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.account-info h3 {
+  margin: 0;
+}
+
+.account-info p {
+  margin: 0.2rem 0;
+  font-size: 0.9rem;
+}
+
+.account-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.update-btn,
+.delete-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  transition: 0.3s;
+}
+
+.update-btn {
+  background: #0077b6;
+}
+
+.update-btn:hover {
+  background: #0096c7;
+}
+
+.delete-btn {
+  background: #d62828;
+}
+
+.delete-btn:hover {
+  background: #e63946;
+}
+
+.no-data {
+  text-align: center;
+  opacity: 0.8;
+}

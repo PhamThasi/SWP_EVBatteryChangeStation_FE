@@ -12,6 +12,13 @@ import HomeFrame from "./home/components/HomeFrame";
 
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
+import SideBarApp from "./users/components/side-bar-form/SideBar";
+import ProfileCar from "./users/components/profile-car/profileCar";
+import { User } from "lucide-react";
+import UserLayout from "./users/Layout/UserLayout";import AdminDash from "./home/page/AdminDash";
+import AdminNav from "./home/components/AdminNav";
+import AccountManagement from "./home/page/AccountManagement";
+
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
@@ -38,8 +45,31 @@ function App() {
       path: "/",
       element: (
         <div>
-          <HomePage/>
-          {/* <ServiceCard image={tramsac_evt} title={"Trạm sạc như lz"} content={"nhìn con cặc"} /> */}
+          <HomePage />
+        </div>
+      ),
+    },
+    {
+      path: "/userPage",
+      element: (
+        <div>
+          <SideBarApp />
+        </div>
+      ),
+    },
+    {
+      path: "/profileCar",
+      element: <UserLayout />,
+      children: [
+        { path: "profileCar", element: <ProfileCar /> },
+        // sau này thêm: history, maintenance, support...
+      ],
+    },
+    {
+      path: "/admin",
+      element: (
+        <div>
+          <AccountManagement />
         </div>
       ),
     },
