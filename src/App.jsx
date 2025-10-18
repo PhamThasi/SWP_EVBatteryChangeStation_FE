@@ -82,6 +82,13 @@ function App() {
       element: (
         <div>
           <ModalForm />
+          </div>)
+    },
+    {
+      path: "/admin",
+      element: (
+        <div>
+          <AccountManagement />
         </div>
       ),
     },

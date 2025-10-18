@@ -21,6 +21,9 @@
         height: 100vh;
     }
 }
+.page-content {
+  padding-top: 45px; 
+}
 
 
 @import "tailwindcss";
