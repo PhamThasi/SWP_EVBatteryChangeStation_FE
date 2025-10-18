@@ -13,10 +13,10 @@
 import "./style.css";
 
 const Button = (props) => {
-  const { children, className = "", ...rest } = props;
+  const { children, onclick, className = "", ...rest } = props;
 
   return (
-    <button className={`auth-btn ${className}`} {...rest}>
+    <button onClick={onclick} className={`auth-btn ${className}`} {...rest}>
       {children}
     </button>
   );

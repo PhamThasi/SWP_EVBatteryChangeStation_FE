@@ -1,7 +1,5 @@
-import { useState } from "react";
-import Dashboard from "./components/dashboard";
+import { useEffect, useState } from "react";
 import "./App.css";
-import Headers from "./components/header";
 import Button from "./components/button";
 import AuthLayout from "./components/AuthLayout/AuthLayout";
 import SignIn from "./auth/components/signIn/signIn";
@@ -15,13 +13,25 @@ import ServiceCard from "./home/components/ServiceCard";
 import SideBarApp from "./users/components/side-bar-form/SideBar";
 import ProfileCar from "./users/components/profile-car/profileCar";
 import { User } from "lucide-react";
-import UserLayout from "./users/Layout/UserLayout";import AdminDash from "./home/page/AdminDash";
-import AdminNav from "./home/components/AdminNav";
-import AccountManagement from "./home/page/AccountManagement";
-
+import UserLayout from "./users/Layout/UserLayout";
+import ModalForm from "./components/modalForm/ModalForm";
+import UserProfile from "./users/components/user-profile/UserProfile";
+import SupportRequest from "./users/components/support-request/SupportRequest";
+import authService from "./api/authService";
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
+  useEffect(() => {
+    const testAPI = async () => {
+      try {
+        const data = await authService.getAll();
+        console.log(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    testAPI();
+  },[]);
   const route = createBrowserRouter([
     {
       path: "/login",
@@ -58,12 +68,21 @@ function App() {
       ),
     },
     {
-      path: "/profileCar",
+      path: "/userPage",
       element: <UserLayout />,
       children: [
         { path: "profileCar", element: <ProfileCar /> },
+        { path: "userProfile", element: <UserProfile /> },
+        { path: "supportRequest", element: <SupportRequest /> },
         // sau này thêm: history, maintenance, support...
       ],
+    },
+    {
+      path: "/debugComponent",
+      element: (
+        <div>
+          <ModalForm />
+          </div>)
     },
     {
       path: "/admin",

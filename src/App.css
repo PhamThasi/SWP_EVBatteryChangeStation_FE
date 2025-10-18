@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
-
 @custom-variant dark (&:is(.dark *));
 
 /* reset css */
@@ -145,4 +144,6 @@
     body {
         @apply bg-background text-foreground;
     }
+
+
 }

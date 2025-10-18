@@ -1,8 +1,36 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Button from "../../../components/button";
 import "./signUp.css";
 
 const SignUp = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirm) {
+      alert("Mật khẩu không trùng khớp!");
+      return;
+    }
+
+    try {
+      await axios.post("http://localhost:5204/api/Authen/register/", {
+        email,
+        password,
+      });
+      alert("Đăng ký thành công!");
+      navigate("/login");
+    } catch (err) {
+      console.error("Sign up failed:", err);
+      alert("Đăng ký thất bại!");
+    }
+  };
+
   return (
     <div className="auth-signup-container">
       <div className="auth-signup-header">
@@ -10,24 +38,24 @@ const SignUp = () => {
         <p>Create a new account</p>
       </div>
 
-      <div className="auth-form-group">
+      <form className="auth-form-group" onSubmit={handleSubmit}>
         <div className="auth-form-block">
-          <label htmlFor="email">Email</label>
+          <label>Email</label>
           <input
             type="email"
-            id="email"
-            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter email address"
             required
           />
         </div>
 
         <div className="auth-form-block">
-          <label htmlFor="password">Password</label>
+          <label>Password</label>
           <input
             type="password"
-            id="password"
-            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             required
             minLength="6"
@@ -35,33 +63,28 @@ const SignUp = () => {
         </div>
 
         <div className="auth-form-block">
-          <label htmlFor="confirmPassword">Confirm Password</label>
+          <label>Confirm Password</label>
           <input
             type="password"
-            id="confirmPassword"
-            name="confirmPassword"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
             placeholder="Confirm password"
             required
-            minLength="6"
           />
         </div>
-      </div>
 
-      <div className="auth-btn-group">
-        <Button>Sign Up</Button>
-
-        <div className="auth-divider">
-          <h6>or</h6>
+        <div className="auth-btn-group">
+          <Button type="submit">Sign Up</Button>
+          <div className="auth-divider"><h6>or</h6></div>
+          <Button className="auth-btn-google">Sign up with Google</Button>
         </div>
 
-        <Button className="auth-btn-google">Sign up with Google</Button>
-      </div>
-
-      <div className="auth-footer">
-        <p>
-          Already have an account? <Link to="/login">Sign In</Link>
-        </p>
-      </div>
+        <div className="auth-footer">
+          <p>
+            Already have an account? <Link to="/login">Sign In</Link>
+          </p>
+        </div>
+      </form>
     </div>
   );
 };
