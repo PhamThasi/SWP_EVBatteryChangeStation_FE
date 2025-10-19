@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import Button from "../../../components/button";
 import "./signIn.css";
 import { jwtDecode } from "jwt-decode";
+import authService from "@/api/authService";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -14,12 +14,11 @@ const SignIn = () => {
     e.preventDefault();
     try {
       // Gọi API login từ backend của cậu (VD: http://localhost:5000/api/Auth/login)
-      const res = await axios.post("http://localhost:5204/api/Authen/login", {
-        keyword: email,
-        password,
-      });
+      const res = await authService.login(email, password);
+      console.log(res);
+
       // Lưu token vào localStorage
-      if (res.data.status == 200 && res.data.data) {
+      if (res.data.status == 200 || res.data.data) {
         const token = res.data.data;
         localStorage.setItem("token", token);
         const decoded = jwtDecode(token);

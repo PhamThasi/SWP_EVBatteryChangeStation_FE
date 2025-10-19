@@ -18,20 +18,22 @@ import ModalForm from "./components/modalForm/ModalForm";
 import UserProfile from "./users/components/user-profile/UserProfile";
 import SupportRequest from "./users/components/support-request/SupportRequest";
 import authService from "./api/authService";
+import AccountManagement from "./home/page/AccountManagement";
+import OTPConfirmation from "./auth/components/otp/OTPConfirmation";
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
   useEffect(() => {
     const testAPI = async () => {
       try {
-        const data = await authService.getAll();
+        const data = await authService.login();
         console.log(data);
       } catch (error) {
         console.log(error);
       }
     };
     testAPI();
-  },[]);
+  }, []);
   const route = createBrowserRouter([
     {
       path: "/login",
@@ -48,6 +50,14 @@ function App() {
       element: (
         <AuthLayout>
           <SignUp />
+        </AuthLayout>
+      ),
+    },
+    {
+      path: "/verifyOtp",
+      element: (
+        <AuthLayout>
+          <OTPConfirmation/>
         </AuthLayout>
       ),
     },
@@ -82,7 +92,8 @@ function App() {
       element: (
         <div>
           <ModalForm />
-          </div>)
+        </div>
+      ),
     },
     {
       path: "/admin",

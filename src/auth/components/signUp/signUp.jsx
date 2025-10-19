@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import Button from "../../../components/button";
 import "./signUp.css";
+import OTPConfirmation from "../otp/OTPConfirmation";
+import authService from "@/api/authService";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -19,12 +20,9 @@ const SignUp = () => {
     }
 
     try {
-      await axios.post("http://localhost:5204/api/Authen/register/", {
-        email,
-        password,
-      });
-      alert("Đăng ký thành công!");
-      navigate("/login");
+      await authService.register(email, password);
+
+      navigate("/verifyOtp", { state: { email } });
     } catch (err) {
       console.error("Sign up failed:", err);
       alert("Đăng ký thất bại!");
@@ -75,7 +73,9 @@ const SignUp = () => {
 
         <div className="auth-btn-group">
           <Button type="submit">Sign Up</Button>
-          <div className="auth-divider"><h6>or</h6></div>
+          <div className="auth-divider">
+            <h6>or</h6>
+          </div>
           <Button className="auth-btn-google">Sign up with Google</Button>
         </div>
 

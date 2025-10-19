@@ -1,6 +1,4 @@
-import { register } from "react-social-icons";
 import axiosClient from "./axiosClient";
-import { data } from "react-router-dom";
 
 const authService = {
   login: async (email, password) => {
@@ -8,7 +6,7 @@ const authService = {
       const response = await axiosClient.post("/Authen/Login", {
         keyword: email,
         password: password,
-      },);
+      });
       console.log(" Login API Success:", response.data);
       return response.data;
     } catch (error) {
@@ -16,12 +14,11 @@ const authService = {
       throw error;
     }
   },
-  register: async (email, password, confirmPassword) => {
+  register: async (email, password) => {
     try {
       const response = await axiosClient.post("/Authen/register", {
         keyword: email,
         password: password,
-        confirmPassword: confirmPassword,
       });
       console.log(response.data);
       return response.data;
@@ -32,7 +29,7 @@ const authService = {
   },
   getAll: async () => {
     try {
-      const response = await axiosClient.get("/Account/GetAll",); // ví dụ endpoint GET
+      const response = await axiosClient.get("/Account/GetAll"); // ví dụ endpoint GET
       console.log(
         "✅ Connected to API:",
         response.config.baseURL + response.config.url
@@ -41,6 +38,19 @@ const authService = {
       return response.data;
     } catch (error) {
       console.error(" API Error:", error.message);
+      throw error;
+    }
+  },
+  verifyOtp: async (email, otp) => {
+    try {
+      const response = await axiosClient.post("/Authen/verify-otp", {
+        email,
+        otpCode: otp,
+      });
+      console.log(" OTP Verify Success:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("OTP Verify Error:", error);
       throw error;
     }
   },

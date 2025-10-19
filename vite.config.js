@@ -3,7 +3,6 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react({
@@ -16,9 +15,21 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@vietmap/vietmap-gl-js": "@vietmap/vietmap-gl-js/dist/vietmap-gl.js",
+    },
+  },
+
+  optimizeDeps: {
+    include: ["@vietmap/vietmap-gl-js"],
+  },
+
+  build: {
+    commonjsOptions: {
+      transformMixedEsModules: true, // cho phép build file CJS + ESM lẫn nhau
     },
   },
 
