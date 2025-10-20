@@ -18,6 +18,7 @@ import { User } from "lucide-react";
 import UserLayout from "./users/Layout/UserLayout";import AdminDash from "./home/page/AdminDash";
 import AdminNav from "./home/components/AdminNav";
 import AccountManagement from "./home/page/AccountManagement";
+import StaffSchedule from "./home/page/StaffSchedule";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -69,7 +70,7 @@ function App() {
       path: "/admin",
       element: (
         <div>
-          <AccountManagement />
+          <StaffSchedule/>
         </div>
       ),
     },
