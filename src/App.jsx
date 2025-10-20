@@ -20,6 +20,9 @@ import SupportRequest from "./users/components/support-request/SupportRequest";
 import authService from "./api/authService";
 import AccountManagement from "./home/page/AccountManagement";
 import OTPConfirmation from "./auth/components/otp/OTPConfirmation";
+import MainLayout from "./home/layout/MainLayout";
+import AboutUs from "./home/page/AboutUs";
+import Subscriptions from "./home/page/Subscriptions";
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
@@ -57,17 +60,29 @@ function App() {
       path: "/verifyOtp",
       element: (
         <AuthLayout>
-          <OTPConfirmation/>
+          <OTPConfirmation />
         </AuthLayout>
       ),
     },
     {
       path: "/",
-      element: (
-        <div>
-          <HomePage />
-        </div>
-      ),
+      element: <MainLayout />,
+      children: [
+        { index: true, element: <HomePage /> },
+        { path: "about", element: <AboutUs /> },
+        {
+          path: "subscriptions",
+          element: <Subscriptions />,
+        },
+        {
+          path: "stations",
+          element: <div className="p-6">Stations page (coming soon)</div>,
+        },
+        {
+          path: "contact",
+          element: <div className="p-6">Contact page (coming soon)</div>,
+        },
+      ],
     },
     {
       path: "/userPage",

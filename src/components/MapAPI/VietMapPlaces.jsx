@@ -19,14 +19,15 @@ export default function VietMapPlaces() {
 
     const mapInstance = new vietmapgl.Map({
       container: mapContainer.current,
-      style: `https://maps.vietmap.vn/mt/tm/style.json?apikey=${API_KEY}`,
+      style: `https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=${API_KEY}`,
       center: [105.7, 10.3],
       zoom: 8,
       accessToken: API_KEY,
     });
+    console.log(mapInstance);
 
     setMap(mapInstance);
-    return () => mapInstance.remove();
+    // return () => mapInstance.remove();
   }, [API_KEY]);
 
   useEffect(() => {

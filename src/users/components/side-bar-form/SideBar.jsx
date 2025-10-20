@@ -113,16 +113,6 @@ const SideBarApp = () => {
           ))}
         </div>
       </div>
-
-      {/* Nội dung chính (demo) */}
-      {/* <div className="ml-16 mt-16">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Ứng dụng của tôi
-        </h1>
-        <p className="text-gray-600">
-          Nhấn vào nút menu ở góc trên bên trái để mở sidebar to hơn.
-        </p>
-      </div> */}
     </div>
   );
 };
