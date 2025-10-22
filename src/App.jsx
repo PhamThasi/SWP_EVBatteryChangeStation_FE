@@ -9,14 +9,13 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
-
+import AdminLayout from "./home/components/AdminLayout";
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
 import SideBarApp from "./users/components/side-bar-form/SideBar";
 import ProfileCar from "./users/components/profile-car/profileCar";
 import { User } from "lucide-react";
 import UserLayout from "./users/Layout/UserLayout";import AdminDash from "./home/page/AdminDash";
-import AdminNav from "./home/components/AdminNav";
 import AccountManagement from "./home/page/AccountManagement";
 import StaffSchedule from "./home/page/StaffSchedule";
 
@@ -68,12 +67,20 @@ function App() {
     },
     {
       path: "/admin",
-      element: (
-        <div>
-          <StaffSchedule/>
-        </div>
-      ),
+      element: <AdminLayout />,
+      children: [
+        { path: "", element: <AdminDash /> },
+        { path: "accounts", element: <AccountManagement /> },
+      ],
     },
+    // {
+    //   path: "/staff",
+    //   element: <StaffLayout />,
+    //   children: [
+    //     { path: "", element: <AdminDash /> },
+    //     { path: "schedule", element: <StaffSchedule /> },
+    //   ],
+    // },
   ]);
   return (
     <div>
