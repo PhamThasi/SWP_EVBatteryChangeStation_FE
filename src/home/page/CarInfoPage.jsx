@@ -3,7 +3,7 @@ import "../components/AccountMng.css";
 
 const CarInfoPage = () => {
   const [cars, setCars] = useState([]);
-  const [searchId, setSearchId] = useState("");
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -25,11 +25,11 @@ const CarInfoPage = () => {
   };
 
   // Search by carId
-  const fetchCarById = async (carId) => {
-    if (!carId.trim()) return fetchAllCars();
+  const fetchCarByModel = async (model) => {
+    if (!model.trim()) return fetchAllCars();
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/GetCarById?carId=${carId}`);
+      const response = await fetch(`${BASE_URL}/GetCarById?model=${model}`);
       if (!response.ok) throw new Error("Car not found");
       const result = await response.json();
       if (result.data) setCars([result.data]);
@@ -42,14 +42,28 @@ const CarInfoPage = () => {
     }
   };
 
+  const handleDelete = async (accountId) => {
+    if (!window.confirm("Confirm delete this account?")) return;
+    try {
+      const res = await fetch(`${BASE_URL}/SoftDelete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountId }),
+      });
+      if (!res.ok) throw new Error("Failed to delete account");
+      await fetchAllCars();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   useEffect(() => {
     fetchAllCars();
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchCarById(searchId);
-  };
+  const filteredCars = cars.filter((acc) =>
+    acc.fullName?.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (loading) return <p>Loading car information...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -58,58 +72,55 @@ const CarInfoPage = () => {
     <div className="car-info-container">
       <h2>Car Information</h2>
 
-      {/* Search bar */}
-      <form onSubmit={handleSearch} className="search-bar">
+      {/* Search */}
+      <div className="account-toolbar">
         <input
           type="text"
-          placeholder="Enter Vehicle ID..."
-          value={searchId}
-          onChange={(e) => setSearchId(e.target.value)}
-          className="search-input"
+          placeholder="Search by full name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
-        <button type="submit" className="search-btn">Search</button>
-        <button
-          type="button"
-          className="reset-btn"
-          onClick={() => {
-            setSearchId("");
-            fetchAllCars();
-          }}
-        >
-          Reset
-        </button>
-      </form>
+      </div>
 
-      <table className="car-table">
-        <thead>
-          <tr>
-            <th>Vehicle ID</th>
-            <th>Model</th>
-            <th>Battery Type</th>
-            <th>Producer</th>
-            <th>Create Date</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cars.length > 0 ? (
-            cars.map((car) => (
-              <tr key={car.vehicleId}>
-                <td>{car.vehicleId}</td>
-                <td>{car.model}</td>
-                <td>{car.batteryType}</td>
-                <td>{car.producer}</td>
-                <td>{new Date(car.createDate).toLocaleString()}</td>
-                <td>{car.status}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6">No car data available</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      {/* Car model list */}
+      <div className="account-list">
+        {filteredCars.length === 0 ? (
+          <p className="no-data">No accounts found.</p>
+        ) : (
+          filteredCars.map((acc) => (
+            <div className="account-card" key={acc.accountId}>
+              <div className="account-info">
+                <h3>{acc.fullName}</h3>
+                <p><strong>Account ID:</strong> {acc.accountId}</p>
+                <p><strong>Username:</strong> {acc.accountName}</p>
+                <p><strong>Gender:</strong> {acc.gender}</p>
+                <p><strong>Address:</strong> {acc.address}</p>
+                <p><strong>Phone:</strong> {acc.phoneNumber}</p>
+                <p>
+                  <strong>Date of Birth:</strong>{" "}
+                  {acc.dateOfBirth
+                    ? new Date(acc.dateOfBirth).toLocaleDateString()
+                    : "-"}
+                </p>
+                <p>
+                  <strong>Status:</strong> {acc.status ? "Active" : "Inactive"}
+                </p>
+              </div>
+              <div className="account-actions">              
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(acc.accountId)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+
+    
     </div>
   );
 };

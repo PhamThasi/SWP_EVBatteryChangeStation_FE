@@ -7,7 +7,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
-
+import AdminLayout from "./home/components/AdminLayout";
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
 import SideBarApp from "./users/components/side-bar-form/SideBar";
@@ -22,7 +22,8 @@ import AccountManagement from "./home/page/AccountManagement";
 import OTPConfirmation from "./auth/components/otp/OTPConfirmation";
 import MainLayout from "./home/layout/MainLayout";
 import AboutUs from "./home/page/AboutUs";
-import Subscriptions from "./home/page/Subscriptions";
+import Subscriptions from "./home/page/Subscriptions";import StaffSchedule from "./home/page/StaffSchedule";
+
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
@@ -111,13 +112,29 @@ function App() {
       ),
     },
     {
-      path: "/admin",
+      path: "/debugComponent",
       element: (
         <div>
-          <AccountManagement />
+          <ModalForm />
         </div>
       ),
     },
+    {
+      path: "/admin",
+      element: <AdminLayout />,
+      children: [
+        { path: "", element: <AdminDash /> },
+        { path: "accounts", element: <AccountManagement /> },
+      ],
+    },
+    // {
+    //   path: "/staff",
+    //   element: <StaffLayout />,
+    //   children: [
+    //     { path: "", element: <AdminDash /> },
+    //     { path: "schedule", element: <StaffSchedule /> },
+    //   ],
+    // },
   ]);
   return (
     <div>
