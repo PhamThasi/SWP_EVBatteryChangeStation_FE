@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 /**
  * Hook dùng để kiểm tra trạng thái đăng nhập
@@ -8,22 +8,16 @@ import { useNavigate } from "react-router-dom";
 export default function useAuthCheck() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
-  const navigate = useNavigate();
-
-  const isLoggedIn = !!localStorage.getItem("token");
 
   const requireLogin = (callback) => {
-    if (!isLoggedIn) {
-      setPendingAction(() => callback);
-      setIsModalOpen(true);
-    } else {
-      callback();
-    }
+    // Mock: assume not logged in
+    setPendingAction(() => callback);
+    setIsModalOpen(true);
   };
 
   const confirmLogin = () => {
     setIsModalOpen(false);
-    navigate("/login");
+    if (pendingAction) pendingAction();
   };
 
   const cancelLogin = () => {
@@ -31,11 +25,5 @@ export default function useAuthCheck() {
     setPendingAction(null);
   };
 
-  return {
-    isLoggedIn,
-    isModalOpen,
-    confirmLogin,
-    cancelLogin,
-    requireLogin,
-  };
+  return { requireLogin, isModalOpen, confirmLogin, cancelLogin };
 }

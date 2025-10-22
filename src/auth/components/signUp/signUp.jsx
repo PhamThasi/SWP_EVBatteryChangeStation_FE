@@ -4,6 +4,8 @@ import Button from "../../../components/button";
 import "./signUp.css";
 import OTPConfirmation from "../otp/OTPConfirmation";
 import authService from "@/api/authService";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -76,7 +78,9 @@ const SignUp = () => {
           <div className="auth-divider">
             <h6>or</h6>
           </div>
-          <Button className="auth-btn-google">Sign up with Google</Button>
+          <Button className="auth-btn-google">
+            <FontAwesomeIcon icon={faGoogle} /> Sign up with Google
+          </Button>
         </div>
 
         <div className="auth-footer">
