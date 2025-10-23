@@ -23,7 +23,13 @@ import AccountManagement from "./home/page/AccountManagement";
 import OTPConfirmation from "./auth/components/otp/OTPConfirmation";
 import MainLayout from "./home/layout/MainLayout";
 import AboutUs from "./home/page/AboutUs";
-import Subscriptions from "./home/page/Subscriptions";import StaffSchedule from "./home/page/StaffSchedule";
+
+import Subscriptions from "./home/page/Subscriptions";
+import Stations from "./home/page/Stations";
+
+import Subscriptions from "./home/page/Subscriptions";
+import StaffSchedule from "./home/page/StaffSchedule";
+
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -78,7 +84,7 @@ function App() {
         },
         {
           path: "stations",
-          element: <div className="p-6">Stations page (coming soon)</div>,
+          element: <Stations />,
         },
         {
           path: "contact",
