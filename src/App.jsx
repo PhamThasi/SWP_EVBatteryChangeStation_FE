@@ -27,8 +27,8 @@ import AboutUs from "./home/page/AboutUs";
 import Subscriptions from "./home/page/Subscriptions";
 import Stations from "./home/page/Stations";
 
-import Subscriptions from "./home/page/Subscriptions";
 import StaffSchedule from "./home/page/StaffSchedule";
+import ContactUs from "./home/page/ContactUs";
 
 
 // debug
@@ -88,7 +88,7 @@ function App() {
         },
         {
           path: "contact",
-          element: <div className="p-6">Contact page (coming soon)</div>,
+          element: <ContactUs />,
         },
       ],
     },
