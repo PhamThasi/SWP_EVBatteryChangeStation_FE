@@ -23,8 +23,8 @@ const SignUp = () => {
 
     try {
       await authService.register(email, password);
-
       navigate("/verifyOtp", { state: { email } });
+      console.log(email);
     } catch (err) {
       console.error("Sign up failed:", err);
       alert("Đăng ký thất bại!");

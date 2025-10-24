@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "./App.css";
 import Button from "./components/button";
 import AuthLayout from "./components/AuthLayout/AuthLayout";
@@ -18,8 +18,11 @@ import UserLayout from "./users/Layout/UserLayout";
 import ModalForm from "./components/modalForm/ModalForm";
 import UserProfile from "./users/components/user-profile/UserProfile";
 import SupportRequest from "./users/components/support-request/SupportRequest";
-import authService from "./api/authService";
+import UserDashboard from "./users/components/user-dashboard/UserDashboard";
+// import authService from "./api/authService";
 import AccountManagement from "./home/page/AccountManagement";
+import TokenDebugger from "./components/debug/TokenDebugger";
+import LoginDebugger from "./components/debug/LoginDebugger";
 import OTPConfirmation from "./auth/components/otp/OTPConfirmation";
 import MainLayout from "./home/layout/MainLayout";
 import AboutUs from "./home/page/AboutUs";
@@ -27,23 +30,24 @@ import AboutUs from "./home/page/AboutUs";
 import Subscriptions from "./home/page/Subscriptions";
 import Stations from "./home/page/Stations";
 
-import Subscriptions from "./home/page/Subscriptions";
 import StaffSchedule from "./home/page/StaffSchedule";
+import ContactUs from "./home/page/ContactUs";
 
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
   useEffect(() => {
-    const testAPI = async () => {
-      try {
-        const data = await authService.login();
-        console.log(data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    testAPI();
+    // Test API call can be uncommented when needed
+    // const testAPI = async () => {
+    //   try {
+    //     const data = await authService.register("hienngunguoi1234@gmail.com", "123456");
+    //     console.log(data);
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // };
+    // testAPI();
   }, []);
   const route = createBrowserRouter([
     {
@@ -88,22 +92,15 @@ function App() {
         },
         {
           path: "contact",
-          element: <div className="p-6">Contact page (coming soon)</div>,
+          element: <ContactUs />,
         },
       ],
     },
     {
       path: "/userPage",
-      element: (
-        <div>
-          <SideBarApp />
-        </div>
-      ),
-    },
-    {
-      path: "/userPage",
       element: <UserLayout />,
       children: [
+        { index: true, element: <UserDashboard /> },
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
         { path: "supportRequest", element: <SupportRequest /> },
@@ -119,12 +116,12 @@ function App() {
       ),
     },
     {
-      path: "/debugComponent",
-      element: (
-        <div>
-          <ModalForm />
-        </div>
-      ),
+      path: "/debugToken",
+      element: <TokenDebugger />,
+    },
+    {
+      path: "/debugLogin",
+      element: <LoginDebugger />,
     },
     {
       path: "/admin",
