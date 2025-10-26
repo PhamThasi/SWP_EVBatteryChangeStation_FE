@@ -1,10 +1,10 @@
 // import car from "./../../../assets/car.jpg";
 import ProfileHeader from "./ProfileHeader";
 import PersonalInfoCard from "./PersonalInfoCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";  
 import AddressCard from "./AddressCard";
-import axios from "axios";
 import tokenUtils from "@/utils/tokenUtils";
+import authService from "@/api/authService";
 
 const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -12,61 +12,62 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const token = tokenUtils.getToken();
-    const userData = tokenUtils.getUserData();
-    
-    console.log("Token:", token);
-    console.log("User data from localStorage:", userData);
-    
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // First try to get user data from localStorage (from decoded token)
-      if (userData) {
-        console.log("Using cached user data:", userData);
-        setProfile(userData);
+    const loadUserProfile = async () => {
+      const token = tokenUtils.getToken();
+      
+      if (!token) {
         setLoading(false);
-      } else {
-        // Fallback: decode token and try to get data from API
-        const decoded = tokenUtils.decodeToken(token);
-        console.log("Decoded token:", decoded);
-
-        if (decoded) {
-          // Try to get additional data from API
-          axios
-            .get(
-              `http://localhost:5204/api/Account/GetAccountByName?accview=${decoded.name || decoded.accountName}`
-            )
-            .then((response) => {
-              console.log("API response:", response.data);
-              setProfile(response.data);
-              setLoading(false);
-            })
-            .catch((err) => {
-              console.error("API Error:", err);
-              // If API fails, use token data
-              const mappedProfile = tokenUtils.mapTokenToUserProfile(decoded);
-              setProfile(mappedProfile);
-              setLoading(false);
-            });
-        } else {
-          setLoading(false);
-        }
+        return;
       }
-    } catch (error) {
-      console.error("Token decode error:", error);
+
+      try {
+        // Sử dụng hàm getUserProfile với logic fallback đã được tối ưu
+        const userProfile = await tokenUtils.getUserProfile();
+        
+        if (userProfile) {
+          console.log("User profile loaded:", userProfile);
+          setProfile(userProfile);
+        } else {
+          console.error("Failed to load user profile");
+        }
+      } catch (error) {
+        console.error("Error loading user profile:", error);
+      }
+      
       setLoading(false);
-    }
+    };
+
+    loadUserProfile();
   }, []);
 
   const [tempProfile, setTempProfile] = useState(profile);
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (isEditing) {
-      setProfile(tempProfile);
+      // Save changes - call API to update profile
+      try {
+        console.log("Saving profile changes...");
+        console.log("Account ID:", profile.accountId);
+        console.log("Updated data:", tempProfile);
+        
+        const response = await authService.updateProfile(tempProfile);
+        console.log("Update response:", response);
+        
+        if (response && response.data) {
+          // Update local state with new data
+          setProfile(tempProfile);
+          
+          // Update localStorage with new user data
+          localStorage.setItem("user", JSON.stringify(tempProfile));
+          
+          alert("Cập nhật thông tin thành công!");
+        } else {
+          alert("Có lỗi xảy ra khi cập nhật thông tin!");
+        }
+      } catch (error) {
+        console.error("Update profile error:", error);
+        alert("Có lỗi xảy ra khi cập nhật thông tin: " + (error.response?.data?.message || error.message));
+      }
     } else {
       setTempProfile(profile);
     }
@@ -80,6 +81,25 @@ const UserProfile = () => {
 
   const handleChange = (field, value) => {
     setTempProfile((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const refreshProfile = async () => {
+    setLoading(true);
+    try {
+      console.log("Refreshing profile data from API...");
+      // Force refresh = true để bỏ qua cache và lấy data mới từ API
+      const userProfile = await tokenUtils.getUserProfile(true);
+      
+      if (userProfile) {
+        setProfile(userProfile);
+        setTempProfile(userProfile);
+        console.log("Profile refreshed successfully");
+      }
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -121,6 +141,29 @@ const UserProfile = () => {
         onCancel={handleCancel}
         onChange={handleChange}
       />
+      
+      {/* Debug info */}
+      <div className="mt-4 p-4 bg-yellow-100 rounded">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-bold">Debug Info:</h3>
+          <button 
+            onClick={refreshProfile}
+            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+          >
+            Refresh Data
+          </button>
+        </div>
+        <p><strong>Account ID:</strong> {profile.accountId}</p>
+        <p><strong>Account Name:</strong> {profile.accountName}</p>
+        <p><strong>Full Name:</strong> {profile.fullName}</p>
+        <p><strong>Email:</strong> {profile.email}</p>
+        <p><strong>Phone:</strong> {profile.phoneNumber}</p>
+        <p><strong>Address:</strong> {profile.address}</p>
+        <p><strong>Gender:</strong> {profile.gender}</p>
+        <p><strong>Role:</strong> {profile.role}</p>
+        <p><strong>Date of Birth:</strong> {profile.dateOfBirth}</p>
+      </div>
+
     </div>
   );
 };

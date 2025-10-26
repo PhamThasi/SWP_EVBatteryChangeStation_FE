@@ -14,6 +14,10 @@ const PersonalInfoCard = ({
   const { dateOfBirth, email, phoneNumber, role } = isEditing
     ? tempProfile
     : profile;
+    
+  console.log("PersonalInfoCard - profile data:", isEditing ? tempProfile : profile);
+  console.log("PersonalInfoCard - phoneNumber:", phoneNumber);
+  console.log("PersonalInfoCard - email:", email);
 
   const [fName, lName] = useMemo(() => {
     if (!profile.name) return ["", ""];
