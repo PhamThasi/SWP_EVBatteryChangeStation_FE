@@ -35,22 +35,15 @@ const SignIn = () => {
           if (token) {
             localStorage.setItem("token", token);
             
-            // Decode token để lấy thông tin user
-            const decoded = tokenUtils.decodeToken(token);
-            console.log("Decoded token:", decoded);
+            // Sử dụng hàm processLoginToken để xử lý token một cách tối ưu
+            const userProfile = await tokenUtils.processLoginToken(token);
             
-            if (decoded) {
-              // Map token data to user profile structure
-              const userProfile = tokenUtils.mapTokenToUserProfile(decoded);
-              console.log("Mapped user profile:", userProfile);
-              
-              // Lưu thông tin user đã decode vào localStorage
-              localStorage.setItem("user", JSON.stringify(userProfile));
-              
+            if (userProfile) {
+              console.log("Login successful, user profile processed:", userProfile);
               // Chuyển hướng sang dashboard (trang chính sau khi login)
               navigate("/userPage");
             } else {
-              console.error("Failed to decode token");
+              console.error("Failed to process login token");
               alert("Có lỗi xảy ra khi xử lý thông tin đăng nhập!");
             }
           } else {
