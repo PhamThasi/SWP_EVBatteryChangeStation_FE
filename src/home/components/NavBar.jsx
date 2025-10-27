@@ -1,51 +1,56 @@
-import React, { useEffect, useState } from "react";
 import "./NavBar.css";
 import logo from "./../../assets/logo.png";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-import { Link } from "react-router-dom";
-
-const NavBar = () => {
+export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 700);
-    };
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 80);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const links = [
+    { to: "/", label: "Trang chủ" },
+    { to: "/about", label: "Giới thiệu" },
+    { to: "/subscriptions", label: "Gói dịch vụ" },
+    { to: "/stations", label: "Trạm gần nhất" },
+    { to: "/contact", label: "Liên hệ" },
+  ];
+
+  const solid = pathname !== "/"; // <= khác home thì dùng nền sáng
+
   return (
-    <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
-      {/* Links bên trái */}
-      <ul className="navbar-links">
-        <li>
-          <a href="#">Trang chủ</a>
-        </li>
-        <li>
-          <a href="#">Giới thiệu</a>
-        </li>
-        <li>
-          <a href="#">Gói dịch vụ</a>
-        </li>
-        <li>
-          <a href="#">Trạm gần nhất</a>
-        </li>
-        <li>
-          <a href="#">Liên hệ</a>
-        </li>
+    <nav className={`nv-navbar ${scrolled ? "is-scrolled" : ""} ${solid ? "is-solid" : ""}`}>
+      <ul className="nv-links">
+        {links.map((l) => (
+          <li key={l.to}>
+            <Link
+              to={l.to}
+              className={`nv-link ${pathname === l.to ? "is-active" : ""}`}
+            >
+              {l.label}
+            </Link>
+          </li>
+        ))}
       </ul>
-      {/* Logo*/}
-      <div className="navbar-logo">
+
+      <div
+        className="nv-logo"
+        onClick={() => navigate("/")}
+        style={{ cursor: "pointer" }}
+      >
         <img src={logo} alt="Logo" />
       </div>
 
-      {/*  đăng nhập  */}
-      <div className="navbar-account">
-        {/* <a href="/SignIn" className="login-btn">Đăng nhập</a> */}
-        <Link to="/login">Đăng nhập</Link>
+      <div className="nv-account">
+        <Link className="nv-login" to="/login">Đăng nhập</Link>
       </div>
     </nav>
   );
-};
-
-export default NavBar;
+}

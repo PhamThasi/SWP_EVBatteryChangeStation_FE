@@ -14,6 +14,7 @@ import tramsac_evt from "./../../assets/tramsac_evt.jpg";
 import tramsac_testla from "./../../assets/tramsac_testla.jpg";
 import tramsac_vinfast from "./../../assets/tramsac_vinfast.jpg";
 import GoogleMapPlaces from "@/components/MapAPI/GoogleMapPlaces";
+import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
 const HomeFrame = () => {
   useEffect(() => {
     const reveals = document.querySelectorAll(".reveal");
@@ -181,7 +182,7 @@ const HomeFrame = () => {
       <div className="map-placeholder">
         <h2>Bản đồ trạm đổi pin gần nhất (Google Map API sau này)</h2>
         <div className="map-animation">
-          <GoogleMapPlaces/>
+          <VietMapPlaces/>
         </div>
       </div>
     </div>

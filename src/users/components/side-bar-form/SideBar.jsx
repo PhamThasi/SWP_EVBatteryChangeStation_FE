@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 const SideBarApp = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -6,30 +6,35 @@ const SideBarApp = () => {
   const [menus, setMenus] = useState([
     {
       header: "THÔNG TIN XE",
-      items: [{ icon: "🚗", label: "Xe của tôi", path: "/profileCar" }],
+      items: [{ icon: "", label: "Xe của tôi", path: "/userPage/profileCar" }],
     },
     {
       header: "ĐẶT HÀNG VÀ DỊCH VỤ",
       items: [
-        { icon: "🔄", label: "Lịch sử giao dịch", path: "/history" },
-        { icon: "🔧", label: "Bảo dưỡng - Sửa chữa", path: "/maintenance" },
-        { icon: "🔋", label: "Thuê Pin", path: "/battery-rental" },
-        { icon: "🔋", label: "Lịch sử Sạc Pin", path: "/charging-history" },
+        { icon: "", label: "Lịch sử giao dịch", path: "/history" },
+        { icon: "", label: "Bảo dưỡng - Sửa chữa", path: "/maintenance" },
+        { icon: "", label: "Thuê Pin", path: "/battery-rental" },
+        { icon: "", label: "Lịch sử Đổi Pin", path: "/charging-history" },
       ],
     },
     {
       header: "TÀI KHOẢN",
       items: [
-        { icon: "👤", label: "Thông tin cá nhân", path: "/profile" },
-        { icon: "❓", label: "Yêu cầu hỗ trợ", path: "/support" },
-        { icon: "🎧", label: "Liên hệ", path: "/contact" },
+        { icon: "", label: "Thông tin cá nhân", path: "/userPage/userProfile" },
+        { icon: "", label: "Yêu cầu hỗ trợ", path: "/userPage/supportRequest" },
+        { icon: "", label: "Liên hệ", path: "/contact" },
       ],
     },
     {
       header: null,
-      items: [{ icon: "🚪", label: "Đăng xuất", path: "/logout" }],
+      items: [{ icon: "", label: "Đăng xuất", path: "/logout" }],
     },
   ]);
+  useEffect(()=>{
+    return()=>{
+      
+    }
+  },[])
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 font-sans">
@@ -42,12 +47,12 @@ const SideBarApp = () => {
       </button>
 
       {/* Overlay (nền tối sau khi mở menu) */}
-      {isOpen && (
+      {/* {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-40 z-40"
           onClick={() => setIsOpen(false)}
         />
-      )}
+      )} */}
 
       {/* Sidebar chính */}
       <div
@@ -108,16 +113,6 @@ const SideBarApp = () => {
           ))}
         </div>
       </div>
-
-      {/* Nội dung chính (demo) */}
-      {/* <div className="ml-16 mt-16">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Ứng dụng của tôi
-        </h1>
-        <p className="text-gray-600">
-          Nhấn vào nút menu ở góc trên bên trái để mở sidebar to hơn.
-        </p>
-      </div> */}
     </div>
   );
 };

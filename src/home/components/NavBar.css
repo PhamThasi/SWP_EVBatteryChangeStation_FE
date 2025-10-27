@@ -1,52 +1,170 @@
-.navbar {
+/* ===== NavBar (standalone CSS – không dính Tailwind) ===== */
+.nv-navbar,
+.nv-navbar * {
+
+  outline: none;
+  /* override outline-ring/50 */
+
+}
+
+.nv-navbar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 2;
+  z-index: 20;
+  /* cao hơn section thường */
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 2.3rem 3.4rem;
+
   background-color: transparent;
-  color: white;
-  transition: 0.3s;
+  color: #f3f4f6;
+  /* gần trắng, đỡ gắt hơn #fff */
+  transition: background 0.3s ease, box-shadow 0.3s ease, color 0.2s ease;
   height: 8rem;
 }
 
-.navbar-logo {
+
+.nv-navbar.is-scrolled {
+  background: rgba(0, 119, 182, 0.40);
+  /* giữ màu cũ của bạn */
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 4px 15px rgba(0, 119, 182, 0.30);
+}
+
+
+.nv-logo {
   font-size: 1.5rem;
   font-weight: bold;
-
   position: absolute;
   top: 65%;
-
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.navbar-logo img {
+.nv-logo img {
   width: 8rem;
   height: 100%;
 }
 
-.navbar-links {
+/* Links */
+.nv-links {
   list-style: none;
   display: flex;
   gap: 2rem;
+  margin: 0;
+  padding: 0;
 }
 
-.navbar-links a {
-  color: white;
+.nv-link {
+  color: #f3f4f6;
+  /* gần trắng */
   text-decoration: none;
-  transition: 0.3s;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  font-weight: 500;
+  opacity: 0.95;
 }
 
-.navbar-links a:hover {
+.nv-link:hover {
   color: #90e0ef;
+  /* giữ màu hover cũ */
+  opacity: 1;
 }
-.navbar.scrolled{
-  background: rgba(0, 119, 182, 0.4);
-  backdrop-filter: blur(15px);
-  box-shadow: 0 4px 15px rgba(0, 119, 182, 0.3);
+
+
+.nv-link.is-active {
+  color: #e0f2fe;
+  /* sky-100-ish */
+  position: relative;
+}
+
+.nv-link.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  margin: auto;
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, #0ea5e9 0%, #7c3aed 100%);
+  border-radius: 999px;
+}
+
+/* Account (login) */
+.nv-account .nv-login {
+  color: #f3f4f6;
+  padding: .6rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: .75rem;
+  text-decoration: none;
+  transition: border-color .2s ease, color .2s ease, background .2s ease, transform .05s ease;
+}
+
+.nv-account .nv-login:hover {
+  border-color: #0ea5e9;
+  color: #e0f2fe;
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.nv-account .nv-login:active {
+  transform: translateY(1px);
+}
+
+
+.nv-navbar a:focus-visible {
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.45);
+  /* tím accent */
+  border-radius: .5rem;
+  outline: none;
+}
+/* ===== Base như bạn đang dùng (giữ nguyên) ===== */
+/* ... phần nv-navbar, .is-scrolled, .nv-links, .nv-link ... của bạn ... */
+
+/* === Solid mode: áp dụng khi KHÔNG ở trang chủ (pathname !== "/") === */
+.nv-navbar.is-solid {
+  /* nền sáng (glass) để nổi trên các trang nền trắng/nhạt) */
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.12);
+  color: #0f172a; /* chữ đậm (slate-900) */
+}
+
+/* Links khi ở solid mode: đổi sang palette tối */
+.nv-navbar.is-solid .nv-link {
+  color: #0f172a;
+  opacity: 0.9;
+}
+.nv-navbar.is-solid .nv-link:hover {
+  color: #0369a1; /* primary-700 */
+  opacity: 1;
+}
+
+/* Active underline vẫn rõ trên nền sáng */
+.nv-navbar.is-solid .nv-link.is-active {
+  color: #0ea5e9; /* primary */
+}
+.nv-navbar.is-solid .nv-link.is-active::after {
+  background: linear-gradient(90deg, #0ea5e9 0%, #7c3aed 100%);
+}
+
+/* Nút Đăng nhập trong solid mode: viền tối, hover primary nhạt */
+.nv-navbar.is-solid .nv-login {
+  color: #0f172a;
+  border: 1px solid rgba(2, 6, 23, 0.18);
+  background: transparent;
+}
+.nv-navbar.is-solid .nv-login:hover {
+  border-color: #0ea5e9;
+  color: #0369a1;
+  background: rgba(14,165,233,0.12);
+}
+
+/* Ưu tiên đọc/outline trong scope navbar (tránh @layer base) */
+.nv-navbar, .nv-navbar * {
+  outline: none;
 }

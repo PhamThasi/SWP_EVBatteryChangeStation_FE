@@ -1,7 +1,5 @@
-import { useState } from "react";
-import Dashboard from "./components/dashboard";
+import { useEffect, useState } from "react";
 import "./App.css";
-import Headers from "./components/header";
 import Button from "./components/button";
 import AuthLayout from "./components/AuthLayout/AuthLayout";
 import SignIn from "./auth/components/signIn/signIn";
@@ -10,21 +8,37 @@ import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
 import AdminLayout from "./home/components/AdminLayout";
+import AdminDash from "./home/page/AdminDash";
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
 import SideBarApp from "./users/components/side-bar-form/SideBar";
 import ProfileCar from "./users/components/profile-car/profileCar";
 import { User } from "lucide-react";
-import UserLayout from "./users/Layout/UserLayout";import AdminDash from "./home/page/AdminDash";
+import UserLayout from "./users/Layout/UserLayout";
+import ModalForm from "./components/modalForm/ModalForm";
+import UserProfile from "./users/components/user-profile/UserProfile";
+import SupportRequest from "./users/components/support-request/SupportRequest";
+import authService from "./api/authService";
 import AccountManagement from "./home/page/AccountManagement";
-import StaffSchedule from "./home/page/StaffSchedule";
-import RoleManagement from "./home/page/RoleManagement";
-import StationManagement from "./home/page/StationMangement";
-import AdminSubManage from "./home/page/AdminSubManage";
+import OTPConfirmation from "./auth/components/otp/OTPConfirmation";
+import MainLayout from "./home/layout/MainLayout";
+import AboutUs from "./home/page/AboutUs";
+import Subscriptions from "./home/page/Subscriptions";import StaffSchedule from "./home/page/StaffSchedule";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
 function App() {
+  useEffect(() => {
+    const testAPI = async () => {
+      try {
+        const data = await authService.login();
+        console.log(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    testAPI();
+  }, []);
   const route = createBrowserRouter([
     {
       path: "/login",
@@ -45,12 +59,32 @@ function App() {
       ),
     },
     {
-      path: "/",
+      path: "/verifyOtp",
       element: (
-        <div>
-          <HomePage />
-        </div>
+        <AuthLayout>
+          <OTPConfirmation />
+        </AuthLayout>
       ),
+    },
+    {
+      path: "/",
+      element: <MainLayout />,
+      children: [
+        { index: true, element: <HomePage /> },
+        { path: "about", element: <AboutUs /> },
+        {
+          path: "subscriptions",
+          element: <Subscriptions />,
+        },
+        {
+          path: "stations",
+          element: <div className="p-6">Stations page (coming soon)</div>,
+        },
+        {
+          path: "contact",
+          element: <div className="p-6">Contact page (coming soon)</div>,
+        },
+      ],
     },
     {
       path: "/userPage",
@@ -61,12 +95,30 @@ function App() {
       ),
     },
     {
-      path: "/profileCar",
+      path: "/userPage",
       element: <UserLayout />,
       children: [
         { path: "profileCar", element: <ProfileCar /> },
+        { path: "userProfile", element: <UserProfile /> },
+        { path: "supportRequest", element: <SupportRequest /> },
         // sau này thêm: history, maintenance, support...
       ],
+    },
+    {
+      path: "/debugComponent",
+      element: (
+        <div>
+          <ModalForm />
+        </div>
+      ),
+    },
+    {
+      path: "/debugComponent",
+      element: (
+        <div>
+          <ModalForm />
+        </div>
+      ),
     },
     {
       path: "/admin",

@@ -1,44 +1,75 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../components/button";
 import "./signIn.css";
-import { Link } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import authService from "@/api/authService";
+
 const SignIn = () => {
-  // const[email, setEmail] = useState("");
-  // const[password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Gọi API login từ backend của cậu (VD: http://localhost:5000/api/Auth/login)
+      const res = await authService.login(email, password);
+      console.log(res);
+
+      // Lưu token vào localStorage
+      if (res.data.status == 200 || res.data.data) {
+        const token = res.data.data;
+        localStorage.setItem("token", token);
+        const decoded = jwtDecode(token);
+        console.log("Decoded token:", decoded);
+
+        localStorage.setItem("user", JSON.stringify(decoded));
+      }
+
+      // Chuyển hướng sang user page
+      navigate("/userPage/userProfile");
+    } catch (err) {
+      console.error("Login failed:", err);
+      alert("Sai tài khoản hoặc mật khẩu!");
+    }
+  };
+
   return (
     <div className="signIn">
       <div className="header-signIn">
         <h1>WELCOME BACK!</h1>
         <p>Please login to your account</p>
       </div>
-      <form className="signIn-Group">
+
+      <form className="signIn-Group" onSubmit={handleSubmit}>
         <div className="signIn-block">
-          <label for="email">Email Address:</label>
+          <label>Email Address:</label>
           <input
-            id="email"
-            type="text"
-            name="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email Address"
+            required
           />
         </div>
         <div className="signIn-block">
-          <label for="password">Password:</label>
+          <label>Password:</label>
           <input
-            id="password"
             type="password"
-            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
+            required
           />
         </div>
         <div className="butt">
-          <Button>Sign in</Button>
+          <Button type="submit">Sign in</Button>
         </div>
         <div className="footer-text">
           <p>
             Don't have an account yet?
-            <Link to="/signUp" rel="stylesheet" href="">
-              Create an account
-            </Link>{" "}
+            <Link to="/signup"> Create an account </Link>
           </p>
         </div>
       </form>
@@ -47,4 +78,3 @@ const SignIn = () => {
 };
 
 export default SignIn;
-
