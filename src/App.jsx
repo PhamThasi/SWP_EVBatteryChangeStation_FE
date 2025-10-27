@@ -18,6 +18,9 @@ import { User } from "lucide-react";
 import UserLayout from "./users/Layout/UserLayout";import AdminDash from "./home/page/AdminDash";
 import AccountManagement from "./home/page/AccountManagement";
 import StaffSchedule from "./home/page/StaffSchedule";
+import RoleManagement from "./home/page/RoleManagement";
+import StationManagement from "./home/page/StationMangement";
+import AdminSubManage from "./home/page/AdminSubManage";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -71,6 +74,9 @@ function App() {
       children: [
         { path: "", element: <AdminDash /> },
         { path: "accounts", element: <AccountManagement /> },
+        { path: "roles", element: <RoleManagement /> },
+        { path: "stations", element: <StationManagement /> },
+        { path: "subscriptions", element: <AdminSubManage /> },
       ],
     },
     // {
