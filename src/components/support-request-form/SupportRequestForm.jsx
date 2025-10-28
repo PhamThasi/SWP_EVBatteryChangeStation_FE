@@ -9,6 +9,7 @@ const SupportRequestForm = ({ isOpen, onClose, onSubmit }) => {
     supportType: "Hỗ trợ dịch vụ Xe",
     title: "",
     vehicle: "Không",
+    topic: "",
     details: "",
     name: "",
     phone: "",
@@ -20,6 +21,7 @@ const SupportRequestForm = ({ isOpen, onClose, onSubmit }) => {
   const validationSchema = Yup.object({
     title: Yup.string().required("Vui lòng nhập tiêu đề"),
     topic: Yup.string().required("Vui lòng chọn chủ đề"),
+    details: Yup.string().required("Vui lòng nhập chi tiết"),
     name: Yup.string().required("Vui lòng nhập họ tên"),
     phone: Yup.string()
       .matches(/^[0-9]+$/, "Số điện thoại chỉ được chứa số")
@@ -46,26 +48,51 @@ const SupportRequestForm = ({ isOpen, onClose, onSubmit }) => {
       type: "select",
       options: ["Không", "Xe máy", "Ô tô"],
     },
-    { name: "details", label: "Chi tiết", as: "textarea" },
+    {
+      name: "topic",
+      label: "Chủ đề",
+      as: "select",
+      type: "select",
+      placeholder: "Lựa chọn",
+      options: [
+        "",
+        "Vấn đề kỹ thuật",
+        "Thanh toán",
+        "Dịch vụ khách hàng",
+        "Khác",
+      ],
+    },
+    { name: "details", label: "Chi tiết", as: "textarea", placeholder: "Nhập mô tả chi tiết" },
     { name: "name", label: "Họ tên", placeholder: "Nguyễn Văn A" },
     { name: "phone", label: "Số điện thoại", placeholder: "0123456789" },
     { name: "email", label: "Email", type: "email", placeholder: "example@email.com" },
     {
       name: "contactPreference",
       label: "Ưu tiên liên hệ qua",
-      as: "select",
-      type: "select",
-      options: ["Gọi điện thoại", "Chat với Chăm sóc khách hàng", "Email"],
+      type: "radio",
+      options: [
+        { value: "Gọi điện thoại", label: "Gọi điện thoại" },
+        {
+          value: "Chat với Chăm sóc khách hàng",
+          label: "Chat với Chăm sóc khách hàng",
+        },
+        { value: "Email", label: "Email" },
+      ],
     },
-    { name: "vehiclePlate", label: "Biển số xe" },
+    { name: "vehiclePlate", label: "Biển số xe", placeholder: "Nhập biển số xe" },
   ];
+
+  const handleSubmit = (values) => {
+    console.log("Form submitted with values:", values);
+    onSubmit(values);
+  };
 
   return (
     <ModalForm
       title="Yêu cầu mới"
       initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       onClose={onClose}
       fields={fields}
     />
