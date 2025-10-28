@@ -104,6 +104,7 @@ function App() {
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
         { path: "supportRequest", element: <SupportRequest /> },
+        {path: "contact", element: <ContactUs /> },
         // sau này thêm: history, maintenance, support...
       ],
     },

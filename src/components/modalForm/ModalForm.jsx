@@ -34,13 +34,41 @@ const ModalForm = ({
                   >
                     {f.label}
                   </label>
-                  <Field
-                    name={f.name}
-                    type={f.type || "text"}
-                    as={f.as || "input"}
-                    className="border w-full p-3 rounded-xl focus:ring-2 focus:ring-[#0077b6] focus:outline-none"
-                    placeholder={f.placeholder || ""}
-                  />
+                  {f.as === "select" ? (
+                    <Field
+                      name={f.name}
+                      as="select"
+                      className="border w-full p-3 rounded-xl focus:ring-2 focus:ring-[#0077b6] focus:outline-none"
+                    >
+                      {f.options?.map((option, index) => (
+                        <option key={index} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </Field>
+                  ) : f.type === "radio" ? (
+                    <div className="space-y-2">
+                      {f.options?.map((option, index) => (
+                        <label key={index} className="flex items-center">
+                          <Field
+                            name={f.name}
+                            type="radio"
+                            value={option.value}
+                            className="mr-2"
+                          />
+                          <span>{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <Field
+                      name={f.name}
+                      type={f.type || "text"}
+                      as={f.as || "input"}
+                      className="border w-full p-3 rounded-xl focus:ring-2 focus:ring-[#0077b6] focus:outline-none"
+                      placeholder={f.placeholder || ""}
+                    />
+                  )}
                   <ErrorMessage
                     name={f.name}
                     component="div"
