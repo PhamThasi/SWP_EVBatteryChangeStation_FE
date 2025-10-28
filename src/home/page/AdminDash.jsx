@@ -1,5 +1,5 @@
-import '../components/HomeFrame.css' ;
-import '../components/AdminStyle.css';
+import React from "react";
+import "../components/AdminStyle.css";
 import {
   LineChart,
   Line,
@@ -11,9 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-
 const AdminDash = () => {
-  // --- Placeholder data ---
   const salesData = [
     { date: "01", orders: 4, customers: 3 },
     { date: "02", orders: 6, customers: 5 },
@@ -41,11 +39,12 @@ const AdminDash = () => {
     { title: "Charged Batteries", value: 420 },
     { title: "Pending Deliveries", value: 5 },
   ];
-  return (
-    <div className="home-frame">
-      <h1>Admin Dashboard</h1>
 
-      {/* --- Summary Section --- */}
+  return (
+    <div className="admin-dashboard">
+      <h1 className="dashboard-title">Admin Dashboard</h1>
+
+      {/* Summary Section */}
       <div className="summary-section">
         {summaryStats.map((stat, i) => (
           <div className="summary-card" key={i}>
@@ -55,8 +54,8 @@ const AdminDash = () => {
         ))}
       </div>
 
-      {/* --- Sales Chart --- */}
-      <div className="chart-section">
+      {/* Sales Chart */}
+      <div className="dashboard-card">
         <h2>Sales Analytics</h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={salesData}>
@@ -65,16 +64,16 @@ const AdminDash = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="orders" stroke="#00b4d8" />
-            <Line type="monotone" dataKey="customers" stroke="#90e0ef" />
+            <Line type="monotone" dataKey="orders" stroke="#007bff" strokeWidth={2} />
+            <Line type="monotone" dataKey="customers" stroke="#28a745" strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* --- Recent Activity --- */}
-      <div className="activity-section">
+      {/* Recent Activity */}
+      <div className="dashboard-card">
         <h2>Recent Activity</h2>
-        <ul>
+        <ul className="activity-list">
           {recentActivity.map((item) => (
             <li key={item.id}>
               <strong>{item.action}</strong> <span>({item.date})</span>
@@ -83,10 +82,10 @@ const AdminDash = () => {
         </ul>
       </div>
 
-      {/* --- Incoming Inventory --- */}
-      <div className="inventory-section">
+      {/* Incoming Inventory */}
+      <div className="dashboard-card" >
         <h2>Incoming Inventory</h2>
-        <table>
+        <table className="inventory-table">
           <thead>
             <tr>
               <th>ID</th>
@@ -112,4 +111,3 @@ const AdminDash = () => {
 };
 
 export default AdminDash;
-

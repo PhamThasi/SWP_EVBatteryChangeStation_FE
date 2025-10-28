@@ -1,0 +1,80 @@
+.admin-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #0077b6;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  transition: all 0.4s ease;
+}
+
+/* --- Topbar (default) --- */
+.admin-nav.topbar {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+/* --- Sidebar (after scroll) --- */
+.admin-nav.sidebar {
+  width: 220px;
+  height: 100vh;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.5rem 1rem;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
+}
+
+.navbar-logo {
+  position: absolute;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  left: 80px;
+  top: 28px;
+  border-radius: 25%;  
+}
+
+.navbar-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding-left: 150px;
+  transition: all 0.3s ease  
+}
+
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+}
+
+.navbar-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Sidebar layout */
+.admin-nav.sidebar .navbar-links {
+  flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    display: inline;
+    left: 12px;
+    padding: 20px;
+    display: flex;
+    margin-top: 30px;
+}
+
+/* Animation for transition */
+.admin-nav.sidebar .navbar-logo {
+  margin-bottom: 2rem;
+}

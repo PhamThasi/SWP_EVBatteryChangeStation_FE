@@ -31,6 +31,9 @@ import Subscriptions from "./home/page/Subscriptions";
 import Stations from "./home/page/Stations";
 
 import StaffSchedule from "./home/page/StaffSchedule";
+import RoleManagement from "./home/page/RoleManagement";
+import StationManagement from "./home/page/StationMangement";
+import AdminSubManage from "./home/page/AdminSubManage";
 import ContactUs from "./home/page/ContactUs";
 
 
@@ -130,6 +133,9 @@ function App() {
       children: [
         { path: "", element: <AdminDash /> },
         { path: "accounts", element: <AccountManagement /> },
+        { path: "roles", element: <RoleManagement /> },
+        { path: "stations", element: <StationManagement /> },
+        { path: "subscriptions", element: <AdminSubManage /> },
       ],
     },
     // {
