@@ -35,7 +35,8 @@ import RoleManagement from "./home/page/RoleManagement";
 import StationManagement from "./home/page/StationMangement";
 import AdminSubManage from "./home/page/AdminSubManage";
 import ContactUs from "./home/page/ContactUs";
-
+import BookingForm from "./users/components/booking-form/BookingForm";
+import BookingPage from "./users/components/booking-page/BookingPage";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -85,18 +86,9 @@ function App() {
       children: [
         { index: true, element: <HomePage /> },
         { path: "about", element: <AboutUs /> },
-        {
-          path: "subscriptions",
-          element: <Subscriptions />,
-        },
-        {
-          path: "stations",
-          element: <Stations />,
-        },
-        {
-          path: "contact",
-          element: <ContactUs />,
-        },
+        { path: "subscriptions", element: <Subscriptions /> },
+        { path: "stations", element: <Stations /> },
+        { path: "contact", element: <ContactUs /> },
       ],
     },
     {
@@ -104,10 +96,12 @@ function App() {
       element: <UserLayout />,
       children: [
         { index: true, element: <UserDashboard /> },
+        { path: "booking", element: <BookingPage /> },
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
         { path: "supportRequest", element: <SupportRequest /> },
-        {path: "contact", element: <ContactUs /> },
+        { path: "contact", element: <ContactUs /> },
+        { path: "stations", element: <Stations /> },
         // sau này thêm: history, maintenance, support...
       ],
     },
