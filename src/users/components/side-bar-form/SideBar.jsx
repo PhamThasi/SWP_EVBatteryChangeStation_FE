@@ -9,8 +9,12 @@ const SideBarApp = () => {
   const [islogout] = useState(true);
   const [menus] = useState([
     {
-      header: "THÔNG TIN XE",
-      items: [{ icon: "", label: "Xe của tôi", path: "/userPage/profileCar" }],
+      header: "ĐẶT LỊCH ĐỔI PIN VÀ TÌM TRẠM",
+      items: [
+        { icon: "", label: "Đặt lịch", path: "/userPage/booking" },
+        {icon: "", label: "Danh sách các dòng xe điện", path: "/userPage/profileCar"},
+        { icon: "", label: "Trạm chuyển đổi pin", path: "/userPage/stations" },
+      ],
     },
     {
       header: "ĐẶT HÀNG VÀ DỊCH VỤ",
@@ -78,7 +82,6 @@ const SideBarApp = () => {
               ✕
             </button>
           </div>
-
 
           {menus.map((section, sectionIndex) => (
             <div key={sectionIndex} className="mb-8">
