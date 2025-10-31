@@ -35,6 +35,7 @@ import RoleManagement from "./home/page/RoleManagement";
 import StationManagement from "./home/page/StationMangement";
 import AdminSubManage from "./home/page/AdminSubManage";
 import ContactUs from "./home/page/ContactUs";
+import BatteryManagement from "./home/page/BatteryManagement";
 
 
 // debug
@@ -130,7 +131,8 @@ function App() {
       path: "/admin",
       element: <AdminLayout />,
       children: [
-        { path: "", element: <AdminDash /> },
+        {path: "schedule", element: <StaffSchedule/>},
+        { path: "battery", element: <BatteryManagement/> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "roles", element: <RoleManagement /> },
         { path: "stations", element: <StationManagement /> },

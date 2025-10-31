@@ -1,7 +1,8 @@
 .admin-dashboard {
   background-color: #ffffff;
   padding: 8rem 2rem 2rem;
-  padding-left: 30rem;
+  padding-left: 15rem;
+  padding-right: 15rem;
   font-family: "Inter", sans-serif;
   color: #333;
   transition: margin-left 0.4s ease;
@@ -119,10 +120,11 @@ body.has-sidebar .admin-dashboard {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin: 5px;
 }
 
 .modal h2 {
-  margin: 0;
+  margin: 5px;
   font-size: 20px;
   text-align: center;
 }
@@ -134,6 +136,7 @@ body.has-sidebar .admin-dashboard {
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
+  margin: 3px;
 }
 
 .modal-actions {
@@ -162,4 +165,31 @@ body.has-sidebar .admin-dashboard {
 }
 .create-btn {
   padding-top: 30rem;
+}
+.delete-btn{
+  background: #e22828;
+    color: white;
+    padding: 6px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 3px;
+}
+.batupdate-btn{
+  background: #2b7cff;
+    color: white;
+    padding: 6px 9px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 3px;
+}
+.calendar-container {
+  width: 80%;
+  margin-left: auto;
+  margin-right: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
 }
