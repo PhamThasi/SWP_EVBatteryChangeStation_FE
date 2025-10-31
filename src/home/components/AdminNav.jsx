@@ -17,15 +17,11 @@ const AdminNav = () => {
 
   return (
     <nav className={`admin-nav ${isSidebar ? "sidebar" : "topbar"}`}>
-      <div
-        className="navbar-logo"
-        onClick={() => navigate("/admim")}
-      >
-        EV Swap
-      </div>
+      
 
       <ul className="navbar-links">
-        <li><Link to="/admin">Dashboard</Link></li>
+        <li><Link to="/admin/schedule">Schedule</Link></li>
+        <li><Link to="/admin/battery">Battery</Link></li>
         <li><Link to="/admin/accounts">Accounts</Link></li>
         <li><Link to="/admin/roles">Roles</Link></li>
         <li><Link to="/admin/stations">Stations</Link></li>

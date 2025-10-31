@@ -11,6 +11,10 @@ const AddressCard = ({
   onChange,
 }) => {
   const displayAddress = isEditing ? tempAddress : address;
+  
+  console.log("AddressCard - address:", address);
+  console.log("AddressCard - tempAddress:", tempAddress);
+  console.log("AddressCard - displayAddress:", displayAddress);
 
   return (
     <Card>

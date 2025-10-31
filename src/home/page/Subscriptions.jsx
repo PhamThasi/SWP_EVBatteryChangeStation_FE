@@ -1,6 +1,6 @@
 // src/home/page/Subscriptions.jsx
 import React from "react";
-import useAuthCheck from "./../../hook/useAuthCheck";
+import useAuthCheck from "./../../hooks/useAuthCheck";
 import ConfirmModal from "./../components/ConfirmModal";
 import PlanCard from "./../components/PlanCard";
 import { Battery, Shield, Sparkles, TrendingUp, Zap } from "lucide-react";

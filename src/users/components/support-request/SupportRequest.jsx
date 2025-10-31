@@ -120,8 +120,10 @@ const SupportRequestContent = () => {
   ];
 
   const handleSubmit = (values) => {
+    console.log("Adding new request:", values);
     addRequest(values);
     setIsModalOpen(false);
+    alert(" Yêu cầu hỗ trợ đã được gửi thành công!");
   };
 
   return (
