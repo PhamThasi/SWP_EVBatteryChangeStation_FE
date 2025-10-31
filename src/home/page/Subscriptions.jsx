@@ -1,5 +1,5 @@
 // src/home/page/Subscriptions.jsx
-import React from "react";
+import React, { useState } from "react";
 import useAuthCheck from "./../../hooks/useAuthCheck";
 import ConfirmModal from "./../components/ConfirmModal";
 import PlanCard from "./../components/PlanCard";
@@ -7,7 +7,7 @@ import { Battery, Shield, Sparkles, TrendingUp, Zap } from "lucide-react";
 
 const Subscriptions = () => {
   const { requireLogin, isModalOpen, confirmLogin, cancelLogin } = useAuthCheck();
-
+  const {isLogin, setIsLogin} = useState(false);
   const handleBuy = (planName) => {
     requireLogin(() => {
       alert(`Thanh toán cho gói ${planName} (mock)`);
