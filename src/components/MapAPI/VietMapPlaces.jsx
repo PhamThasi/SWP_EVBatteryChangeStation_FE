@@ -2,131 +2,131 @@ import React, { useEffect, useRef, useState } from "react";
 import * as vietmapgl from "@vietmap/vietmap-gl-js";
 import "./../../../node_modules/@vietmap/vietmap-gl-js/dist/vietmap-gl.css";
 
-export default function VietMapPlaces({ searchTerm }) {
+export default function VietMapPlaces({
+  stations = [],
+  route = null,
+  routeInfo = null,
+  userLocation = null,
+  API_KEY,
+  mode = "display",
+}) {
   const mapContainer = useRef(null);
-  const [map, setMap] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
-  const API_KEY = import.meta.env.VITE_APP_VIETMAP_API_KEY;
+  const mapRef = useRef(null);
+  const [coords, setCoords] = useState(null); // hiển_: lưu toạ độ hiển thị
 
-  const sampleStations = [
-    { name: "Trạm sạc EV01 - Cần Thơ", lat: 10.045, lng: 105.746 },
-    { name: "Trạm sạc EV02 - Vĩnh Long", lat: 10.253, lng: 105.958 },
-    { name: "Trạm sạc EV03 - Đồng Tháp", lat: 10.467, lng: 105.634 },
-  ];
-
-
+  // === Khởi tạo map ===
   useEffect(() => {
-    if (!mapContainer.current) return;
-    const mapInstance = new vietmapgl.Map({
+    if (mapRef.current) return;
+    const map = new vietmapgl.Map({
       container: mapContainer.current,
       style: `https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=${API_KEY}`,
-      center: [105.7, 10.3],
-      zoom: 8,
+      center: [106.7, 10.77],
+      zoom: 11,
       accessToken: API_KEY,
     });
-    setMap(mapInstance);
-    return () => mapInstance.remove();
+    mapRef.current = map;
+    return () => map.remove();
   }, [API_KEY]);
 
-
+  // === Render marker trạm ===
   useEffect(() => {
+    const map = mapRef.current;
     if (!map) return;
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const coords = [pos.coords.longitude, pos.coords.latitude];
-          setUserLocation(coords);
-          new vietmapgl.Marker({ color: "red" })
-            .setLngLat(coords)
-            .setPopup(new vietmapgl.Popup().setText("Vị trí của bạn"))
-            .addTo(map);
-          map.flyTo({ center: coords, zoom: 12 });
-        },
-        (err) => console.error("Không thể lấy vị trí:", err)
-      );
-    }
-  }, [map]);
+    document.querySelectorAll(".vietmapgl-marker").forEach((m) => m.remove());
+    if (!stations.length) return;
 
- 
-  useEffect(() => {
-    if (!map) return;
     const bounds = new vietmapgl.LngLatBounds();
-    sampleStations.forEach((station) => {
-      bounds.extend([station.lng, station.lat]);
+    stations.forEach((s, i) => {
       new vietmapgl.Marker({ color: "#3b82f6" })
-        .setLngLat([station.lng, station.lat])
+        .setLngLat([s.lng, s.lat])
         .setPopup(
-          new vietmapgl.Popup().setHTML(`
-            <div><strong>${station.name}</strong><br/>📍 ${station.lat.toFixed(
-              3
-            )}, ${station.lng.toFixed(3)}</div>`)
+          new vietmapgl.Popup().setHTML(
+            `<b>${s.name || `Trạm ${i + 1}`}</b><br>${s.lat}, ${s.lng}`
+          )
         )
         .addTo(map);
+      bounds.extend([s.lng, s.lat]);
     });
-    map.fitBounds(bounds, { padding: 60 });
-  }, [map]);
+    if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 48, duration: 600 });
+  }, [stations]);
 
-
+  // === Hiển thị vị trí người dùng ===
   useEffect(() => {
-    if (!map || !searchTerm || !userLocation) return;
+    const map = mapRef.current;
+    if (!map || !userLocation) return;
 
-    const fetchAndDrawRoute = async () => {
-      try {
-        const searchRes = await fetch(
-          `https://maps.vietmap.vn/api/search/v4?apikey=${API_KEY}&text=${encodeURIComponent(
-            searchTerm
-          )}`
-        );
-        const searchData = await searchRes.json();
-        const dest = searchData?.data?.[0];
-        if (!dest) return alert("Không tìm thấy trạm!");
+    new vietmapgl.Marker({ color: "red" })
+      .setLngLat(userLocation)
+      .setPopup(new vietmapgl.Popup().setText("📍 Vị trí của bạn"))
+      .addTo(map);
 
-        const destCoords = [dest.geometry.coordinates[0], dest.geometry.coordinates[1]];
+    // hiển_: lưu toạ độ hiện tại để hiển thị text
+    setCoords({
+      lat: userLocation[1].toFixed(6),
+      lng: userLocation[0].toFixed(6),
+    });
 
-        const routeRes = await fetch(
-          `https://maps.vietmap.vn/api/route/v1/driving/${userLocation[0]},${userLocation[1]};${destCoords[0]},${destCoords[1]}?apikey=${API_KEY}`
-        );
-        const routeData = await routeRes.json();
-        const route = routeData?.routes?.[0];
+    map.flyTo({ center: userLocation, zoom: 13 });
+  }, [userLocation]);
 
-        if (!route) return alert("Không tìm được đường đi!");
+  // === Vẽ route ===
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !route) return;
 
-        const geojson = {
-          type: "Feature",
-          geometry: route.geometry,
-        };
+    if (map.getSource("route")) {
+      map.removeLayer("route-layer");
+      map.removeSource("route");
+    }
 
-        if (map.getSource("route")) {
-          map.getSource("route").setData(geojson);
-        } else {
-          map.addSource("route", { type: "geojson", data: geojson });
-          map.addLayer({
-            id: "route-layer",
-            type: "line",
-            source: "route",
-            layout: { "line-join": "round", "line-cap": "round" },
-            paint: { "line-color": "#2563eb", "line-width": 5 },
-          });
-        }
+    map.addSource("route", { type: "geojson", data: route });
+    map.addLayer({
+      id: "route-layer",
+      type: "line",
+      source: "route",
+      paint: { "line-color": "#2563eb", "line-width": 5 },
+    });
 
-        // focus both user & destination
-        map.fitBounds([userLocation, destCoords], { padding: 80 });
-      } catch (err) {
-        console.error("Lỗi khi vẽ đường:", err);
-      }
-    };
+    if (routeInfo?.dest && routeInfo?.distance && routeInfo?.time) {
+      new vietmapgl.Marker({ color: "#16a34a" })
+        .setLngLat([routeInfo.dest.lng, routeInfo.dest.lat])
+        .setPopup(
+          new vietmapgl.Popup({ offset: 25 }).setHTML(
+            `<b>🏁 Đến đích</b><br>
+            Khoảng cách: ${routeInfo.distance} km<br>
+            Thời gian: ${routeInfo.time} phút`
+          )
+        )
+        .addTo(map);
 
-    fetchAndDrawRoute();
-  }, [searchTerm, userLocation]);
+      map.fitBounds(
+        new vietmapgl.LngLatBounds()
+          .extend(userLocation)
+          .extend([routeInfo.dest.lng, routeInfo.dest.lat]),
+        { padding: 80, duration: 800 }
+      );
+    }
+  }, [route, routeInfo, userLocation]);
 
   return (
     <div className="p-2 w-full">
       <h2 className="text-2xl font-bold mb-2 text-[#001f54] text-center">
-        Bản đồ trạm đổi pin
+        Bản đồ tìm đường đến trạm
       </h2>
+
+      {/* hiển_: hiển thị tọa độ user ngay trên bản đồ */}
+      {coords && (
+        <div className="text-center text-sm text-gray-700 mb-2">
+          <span className="font-semibold text-blue-700">
+            📍 Tọa độ hiện tại:
+          </span>{" "}
+          <span>Lat: {coords.lat}</span> | <span>Lng: {coords.lng}</span>
+        </div>
+      )}
+
       <div
         ref={mapContainer}
-        className="w-full h-[400px] md:h-[550px] rounded-2xl shadow-md overflow-hidden border border-gray-200"
+        className="w-full h-[500px] md:h-[600px] rounded-2xl shadow-md overflow-hidden border border-gray-200"
       />
     </div>
   );

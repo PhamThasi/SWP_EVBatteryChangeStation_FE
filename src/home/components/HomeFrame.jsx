@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 
 import "./HomeFrame.css";
@@ -16,6 +15,8 @@ import tramsac_vinfast from "./../../assets/tramsac_vinfast.jpg";
 import GoogleMapPlaces from "@/components/MapAPI/GoogleMapPlaces";
 import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
 const HomeFrame = () => {
+  const API_KEY = import.meta.env.VITE_APP_VIETMAP_API_KEY;
+  const [userLocation, setUserLocation] = useState(null);
   useEffect(() => {
     const reveals = document.querySelectorAll(".reveal");
 
@@ -64,7 +65,27 @@ const HomeFrame = () => {
       imageUrl: tramsac_vinfast,
     },
   ];
-
+  // lấy vị trí user
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([
+            position.coords.longitude,
+            position.coords.latitude,
+          ]);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }
+  }, []);
+  const sampleStations = [
+    { name: "Ev-ONE", lat: 10.775, lng: 106.7 },
+    { name: "TESLA", lat: 10.78, lng: 106.69 },
+    { name: "VINFAST Thảo Điền", lat: 10.82, lng: 106.74 },
+  ];
   return (
     <div className="home-frame">
       {/* video nền xe */}
@@ -141,7 +162,7 @@ const HomeFrame = () => {
         <h3>Các gói dịch vụ Swap Pin</h3>
         <div className="service-cards">
           <ServiceCard title="Gói Cơ Bản">
-            <ul style={{listStyle:"none"}}>
+            <ul style={{ listStyle: "none" }}>
               <li>🔁 Swap từng lần – trả tiền theo mỗi lượt đổi pin</li>
               <li>
                 💡 Phù hợp với tài xế ít di chuyển hoặc sử dụng không thường
@@ -153,7 +174,7 @@ const HomeFrame = () => {
           </ServiceCard>
 
           <ServiceCard title="Gói Tiết Kiệm">
-            <ul style={{listStyle:"none"}}> 
+            <ul style={{ listStyle: "none" }}>
               <li>
                 📦 Thuê pin theo tháng, giá thấp hơn 20–30% so với gói cơ bản
               </li>
@@ -167,7 +188,7 @@ const HomeFrame = () => {
           </ServiceCard>
 
           <ServiceCard title="Gói Premium">
-            <ul style={{listStyle:"none"}} >
+            <ul style={{ listStyle: "none" }}>
               <li>🔋 Swap không giới hạn – đổi pin bất cứ lúc nào</li>
               <li>🧰 Bảo dưỡng & kiểm tra tình trạng pin định kỳ miễn phí</li>
               <li>🚗 Ưu tiên hàng đầu tại mọi trạm trên hệ thống</li>
@@ -182,7 +203,7 @@ const HomeFrame = () => {
       <div className="map-placeholder">
         <h2>Bản đồ trạm đổi pin gần nhất (Google Map API sau này)</h2>
         <div className="map-animation">
-          <VietMapPlaces/>
+          <VietMapPlaces stations={sampleStations} API_KEY={API_KEY} userLocation={userLocation} mode="display" />
         </div>
       </div>
     </div>

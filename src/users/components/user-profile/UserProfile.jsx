@@ -25,10 +25,7 @@ const UserProfile = () => {
         const userProfile = await tokenUtils.getUserProfile();
         
         if (userProfile) {
-          console.log("User profile loaded:", userProfile);
           setProfile(userProfile);
-        } else {
-          console.error("Failed to load user profile");
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
@@ -44,14 +41,19 @@ const UserProfile = () => {
 
   const handleEdit = async () => {
     if (isEditing) {
+      // Show confirmation dialog before saving
+      const confirmed = window.confirm(
+        "Bạn có chắc chắn muốn cập nhật thông tin cá nhân không?\n\n" +
+        "Thông tin sẽ được lưu và không thể hoàn tác."
+      );
+      
+      if (!confirmed) {
+        return; // User cancelled, don't save
+      }
+      
       // Save changes - call API to update profile
       try {
-        console.log("Saving profile changes...");
-        console.log("Account ID:", profile.accountId);
-        console.log("Updated data:", tempProfile);
-        
         const response = await authService.updateProfile(tempProfile);
-        console.log("Update response:", response);
         
         if (response && response.data) {
           // Update local state with new data
@@ -60,9 +62,9 @@ const UserProfile = () => {
           // Update localStorage with new user data
           localStorage.setItem("user", JSON.stringify(tempProfile));
           
-          alert("Cập nhật thông tin thành công!");
+          alert(" Cập nhật thông tin thành công!");
         } else {
-          alert("Có lỗi xảy ra khi cập nhật thông tin!");
+          alert(" Có lỗi xảy ra khi cập nhật thông tin!");
         }
       } catch (error) {
         console.error("Update profile error:", error);
@@ -83,24 +85,6 @@ const UserProfile = () => {
     setTempProfile((prev) => ({ ...prev, [field]: value }));
   };
 
-  const refreshProfile = async () => {
-    setLoading(true);
-    try {
-      console.log("Refreshing profile data from API...");
-      // Force refresh = true để bỏ qua cache và lấy data mới từ API
-      const userProfile = await tokenUtils.getUserProfile(true);
-      
-      if (userProfile) {
-        setProfile(userProfile);
-        setTempProfile(userProfile);
-        console.log("Profile refreshed successfully");
-      }
-    } catch (error) {
-      console.error("Error refreshing profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -141,28 +125,6 @@ const UserProfile = () => {
         onCancel={handleCancel}
         onChange={handleChange}
       />
-      
-      {/* Debug info */}
-      <div className="mt-4 p-4 bg-yellow-100 rounded">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-bold">Debug Info:</h3>
-          <button 
-            onClick={refreshProfile}
-            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-          >
-            Refresh Data
-          </button>
-        </div>
-        <p><strong>Account ID:</strong> {profile.accountId}</p>
-        <p><strong>Account Name:</strong> {profile.accountName}</p>
-        <p><strong>Full Name:</strong> {profile.fullName}</p>
-        <p><strong>Email:</strong> {profile.email}</p>
-        <p><strong>Phone:</strong> {profile.phoneNumber}</p>
-        <p><strong>Address:</strong> {profile.address}</p>
-        <p><strong>Gender:</strong> {profile.gender}</p>
-        <p><strong>Role:</strong> {profile.role}</p>
-        <p><strong>Date of Birth:</strong> {profile.dateOfBirth}</p>
-      </div>
 
     </div>
   );

@@ -33,8 +33,18 @@ export default defineConfig({
     },
   },
 
+  // 
   server: {
-    port: 3000,
+    port: 3000, 
+    proxy: {
+      "/vietmap": {
+        target: "https://maps.vietmap.vn",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/vietmap/, ""),
+      },
+    },
   },
+
   moduleResolution: "bundler",
 });
