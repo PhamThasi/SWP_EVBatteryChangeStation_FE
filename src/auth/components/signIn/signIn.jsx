@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../components/button";
 import "./signIn.css";
@@ -9,6 +9,21 @@ const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    const checkExistingLogin = async () => {
+      if (tokenUtils.isLoggedIn()) {
+        console.log("User already logged in, redirecting to user page...");
+        const userData = await tokenUtils.autoLogin();
+        if (userData) {
+          navigate("/userPage");
+        }
+      }
+    };
+    
+    checkExistingLogin();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

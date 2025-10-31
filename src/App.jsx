@@ -58,9 +58,7 @@ function App() {
       path: "/login",
       element: (
         <AuthLayout>
-          {/* <SignUp/> */}
           <SignIn />
-          {/* <SignUp/> */}
         </AuthLayout>
       ),
     },
@@ -97,6 +95,7 @@ function App() {
       children: [
         { index: true, element: <UserDashboard /> },
         { path: "booking", element: <BookingPage /> },
+        { path: "subscriptions", element: <Subscriptions /> },
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
         { path: "supportRequest", element: <SupportRequest /> },
