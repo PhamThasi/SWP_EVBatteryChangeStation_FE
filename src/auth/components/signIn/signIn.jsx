@@ -4,84 +4,95 @@ import Button from "../../../components/button";
 import "./signIn.css";
 import authService from "@/api/authService";
 import tokenUtils from "@/utils/tokenUtils";
+import roleService from "@/api/roleService";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  // Check if user is already logged in on mount
+  // ==================== AUTO LOGIN ====================
   useEffect(() => {
     const checkExistingLogin = async () => {
       if (tokenUtils.isLoggedIn()) {
-        console.log("User already logged in, redirecting to user page...");
-        const userData = await tokenUtils.autoLogin();
-        if (userData) {
-          navigate("/userPage");
-        }
+        const userData = tokenUtils.getUserData();
+        if (!userData) return;
+
+        const roleRedirect = await getRedirectPathByRole(userData.roleId);
+        navigate(roleRedirect);
       }
     };
-    
     checkExistingLogin();
   }, [navigate]);
 
+  // ==================== ROLE HANDLER ====================
+  const getRedirectPathByRole = async (roleId) => {
+    try {
+      const allRoles = await roleService.getAllRoles();
+      const matchedRole = allRoles?.data?.find((r) => r.roleId === roleId);
+
+      if (!matchedRole) return "/userPage"; // fallback
+
+      switch (matchedRole.roleName.toLowerCase()) {
+        case "admin":
+          return "/admin";
+        case "staff":
+          return "/admin"; // nếu có StaffLayout thì đổi thành /staff
+        case "customer":
+        default:
+          return "/userPage";
+      }
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      return "/userPage";
+    }
+  };
+
+  // ==================== LOGIN HANDLER ====================
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Gọi API login từ backend của cậu (VD: http://localhost:5000/api/Auth/login)
       const res = await authService.login(email, password);
       console.log("Full API response:", res);
-      console.log("Response data:", res.data);
-      console.log("Response status:", res.status);
-  
-      // Kiểm tra response structure
-      if (res && res.data) {
-        console.log("Checking response conditions...");
-        console.log("res.data.status:", res.data.status);
-        console.log("res.data.data:", res.data.data);
-        console.log("res.data.status == 200:", res.data.status == 200);
-        console.log("res.data?.data exists:", !!res.data?.data);
-        
-        // Lưu token vào localStorage
-        if (res.data.status == 200 || res.data?.data) {
-          const token = res.data?.data;
-          console.log("Token to save:", token);
-          
-          if (token) {
-            localStorage.setItem("token", token);
-            
-            // Sử dụng hàm processLoginToken để xử lý token một cách tối ưu
-            const userProfile = await tokenUtils.processLoginToken(token);
-            
-            if (userProfile) {
-              console.log("Login successful, user profile processed:", userProfile);
-              // Chuyển hướng sang dashboard (trang chính sau khi login)
-              navigate("/userPage");
-            } else {
-              console.error("Failed to process login token");
-              alert("Có lỗi xảy ra khi xử lý thông tin đăng nhập!");
-            }
-          } else {
-            console.error("No token received from API");
-            alert("Không nhận được token từ server!");
-          }
-        } else {
-          console.error("API response indicates failure");
-          console.error("Status:", res.data.status);
-          console.error("Data:", res.data.data);
-          alert("Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin.");
-        }
-      } else {
-        console.error("Invalid response structure:", res);
+
+      if (!res?.data) {
         alert("Phản hồi từ server không hợp lệ!");
+        return;
       }
+
+      if (res.data.status !== 200 || !res.data.data) {
+        alert("Đăng nhập thất bại! Kiểm tra lại thông tin.");
+        return;
+      }
+
+      const token = res.data.data;
+      if (!token) {
+        alert("Không nhận được token từ server!");
+        return;
+      }
+
+      // lưu token vào localStorage
+      localStorage.setItem("token", token);
+
+      // Decode token để lấy user info
+      const userProfile = await tokenUtils.processLoginToken(token);
+      if (!userProfile) {
+        alert("Không thể lấy thông tin user từ token!");
+        return;
+      }
+
+      console.log("✅ User profile decoded:", userProfile);
+
+      // điều hướng theo role
+      const redirectPath = await getRedirectPathByRole(userProfile.roleId);
+      navigate(redirectPath);
     } catch (err) {
       console.error("Login failed:", err);
-      console.error("Error details:", err.response?.data);
       alert("Sai tài khoản hoặc mật khẩu!");
     }
   };
 
+  // ==================== UI ====================
   return (
     <div className="signIn">
       <div className="header-signIn">
@@ -110,9 +121,11 @@ const SignIn = () => {
             required
           />
         </div>
+
         <div className="butt">
           <Button type="submit">Sign in</Button>
         </div>
+
         <div className="footer-text">
           <p>
             Don't have an account yet?

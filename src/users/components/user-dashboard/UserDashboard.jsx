@@ -3,16 +3,31 @@ import { Battery, Car, Calendar, MapPin, TrendingUp } from "lucide-react";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
 import stationService from "@/api/stationService";
+import feedbackService from "@/api/feedbackService";
 import tokenUtils from "@/utils/tokenUtils";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import Feedback from "./../feedback/Feedback";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 const UserDashboard = () => {
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [cars, setCars] = useState([]);
   const [stations, setStations] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
+  // =================== FETCH DATA ===================
   useEffect(() => {
     const loadUserDashboard = async () => {
       const userData = tokenUtils.getUserData();
@@ -20,19 +35,28 @@ const UserDashboard = () => {
       setUser(userData);
 
       try {
-        const [userBookings, allCars, stationList] = await Promise.all([
-          bookingService.getUserBookings(userData.accountId),
-          carService.getAllCars(),
-          stationService.getStationList(),
-        ]);
+        const [userBookings, allCars, stationList, allFeedbacks] =
+          await Promise.all([
+            bookingService.getUserBookings(userData.accountId),
+            carService.getAllCars(),
+            stationService.getStationList(),
+            feedbackService.getAllFeedbacks(),
+          ]);
 
-        // lọc xe của user (nếu BE chưa có endpoint riêng)
-        const myCars = allCars.filter((c) => c.accountId === userData.accountId);
+        const myCars = allCars.filter(
+          (c) => c.accountId === userData.accountId
+        );
+        const myFeedbacks = Array.isArray(allFeedbacks)
+          ? allFeedbacks.filter((f) => f.accountId === userData.accountId)
+          : [];
+
         setCars(myCars);
-        setBookings(userBookings);
+        setBookings(Array.isArray(userBookings) ? userBookings : []);
         setStations(stationList);
+        setFeedbacks(myFeedbacks);
       } catch (err) {
-        console.error("Error loading user dashboard:", err);
+        console.error("Error loading dashboard:", err);
+        setBookings([]);
       } finally {
         setLoading(false);
       }
@@ -41,6 +65,26 @@ const UserDashboard = () => {
     loadUserDashboard();
   }, []);
 
+  // =================== CHECK CONDITION ===================
+  const canFeedback = (booking) => {
+    if (!booking.dateTime) return false;
+
+    const now = new Date();
+    const bookingDate = new Date(booking.dateTime);
+    const diffHours = (now - bookingDate) / (1000 * 60 * 60);
+    const over1Hour = diffHours >= 1;
+
+    const isInactive =
+      booking.status !== "Hoạt động" && booking.status !== true;
+
+    const hasFeedback = feedbacks.some(
+      (f) => f.bookingId === booking.bookingId
+    );
+
+    return (over1Hour || isInactive) && !hasFeedback;
+  };
+
+  // =================== RENDER ===================
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -49,16 +93,21 @@ const UserDashboard = () => {
     );
   }
 
-  // Tính toán thông tin tổng hợp
-  const totalBookings = bookings.length;
-  const totalCars = cars.length;
-  const totalStationsVisited = new Set(bookings.map((b) => b.stationName)).size;
-  const totalSpent = bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const validBookings = Array.isArray(bookings) ? bookings : [];
 
-  // Tạo dữ liệu biểu đồ (số lượt đổi pin theo tháng)
+  const totalBookings = validBookings.length;
+  const totalCars = cars.length;
+  const totalStationsVisited = new Set(
+    validBookings.map((b) => b.stationName)
+  ).size;
+  const totalSpent = validBookings.reduce(
+    (sum, b) => sum + (b.totalPrice || 0),
+    0
+  );
+
   const chartData = Array.from({ length: 12 }, (_, i) => ({
     month: `${i + 1}`,
-    swaps: bookings.filter(
+    swaps: validBookings.filter(
       (b) => new Date(b.dateTime).getMonth() === i
     ).length,
   }));
@@ -69,15 +118,31 @@ const UserDashboard = () => {
         Xin chào, {user?.fullName || "User"} 👋
       </h1>
 
-      {/* Cards */}
+      {/* =================== THỐNG KÊ CARD =================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <DashboardCard title="Tổng số lần đổi pin" value={totalBookings} icon={<Battery className="text-blue-500" />} />
-        <DashboardCard title="Xe đã liên kết" value={totalCars} icon={<Car className="text-green-500" />} />
-        <DashboardCard title="Số trạm từng đến" value={totalStationsVisited} icon={<MapPin className="text-purple-500" />} />
-        <DashboardCard title="Tổng chi tiêu (VNĐ)" value={totalSpent.toLocaleString("vi-VN")} icon={<TrendingUp className="text-orange-500" />} />
+        <DashboardCard
+          title="Tổng số lần đổi pin"
+          value={totalBookings}
+          icon={<Battery className="text-blue-500" />}
+        />
+        <DashboardCard
+          title="Xe đã liên kết"
+          value={totalCars}
+          icon={<Car className="text-green-500" />}
+        />
+        <DashboardCard
+          title="Số trạm từng đến"
+          value={totalStationsVisited}
+          icon={<MapPin className="text-purple-500" />}
+        />
+        <DashboardCard
+          title="Tổng chi tiêu (VNĐ)"
+          value={totalSpent.toLocaleString("vi-VN")}
+          icon={<TrendingUp className="text-orange-500" />}
+        />
       </div>
 
-      {/* Biểu đồ lượt đổi pin theo tháng */}
+      {/* =================== BIỂU ĐỒ =================== */}
       <div className="bg-white shadow rounded-lg p-6 mb-10">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Biểu đồ số lượt đổi pin trong năm
@@ -88,28 +153,65 @@ const UserDashboard = () => {
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip />
-            <Line type="monotone" dataKey="swaps" stroke="#f97316" strokeWidth={3} />
+            <Line
+              type="monotone"
+              dataKey="swaps"
+              stroke="#f97316"
+              strokeWidth={3}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Booking gần đây */}
+      {/* =================== HOẠT ĐỘNG GẦN ĐÂY =================== */}
       <div className="bg-white shadow rounded-lg p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Hoạt động gần đây</h2>
-        {bookings.slice(0, 5).map((b) => (
-          <div key={b.bookingId} className="border-b py-3 flex justify-between text-sm text-gray-700">
-            <span>{b.stationName}</span>
-            <span>{new Date(b.dateTime).toLocaleDateString("vi-VN")}</span>
-            <span className={`font-medium ${b.status === "Completed" ? "text-green-600" : "text-yellow-600"}`}>
-              {b.status}
-            </span>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Hoạt động gần đây
+        </h2>
+        {validBookings.slice(0, 5).map((b) => (
+          <div
+            key={b.bookingId}
+            className="border-b py-3 flex justify-between items-center text-sm text-gray-700"
+          >
+            <div>
+              <p className="font-medium">{b.stationName}</p>
+              <p className="text-xs text-gray-500">
+                {new Date(b.dateTime).toLocaleDateString("vi-VN")}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span
+                className={`font-medium ${
+                  b.status === "Completed"
+                    ? "text-green-600"
+                    : "text-yellow-600"
+                }`}
+              >
+                {b.status}
+              </span>
+
+              {canFeedback(b) && (
+                <button
+                  onClick={() => {
+                    setSelectedBooking(b);
+                    setShowFeedback(true);
+                  }}
+                  className="bg-orange-100 text-orange-600 px-3 py-1 text-xs rounded-full hover:bg-orange-200 transition"
+                >
+                  Gửi phản hồi
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Thông tin lịch bảo dưỡng */}
+      {/* =================== LỊCH BẢO DƯỠNG =================== */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-2">Bảo dưỡng sắp tới</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">
+          Bảo dưỡng sắp tới
+        </h2>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Lần gần nhất: 10/10/2025</p>
@@ -118,11 +220,27 @@ const UserDashboard = () => {
           <Calendar className="text-purple-500 w-8 h-8" />
         </div>
       </div>
+
+      {/* =================== FEEDBACK MODAL =================== */}
+      {showFeedback && selectedBooking && (
+        <Feedback
+          booking={selectedBooking}
+          accountId={user.accountId}
+          onClose={() => {
+            setShowFeedback(false);
+            setSelectedBooking(null);
+          }}
+          onSuccess={() => {
+            setShowFeedback(false);
+            setSelectedBooking(null);
+          }}
+        />
+      )}
     </div>
   );
 };
 
-// Reusable card component
+// =================== CARD COMPONENT ===================
 const DashboardCard = ({ title, value, icon }) => (
   <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
     <div className="flex items-center justify-between">
