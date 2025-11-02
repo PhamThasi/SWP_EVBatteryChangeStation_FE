@@ -3,7 +3,8 @@ import { useSupportRequest } from '@/context/SupportRequestContext';
 import React from 'react';
 
 const RequestCard = ({ request }) => {
-  const { updateRequestStatus, deleteRequest, activeTab } = useSupportRequest();
+  const { deleteRequest } = useSupportRequest();
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -14,6 +15,23 @@ const RequestCard = ({ request }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
+      setIsDeleting(true);
+      try {
+        // Sử dụng requestId hoặc id để xóa
+        const idToDelete = request.requestId || request.id;
+        await deleteRequest(idToDelete);
+        alert('Yêu cầu đã được xóa thành công!');
+      } catch (error) {
+        console.error('Error deleting request:', error);
+        alert('Có lỗi xảy ra khi xóa yêu cầu. Vui lòng thử lại!');
+      } finally {
+        setIsDeleting(false);
+      }
+    }
   };
 
   return (
@@ -50,61 +68,36 @@ const RequestCard = ({ request }) => {
       {/* Content */}
       <div className="mb-4 space-y-2">
         <p className="text-gray-700">
-          <span className="font-semibold text-gray-900">Loại hỗ trợ:</span> {request.supportType}
+          <span className="font-semibold text-gray-900">Loại vấn đề:</span> {request.issueType || request.supportType}
         </p>
         <p className="text-gray-700">
-          <span className="font-semibold text-gray-900">Phương tiện:</span> {request.vehicle}
+          <span className="font-semibold text-gray-900">Mô tả:</span> {request.description || request.details}
         </p>
-        <p className="text-gray-700">
-          <span className="font-semibold text-gray-900">Chủ đề:</span> {request.topic}
-        </p>
-        <p className="text-gray-700">
-          <span className="font-semibold text-gray-900">Chi tiết:</span> {request.details}
-        </p>
-      </div>
-
-      {/* Contact Info */}
-      <div className="mb-4 text-sm text-gray-600 space-y-1">
-        <p>
-          <span className="font-semibold text-gray-900">Liên hệ:</span> {request.phone} | {request.email}
-        </p>
-        {request.vehiclePlate && (
-          <p>
-            <span className="font-semibold text-gray-900">Biển số xe:</span> {request.vehiclePlate}
-          </p>
+        {request.responseText && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+            <p className="font-semibold text-gray-900 mb-2">Phản hồi từ nhân viên:</p>
+            <p className="text-gray-700">{request.responseText}</p>
+            {request.responseDate && (
+              <p className="text-sm text-gray-500 mt-2">
+                Ngày phản hồi: {formatDate(request.responseDate)}
+              </p>
+            )}
+          </div>
         )}
-        <p>
-          <span className="font-semibold text-gray-900">Ưu tiên liên hệ:</span> {request.contactPreference}
-        </p>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
-        {activeTab === 'pending' && (
-          <button
-            onClick={() => updateRequestStatus(request.id, 'resolved')}
-            className="flex-1 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition font-semibold"
-          >
-            Đánh dấu đã xử lý
-          </button>
-        )}
-        {activeTab === 'resolved' && (
-          <button
-            onClick={() => updateRequestStatus(request.id, 'pending')}
-            className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-xl hover:bg-yellow-600 transition font-semibold"
-          >
-            Đánh dấu chưa xử lý
-          </button>
-        )}
+      <div className="flex gap-3 justify-end">
         <button
-          onClick={() => {
-            if (window.confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
-              deleteRequest(request.id);
-            }
-          }}
-          className="bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 transition font-semibold"
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className={`bg-red-500 text-white px-6 py-3 rounded-xl transition font-semibold text-base ${
+            isDeleting 
+              ? 'opacity-50 cursor-not-allowed' 
+              : 'hover:bg-red-600'
+          }`}
         >
-          Xóa
+          {isDeleting ? 'Đang xóa...' : 'Xóa'}
         </button>
       </div>
     </div>

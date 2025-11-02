@@ -1,129 +1,115 @@
 // src/pages/support-request/SupportRequest.jsx
 import Button from "@/components/button";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import TabSection from "./../../../components/tab-section/TabSection";
 import ContentArea from "@/components/content-area/ContentArea";
-// import ModalForm from '@/components/common/ModalForm';
 import * as Yup from "yup";
 import {
   SupportRequestProvider,
   useSupportRequest,
 } from "@/context/SupportRequestContext";
 import ModalForm from "@/components/modalForm/ModalForm";
-import SupportRequestForm from "@/components/support-request-form/SupportRequestForm";
+import supportRequestService from "@/api/supportRequestService";
 
 const SupportRequestContent = () => {
-  const { setIsModalOpen, isModalOpen, addRequest } = useSupportRequest();
+  const { setIsModalOpen, isModalOpen, addRequest, fetchRequests, loading, setActiveTab } = useSupportRequest();
 
-  // Cấu hình cho ModalForm
+  // Helper function để lấy accountId
+  const getAccountId = () => {
+    const userString = localStorage.getItem("user");
+    const user = userString ? JSON.parse(userString) : null;
+    return user?.accountId;
+  };
+
+  // Fetch data khi component mount - chỉ chạy 1 lần
+  useEffect(() => {
+    const accountId = getAccountId();
+    if (accountId) {
+      fetchRequests(accountId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Chỉ chạy khi component mount, không phụ thuộc vào fetchRequests
+
   const initialValues = {
-    supportType: "Hỗ trợ dịch vụ Xe",
-    title: "",
-    vehicle: "Không",
-    topic: "",
-    details: "",
-    name: "",
-    phone: "",
-    email: "",
-    contactPreference: "Gọi điện thoại",
-    vehiclePlate: "",
+    issueType: "",
+    description: "",
   };
 
   const validationSchema = Yup.object({
-    title: Yup.string().required("Vui lòng nhập tiêu đề"),
-    topic: Yup.string().required("Vui lòng chọn chủ đề"),
-    details: Yup.string().required("Vui lòng nhập chi tiết"),
-    name: Yup.string().required("Vui lòng nhập họ tên"),
-    phone: Yup.string()
-      .matches(/^[0-9]+$/, "Số điện thoại chỉ được chứa số")
-      .min(10, "Số điện thoại phải có ít nhất 10 số")
-      .required("Vui lòng nhập số điện thoại"),
-    email: Yup.string()
-      .email("Email không hợp lệ")
-      .required("Vui lòng nhập email"),
+    issueType: Yup.string().required("Vui lòng chọn loại vấn đề"),
+    description: Yup.string()
+      .required("Vui lòng nhập mô tả chi tiết")
+      .min(10, "Mô tả phải có ít nhất 10 ký tự"),
   });
 
   const formFields = [
     {
-      name: "supportType",
-      label: "Hỗ trợ",
+      name: "issueType",
+      label: "Loại vấn đề",
       type: "select",
       as: "select",
-      options: ["Hỗ trợ dịch vụ Xe", "Hỗ trợ dịch vụ Sạc"],
-    },
-    {
-      name: "title",
-      label: "Tiêu đề",
-      placeholder: "Tiêu kiểu đề cho yêu cầu",
-    },
-    {
-      name: "vehicle",
-      label: "Phương tiện",
-      type: "select",
-      as: "select",
-      options: ["Không", "Xe máy", "Ô tô"],
-    },
-    {
-      name: "topic",
-      label: "Chủ đề",
-      type: "select",
-      as: "select",
-      placeholder: "Lựa chọn",
+      placeholder: "Chọn loại vấn đề",
       options: [
         "",
         "Vấn đề kỹ thuật",
         "Thanh toán",
         "Dịch vụ khách hàng",
+        "Hỗ trợ dịch vụ Xe",
+        "Hỗ trợ dịch vụ Sạc",
         "Khác",
       ],
     },
     {
-      name: "details",
-      label: "Chi tiết",
+      name: "description",
+      label: "Mô tả chi tiết",
       as: "textarea",
-      placeholder: "Nhập mô tả chi tiết",
-    },
-    {
-      name: "name",
-      label: "Họ tên",
-      placeholder: "Nguyễn Văn A",
-    },
-    {
-      name: "phone",
-      label: "Số điện thoại",
-      placeholder: "0123456789",
-    },
-    {
-      name: "email",
-      label: "Email",
-      type: "email",
-      placeholder: "example@email.com",
-    },
-    {
-      name: "contactPreference",
-      label: "Ưu tiên liên hệ qua",
-      type: "radio",
-      options: [
-        { value: "Gọi điện thoại", label: "Gọi điện thoại" },
-        {
-          value: "Chat với Chăm sóc khách hàng",
-          label: "Chat với Chăm sóc khách hàng",
-        },
-        { value: "Email", label: "Email" },
-      ],
-    },
-    {
-      name: "vehiclePlate",
-      label: "Biển số xe",
-      placeholder: "Nhập biển số xe",
+      placeholder: "Nhập mô tả chi tiết về vấn đề của bạn...",
+      rows: 5,
     },
   ];
 
-  const handleSubmit = (values) => {
-    console.log("Adding new request:", values);
-    addRequest(values);
-    setIsModalOpen(false);
-    alert(" Yêu cầu hỗ trợ đã được gửi thành công!");
+  const handleSubmit = async (values) => {
+    try {
+      const accountId = getAccountId();
+      
+      const requestPayload = {
+        issueType: values.issueType,
+        description: values.description,
+        accountId: accountId,
+        responseText: "",
+      };
+
+      const response = await supportRequestService.createSupportRequest(
+        requestPayload
+      );
+
+      console.log("Support request created:", response);
+
+      // Thêm vào context để hiển thị trong danh sách
+      // response có thể là { data: {...} } hoặc trực tiếp là data object
+      const newRequestData = response.data || response;
+      
+      // Đảm bảo request mới được thêm vào với status 'pending' và chuyển tab
+      // React sẽ batch các state updates, nên cả hai sẽ update cùng lúc
+      addRequest(newRequestData);
+      setActiveTab('pending');
+
+      setIsModalOpen(false);
+      alert("Yêu cầu hỗ trợ đã được gửi thành công!");
+      
+      // Không refresh ngay lập tức vì đã có addRequest
+      // Chỉ refresh sau một khoảng thời gian ngắn để đảm bảo data đồng bộ
+      // (optional - có thể bỏ qua nếu không cần)
+      // if (accountId) {
+      //   setTimeout(() => {
+      //     fetchRequests(accountId);
+      //   }, 1000);
+      // }
+    } catch (error) {
+      console.error("Error submitting support request:", error);
+      alert("Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại!");
+      throw error; // Ném lỗi để Formik biết submission failed
+    }
   };
 
   return (
@@ -131,19 +117,28 @@ const SupportRequestContent = () => {
       <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <TabSection />
-          <ContentArea />
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-lg text-gray-600">Đang tải dữ liệu...</div>
+            </div>
+          ) : (
+            <ContentArea />
+          )}
         </div>
 
-        {/* Button tạo yêu cầu mới - sử dụng component Button có sẵn */}
+        {/* Button tạo yêu cầu mới */}
         <div className="fixed bottom-8 right-8">
           <Button onclick={() => setIsModalOpen(true)}>Tạo yêu cầu mới</Button>
         </div>
 
         {isModalOpen && (
-          <SupportRequestForm
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+          <ModalForm
+            title="Yêu cầu hỗ trợ mới"
+            initialValues={initialValues}
+            validationSchema={validationSchema}
             onSubmit={handleSubmit}
+            onClose={() => setIsModalOpen(false)}
+            fields={formFields}
           />
         )}
       </div>

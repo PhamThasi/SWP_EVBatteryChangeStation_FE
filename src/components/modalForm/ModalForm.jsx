@@ -1,7 +1,6 @@
-// src/components/common/ModalForm.jsx
+// src/components/modalForm/ModalForm.jsx
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
 
 const ModalForm = ({
   title,
@@ -19,9 +18,14 @@ const ModalForm = ({
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={(values, actions) => {
-            onSubmit(values);
-            actions.setSubmitting(false);
+          onSubmit={async (values, actions) => {
+            try {
+              await onSubmit(values);
+            } catch (error) {
+              console.error("Form submission error:", error);
+            } finally {
+              actions.setSubmitting(false);
+            }
           }}
         >
           {({ isSubmitting }) => (
@@ -60,11 +64,18 @@ const ModalForm = ({
                         </label>
                       ))}
                     </div>
+                  ) : f.as === "textarea" ? (
+                    <Field
+                      name={f.name}
+                      as="textarea"
+                      rows={f.rows || 4}
+                      className="border w-full p-3 rounded-xl focus:ring-2 focus:ring-[#0077b6] focus:outline-none resize-none"
+                      placeholder={f.placeholder || ""}
+                    />
                   ) : (
                     <Field
                       name={f.name}
                       type={f.type || "text"}
-                      as={f.as || "input"}
                       className="border w-full p-3 rounded-xl focus:ring-2 focus:ring-[#0077b6] focus:outline-none"
                       placeholder={f.placeholder || ""}
                     />
@@ -81,16 +92,17 @@ const ModalForm = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="bg-gray-300 text-black px-4 py-2 rounded-xl hover:bg-gray-400 transition"
+                  disabled={isSubmitting}
+                  className="bg-gray-300 text-black px-4 py-2 rounded-xl hover:bg-gray-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Huỷ bỏ
+                  Hủy bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#0077b6] text-white px-4 py-2 rounded-xl hover:bg-[#0096c7] transition disabled:opacity-50"
+                  className="bg-[#0077b6] text-white px-4 py-2 rounded-xl hover:bg-[#0096c7] transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Đang lưu" : "Lưu"}
+                  {isSubmitting ? "Đang lưu..." : "Lưu"}
                 </button>
               </div>
             </Form>
