@@ -26,6 +26,7 @@ const UserDashboard = () => {
 
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [refreshingFeedbacks, setRefreshingFeedbacks] = useState(false);
 
   // =================== FETCH DATA ===================
   useEffect(() => {
@@ -43,15 +44,23 @@ const UserDashboard = () => {
             feedbackService.getAllFeedbacks(),
           ]);
 
+        // Unwrap common API shapes
+        const userBookingsArr = Array.isArray(userBookings)
+          ? userBookings
+          : userBookings?.data || userBookings?.Data || [];
+        const allFeedbacksArr = Array.isArray(allFeedbacks)
+          ? allFeedbacks
+          : allFeedbacks?.data?.data || allFeedbacks?.data || [];
+
         const myCars = allCars.filter(
           (c) => c.accountId === userData.accountId
         );
-        const myFeedbacks = Array.isArray(allFeedbacks)
-          ? allFeedbacks.filter((f) => f.accountId === userData.accountId)
+        const myFeedbacks = Array.isArray(allFeedbacksArr)
+          ? allFeedbacksArr.filter((f) => f.accountId === userData.accountId)
           : [];
 
         setCars(myCars);
-        setBookings(Array.isArray(userBookings) ? userBookings : []);
+        setBookings(Array.isArray(userBookingsArr) ? userBookingsArr : []);
         setStations(stationList);
         setFeedbacks(myFeedbacks);
       } catch (err) {
@@ -65,6 +74,26 @@ const UserDashboard = () => {
     loadUserDashboard();
   }, []);
 
+  // Refresh feedbacks only
+  const refreshUserFeedbacks = async (accountId) => {
+    if (!accountId) return;
+    try {
+      setRefreshingFeedbacks(true);
+      const allFeedbacks = await feedbackService.getAllFeedbacks();
+      const allFeedbacksArr = Array.isArray(allFeedbacks)
+        ? allFeedbacks
+        : allFeedbacks?.data?.data || allFeedbacks?.data || [];
+      const myFeedbacks = Array.isArray(allFeedbacksArr)
+        ? allFeedbacksArr.filter((f) => f.accountId === accountId)
+        : [];
+      setFeedbacks(myFeedbacks);
+    } catch (err) {
+      console.error("Error refreshing feedbacks:", err);
+    } finally {
+      setRefreshingFeedbacks(false);
+    }
+  };
+
   // =================== CHECK CONDITION ===================
   const canFeedback = (booking) => {
     if (!booking.dateTime) return false;
@@ -72,16 +101,27 @@ const UserDashboard = () => {
     const now = new Date();
     const bookingDate = new Date(booking.dateTime);
     const diffHours = (now - bookingDate) / (1000 * 60 * 60);
-    const over1Hour = diffHours >= 1;
+      const over10Hours = diffHours >= 10;
 
-    const isInactive =
-      booking.status !== "Hoạt động" && booking.status !== true;
+    const isExpiredStatus =
+      booking.status === "Hết hạn" || booking.statusDisplay === "Hết hạn" || booking.isExpiredStatus === true;
+    const isInactive = booking.status !== "Hoạt động" && booking.status !== true;
 
-    const hasFeedback = feedbacks.some(
-      (f) => f.bookingId === booking.bookingId
-    );
+    const hasFeedback = feedbacks.some((f) => f.bookingId === booking.bookingId);
 
-    return (over1Hour || isInactive) && !hasFeedback;
+    return (over10Hours || isExpiredStatus || isInactive) && !hasFeedback;
+  };
+
+  const isExpiredOrInactive = (booking) => {
+    if (!booking.dateTime) return false;
+    const now = new Date();
+    const bookingDate = new Date(booking.dateTime);
+    const diffHours = (now - bookingDate) / (1000 * 60 * 60);
+    const over10Hours = diffHours >= 10;
+    const isExpiredStatus =
+      booking.status === "Hết hạn" || booking.statusDisplay === "Hết hạn" || booking.isExpiredStatus === true;
+    const isInactive = booking.status !== "Hoạt động" && booking.status !== true;
+    return over10Hours || isExpiredStatus || isInactive;
   };
 
   // =================== RENDER ===================
@@ -207,6 +247,55 @@ const UserDashboard = () => {
         ))}
       </div>
 
+      {/* =================== BOOKINGS CHƯA ĐÁNH GIÁ =================== */}
+      <div className="bg-white shadow rounded-lg p-6 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Các booking chưa đánh giá
+          </h2>
+          {refreshingFeedbacks && (
+            <span className="text-xs text-gray-400">Đang làm mới...</span>
+          )}
+        </div>
+        {validBookings.filter((b) => isExpiredOrInactive(b) && !feedbacks.some((f) => f.bookingId === b.bookingId)).length === 0 ? (
+          <div className="text-sm text-gray-500">Bạn đã đánh giá tất cả các booking.</div>
+        ) : (
+          <div className="divide-y">
+            {validBookings
+              .filter((b) => isExpiredOrInactive(b) && !feedbacks.some((f) => f.bookingId === b.bookingId))
+              .map((b) => (
+                <div key={b.bookingId} className="py-3 flex items-center justify-between">
+                  <div className="min-w-0">
+                    <div className="font-medium text-gray-800 truncate">{b.stationName}</div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(b.dateTime).toLocaleString("vi-VN")} · Trạng thái: {b.status}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedBooking(b);
+                      setShowFeedback(true);
+                    }}
+                    disabled={!isExpiredOrInactive(b)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                      isExpiredOrInactive(b)
+                        ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    }`}
+                    title={
+                      isExpiredOrInactive(b)
+                        ? "Gửi phản hồi"
+                        : "Bạn chỉ có thể đánh giá khi lịch đã hết hạn hoặc không hoạt động"
+                    }
+                  >
+                    Gửi phản hồi
+                  </button>
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+
       {/* =================== LỊCH BẢO DƯỠNG =================== */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-2">
@@ -233,6 +322,7 @@ const UserDashboard = () => {
           onSuccess={() => {
             setShowFeedback(false);
             setSelectedBooking(null);
+            refreshUserFeedbacks(user.accountId);
           }}
         />
       )}
