@@ -9,9 +9,9 @@
 }
 
 /* When sidebar appears, push content to the right */
-body.has-sidebar .admin-dashboard {
+/* body.has-sidebar .admin-dashboard {
   margin-left: 220px;
-}
+} */
 
 
 .dashboard-title {
@@ -193,3 +193,30 @@ body.has-sidebar .admin-dashboard {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   padding: 1rem;
 }
+.event-box-view {
+  margin-top: 1rem;
+}
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.event-item {
+  background: #2d89ef;
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.event-item:hover {
+  background: #1b5cb8;
+}
+.inventory-table tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.inventory-table td {
+  vertical-align: top;
+}
+

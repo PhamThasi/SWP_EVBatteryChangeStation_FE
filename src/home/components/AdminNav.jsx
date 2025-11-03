@@ -6,14 +6,7 @@ const AdminNav = () => {
   const navigate = useNavigate();
   const [isSidebar, setIsSidebar] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      // switch to sidebar after scrolling 100px
-      setIsSidebar(window.scrollY > 100);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  
 
   return (
     <nav className={`admin-nav ${isSidebar ? "sidebar" : "topbar"}`}>

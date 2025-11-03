@@ -4,9 +4,13 @@ import "../components/AccountMng.css";
 const AccountManagement = () => {
   const [search, setSearch] = useState("");
   const [accounts, setAccounts] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [sortRole, setSortRole] = useState([]);
+  const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null); // also used for creating
+  const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     accountName: "",
@@ -15,9 +19,13 @@ const AccountManagement = () => {
     phoneNumber: "",
     dateOfBirth: "",
     status: true,
+    roleId: "",
+    stationId: "",
   });
 
-  const BASE_URL = "http://localhost:5204/api/Account";
+  const BASE_URL = "http://localhost:5204/api/Account"; 
+  const ROLE_URL = "http://localhost:5204/api/Role/GetAll";
+  const STATION_URL = "http://localhost:5204/api/Station/SelectAll";
 
   // Fetch all accounts
   const fetchAccounts = async () => {
@@ -33,9 +41,30 @@ const AccountManagement = () => {
       setLoading(false);
     }
   };
+  const fetchRoles = async () => {
+    try {
+      const res = await fetch(ROLE_URL);
+      const data = await res.json();
+      setRoles(data.data || []);
+    } catch (err) {
+      console.error("Fetch roles failed:", err);
+    }
+  };
+
+  const fetchStations = async () => {
+    try {
+      const res = await fetch(STATION_URL);
+      const data = await res.json();
+      setStations(data.data || []);
+    } catch (err) {
+      console.error("Fetch stations failed:", err);
+    }
+  };
 
   useEffect(() => {
     fetchAccounts();
+    fetchRoles();
+    fetchStations();
   }, []);
 
   // Handle form input
@@ -64,6 +93,8 @@ const AccountManagement = () => {
           ? new Date(account.dateOfBirth).toISOString().split("T")[0]
           : "",
         status: account.status ?? true,
+        roleId: account.roleId || "",
+        stationId: account.stationId || "",
       });
     } else {
       setEditingAccount(null);
@@ -75,37 +106,44 @@ const AccountManagement = () => {
         phoneNumber: "",
         dateOfBirth: "",
         status: true,
+        roleId: "",
+        stationId: "",
       });
     }
+    setShowModal(true);
   };
 
-  // Close modal
   const closeModal = () => {
+    setShowModal(false);
     setEditingAccount(null);
   };
 
   // Save (Add or Update)
   const handleSave = async () => {
-    const url = editingAccount
-      ? `${BASE_URL}/Update`
-      : `${BASE_URL}/Create`;
+    const isUpdate = !!editingAccount;
+    const url = isUpdate ? `${BASE_URL}/Update` : `${BASE_URL}/Create`;
 
-    const method = "POST";
+    const payload = {
+      ...formData,
+      accountId: editingAccount?.accountId,
+      email: isUpdate
+        ? editingAccount.email
+        : `${formData.accountName}@gmail.com`,
+      password: isUpdate ? editingAccount.password : "default@123",
+      createDate: new Date().toISOString(),
+    };
 
     try {
       const res = await fetch(url, {
-        method,
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accountId: editingAccount?.accountId,
-          ...formData,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Failed to save account");
 
-      closeModal();
       await fetchAccounts();
+      closeModal();
     } catch (err) {
       alert(err.message);
     }
@@ -159,11 +197,27 @@ const AccountManagement = () => {
         <button className="save-btn" onClick={() => openModal()}>
           + Add Account
         </button>
+         <select
+          value={sortRole}
+          onChange={(e) => setSortRole(e.target.value)}
+          style={{
+            padding: "0.8rem",
+            borderRadius: "8px",
+            border: "1px solid #dee2e6",
+            backgroundColor: "white",
+          }}
+        >
+          <option value="">Sort by Role</option>
+          {roles.map((role) => (
+            <option key={role.roleId} value={role.roleId}>
+              {role.roleName}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Accounts Table */}
       <div className="dashboard-card">
-        <h2>Account List</h2>
         {filteredAccounts.length === 0 ? (
           <p>No accounts found.</p>
         ) : (
@@ -171,12 +225,11 @@ const AccountManagement = () => {
             <thead>
               <tr>
                 <th>Full Name</th>
-                <th>Username</th>
                 <th>Gender</th>
                 <th>Address</th>
                 <th>Phone</th>
-                <th>Date of Birth</th>
-                <th>Status</th>
+                <th>Role</th>
+                <th>Station</th>
                 <th style={{ textAlign: "center" }}>Actions</th>
               </tr>
             </thead>
@@ -184,29 +237,29 @@ const AccountManagement = () => {
               {filteredAccounts.map((acc) => (
                 <tr key={acc.accountId}>
                   <td>{acc.fullName}</td>
-                  <td>{acc.accountName}</td>
                   <td>{acc.gender}</td>
                   <td>{acc.address}</td>
                   <td>{acc.phoneNumber}</td>
                   <td>
-                    {acc.dateOfBirth
-                      ? new Date(acc.dateOfBirth).toLocaleDateString()
-                      : "-"}
+                    {roles.find((r) => r.roleId === acc.roleId)?.roleName || "-"}
                   </td>
-                  <td>{acc.status ? "Active" : "Inactive"}</td>
+                  <td>
+                    {stations.find((s) => s.stationId === acc.stationId)?.address ||
+                      "-"}
+                  </td>
                   <td style={{ textAlign: "center" }}>
                     <button
                       className="update-btn"
                       // style={{ marginRight: "0.5rem" }}
                       onClick={() => openModal(acc)}
                     >
-                      Update
+                      ✎
                     </button>
                     <button
                       className="delete-btn"
                       onClick={() => handleDelete(acc.accountId)}
                     >
-                      Delete
+                      🗑️
                     </button>
                   </td>
                 </tr>
@@ -217,7 +270,7 @@ const AccountManagement = () => {
       </div>
 
       {/* Modal */}
-      {editingAccount !== null && (
+      {showModal && (
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editingAccount ? "Update Account" : "Add Account"}</h2>
@@ -236,13 +289,15 @@ const AccountManagement = () => {
                 value={formData.accountName}
                 onChange={handleChange}
               />
-              <input
-                type="text"
+              <select
                 name="gender"
-                placeholder="Gender"
                 value={formData.gender}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Gender</option>
+                <option value={'Male'}>Male</option>
+                <option value={'Female'}>Female</option>
+              </select>
               <input
                 type="text"
                 name="address"
@@ -263,6 +318,35 @@ const AccountManagement = () => {
                 value={formData.dateOfBirth}
                 onChange={handleChange}
               />
+
+              {/* Role dropdown */}
+              <select
+                name="roleId"
+                value={formData.roleId}
+                onChange={handleChange}
+              >
+                <option value="">Select Role</option>
+                {roles.map((r) => (
+                  <option key={r.roleId} value={r.roleId}>
+                    {r.roleName}
+                  </option>
+                ))}
+              </select>
+
+              {/* Station dropdown */}
+              <select
+                name="stationId"
+                value={formData.stationId}
+                onChange={handleChange}
+              >
+                <option value="">Select Station</option>
+                {stations.map((s) => (
+                  <option key={s.stationId} value={s.stationId}>
+                    {s.address}
+                  </option>
+                ))}
+              </select>
+
               <select
                 name="status"
                 value={formData.status}

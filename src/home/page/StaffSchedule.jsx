@@ -4,6 +4,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import parseISO from "date-fns/parseISO";
 import "../components/AdminStyle.css";
+import { formatDateTime } from "@/utils/dateFormat"; 
 
 const locales = { "en-US": undefined };
 const localizer = dateFnsLocalizer({
@@ -33,6 +34,21 @@ const SchedulePage = () => {
     accountId: "",
   });
   const [isCreating, setIsCreating] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
+  const [gridDate, setGridDate] = useState(null);
+  const [gridEvents, setGridEvents] = useState([]);
+  
+  const grouped = events.reduce((acc, e) => {
+  const date = e.start.toISOString().split("T")[0];
+    acc[date] = acc[date] || [];
+    acc[date].push(e);
+    return acc;
+  }, {});
+  const handleShowMore = (dayEvents, date) => {
+    setGridEvents(dayEvents);
+    setGridDate(date);
+    setShowGrid(true);
+  };
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -95,34 +111,41 @@ const SchedulePage = () => {
 
 
   const handleEventClick = async (event) => {
-  try {
-    const bookingRes = await fetch(`${DETAIL_URL}${event.id}`);
-    if (!bookingRes.ok) throw new Error("Failed to fetch booking details");
-    const bookingResult = await bookingRes.json();
-    const bookingData = bookingResult.data;
+    try {
+      const bookingRes = await fetch(`${DETAIL_URL}${event.id}`);
+      if (!bookingRes.ok) throw new Error("Failed to fetch booking details");
+      const bookingResult = await bookingRes.json();
+      const bookingData = bookingResult.data;
 
-    // Fetch car and station details in parallel
-    const [carRes, stationRes] = await Promise.all([
-      fetch(`http://localhost:5204/api/Car/GetCarById?carId=${bookingData.vehicleId}`),
-      fetch(`http://localhost:5204/api/Station/Select/${bookingData.stationId}`)
-    ]);
+      // Fetch car, station, and owner in parallel
+      const [carRes, stationRes, ownerRes] = await Promise.all([
+        fetch(`http://localhost:5204/api/Car/GetCarById?carId=${bookingData.vehicleId}`),
+        fetch(`http://localhost:5204/api/Station/Select/${bookingData.stationId}`),
+        fetch(`http://localhost:5204/api/Car/GetOwnerByCarIdAsync?carId=${bookingData.vehicleId}`),
+      ]);
 
-    if (!carRes.ok || !stationRes.ok) throw new Error("Failed to fetch related data");
+      if (!carRes.ok || !stationRes.ok || !ownerRes.ok)
+        throw new Error("Failed to fetch related data");
 
-    const carData = (await carRes.json()).data;
-    const stationData = (await stationRes.json()).data;
+      const carData = (await carRes.json()).data;
+      const stationData = (await stationRes.json()).data;
+      const ownerData = (await ownerRes.json()).data;
 
-    // Combine all data for modal
-    setSelectedBooking({
-      ...bookingData,
-      carModel: carData?.model || "Unknown",
-      stationName: stationData?.address || `Station #${bookingData.stationId}`,
-    });
-    setModalOpen(true);
-  } catch (err) {
-    alert(err.message);
-  }
-};
+      // Combine all data for modal
+      setSelectedBooking({
+        ...bookingData,
+        carModel: carData?.model || "Unknown",
+        stationName: stationData?.address || `Station #${bookingData.stationId}`,
+        customerName: ownerData?.fullName || "Unknown Customer",
+      });
+
+      setModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Error loading booking details");
+    }
+  };
+
 
   if (loading) return <p>Loading bookings...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -132,33 +155,52 @@ const SchedulePage = () => {
       <h2 className="dashboard-title">Booking Schedule
          <button className="save-btn" onClick={() => setIsCreating(true)}>+ Create Booking</button>
       </h2>
-      <div className="calendar-container">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          defaultView="month"
-          style={{ height: "70vh" }}
-          eventPropGetter={() => ({
-            style: {
-              backgroundColor: "#2d89ef",
-              borderRadius: "5px",
-              color: "white",
-              border: "none",
-            },
-          })}
-          onSelectEvent={handleEventClick}
-        />
+      {showGrid ? (
+    <div className="event-box-view">
+      <button className="cancel-btn" onClick={() => setShowGrid(false)}>← Back to Calendar</button>
+      <h3>Events on {gridDate.toDateString()}</h3>
+      <div className="grid-container">
+        {gridEvents.map((e, i) => (
+          <div key={i} className="event-item" onClick={() => handleEventClick(e)}>
+            <h4>{e.title}</h4>
+            <p>{e.start.toLocaleTimeString()} - {e.end.toLocaleTimeString()}</p>
+          </div>
+        ))}
       </div>
+    </div>
+  ) : (
+    <div className="calendar-container">
+      <Calendar
+        localizer={localizer}
+        events={events}
+        startAccessor="start"
+        endAccessor="end"
+        defaultView="month"
+        views={["month"]}
+        style={{ height: "70vh" }}
+        eventPropGetter={() => ({
+          style: {
+            backgroundColor: "#2d89ef",
+            borderRadius: "5px",
+            color: "white",
+            border: "none",
+            padding: "2px",
+          },
+        })}
+        onSelectEvent={handleEventClick}
+        onShowMore={handleShowMore}
+      />
+    </div>)}
+  
 
       {modalOpen && selectedBooking && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Booking Details</h2>
+            <p><strong>Customer:</strong> {selectedBooking.customerName}</p>
             <p><strong>Station:</strong> {selectedBooking.stationName}</p>
             <p><strong>Vehicle:</strong> {selectedBooking.carModel}</p>
-            <p><strong>Date:</strong> {selectedBooking.dateTime}</p>
+            <p><strong>Time and Date:</strong> {formatDateTime(selectedBooking.dateTime)}</p>
             <p><strong>Notes:</strong> {selectedBooking.notes || "None"}</p>
             <div className="modal-actions">              
               <button className="batupdate-btn" onClick={handleUpdateBooking}>Update</button>

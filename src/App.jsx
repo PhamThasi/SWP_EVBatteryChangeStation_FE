@@ -38,6 +38,8 @@ import ContactUs from "./home/page/ContactUs";
 import BatteryManagement from "./home/page/BatteryManagement";
 import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
+import StaffLayout from "./home/components/StaffLayout";
+import FeedBack from "./home/page/FeedBack";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -126,7 +128,7 @@ function App() {
       path: "/admin",
       element: <AdminLayout />,
       children: [
-        {path: "schedule", element: <StaffSchedule/>},
+        {path: "", element: <StaffSchedule/>},
         { path: "battery", element: <BatteryManagement/> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "roles", element: <RoleManagement /> },
@@ -134,14 +136,16 @@ function App() {
         { path: "subscriptions", element: <AdminSubManage /> },
       ],
     },
-    // {
-    //   path: "/staff",
-    //   element: <StaffLayout />,
-    //   children: [
-    //     { path: "", element: <AdminDash /> },
-    //     { path: "schedule", element: <StaffSchedule /> },
-    //   ],
-    // },
+    {
+      path: "/staff",
+      element: <StaffLayout />,
+      children: [
+        { path: "", element: <StaffSchedule/> },
+        { path: "accounts", element: <AccountManagement /> },
+        { path: "battery", element: <BatteryManagement/> },
+        { path: "feedback", element: <FeedBack/> },
+      ],
+    },
   ]);
   return (
     <div>
