@@ -38,6 +38,7 @@ import ContactUs from "./home/page/ContactUs";
 import BatteryManagement from "./home/page/BatteryManagement";
 import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
+import ForgotPassword from "./auth/components/otp/ForgotPassword";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -60,6 +61,14 @@ function App() {
       element: (
         <AuthLayout>
           <SignIn />
+        </AuthLayout>
+      ),
+    },
+    {
+      path: "/forgot-password",
+      element: (
+        <AuthLayout>
+          <ForgotPassword />
         </AuthLayout>
       ),
     },
@@ -125,8 +134,8 @@ function App() {
       path: "/admin",
       element: <AdminLayout />,
       children: [
-        {path: "schedule", element: <StaffSchedule/>},
-        { path: "battery", element: <BatteryManagement/> },
+        { path: "schedule", element: <StaffSchedule /> },
+        { path: "battery", element: <BatteryManagement /> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "roles", element: <RoleManagement /> },
         { path: "stations", element: <StationManagement /> },

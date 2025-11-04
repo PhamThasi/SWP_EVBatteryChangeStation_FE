@@ -71,7 +71,7 @@ const SignIn = () => {
         return;
       }
 
-      // lưu token vào localStorage
+      // Lưu token vào localStorage
       localStorage.setItem("token", token);
 
       // Decode token để lấy user info
@@ -83,7 +83,7 @@ const SignIn = () => {
 
       console.log("✅ User profile decoded:", userProfile);
 
-      // điều hướng theo role
+      // Điều hướng theo role
       const redirectPath = await getRedirectPathByRole(userProfile.roleId);
       navigate(redirectPath);
     } catch (err) {
@@ -111,6 +111,7 @@ const SignIn = () => {
             required
           />
         </div>
+
         <div className="signIn-block">
           <label>Password:</label>
           <input
@@ -130,6 +131,9 @@ const SignIn = () => {
           <p>
             Don't have an account yet?
             <Link to="/signup"> Create an account </Link>
+          </p>
+          <p style={{ marginTop: 8 }}>
+            <Link to="/forgot-password">Forgot password?</Link>
           </p>
         </div>
       </form>
