@@ -205,9 +205,10 @@ const AccountManagement = () => {
             borderRadius: "8px",
             border: "1px solid #dee2e6",
             backgroundColor: "white",
+            marginLeft: "8px",
           }}
         >
-          <option value="">Sort by Role</option>
+          <option value="">All</option>
           {roles.map((role) => (
             <option key={role.roleId} value={role.roleId}>
               {role.roleName}
@@ -234,36 +235,40 @@ const AccountManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAccounts.map((acc) => (
-                <tr key={acc.accountId}>
-                  <td>{acc.fullName}</td>
-                  <td>{acc.gender}</td>
-                  <td>{acc.address}</td>
-                  <td>{acc.phoneNumber}</td>
-                  <td>
-                    {roles.find((r) => r.roleId === acc.roleId)?.roleName || "-"}
-                  </td>
-                  <td>
-                    {stations.find((s) => s.stationId === acc.stationId)?.address ||
-                      "-"}
-                  </td>
-                  <td style={{ textAlign: "center" }}>
-                    <button
-                      className="update-btn"
-                      // style={{ marginRight: "0.5rem" }}
-                      onClick={() => openModal(acc)}
-                    >
-                      ✎
-                    </button>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDelete(acc.accountId)}
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filteredAccounts
+                .filter((acc) => !sortRole || acc.roleId === sortRole)
+                .map((acc) => {
+                  const roleName =
+                    roles.find((r) => r.roleId === acc.roleId)?.roleName || "-";
+                  const stationName =
+                    stations.find((s) => s.stationId === acc.stationId)?.stationName ||
+                    stations.find((s) => s.stationId === acc.stationId)?.address ||
+                    "-";
+                  return (
+                    <tr key={acc.accountId}>
+                      <td>{acc.fullName}</td>
+                      <td>{acc.gender}</td>
+                      <td>{acc.address}</td>
+                      <td>{acc.phoneNumber}</td>
+                      <td>{roleName}</td>
+                      <td>{stationName}</td>
+                      <td style={{ textAlign: "center" }}>
+                        <button
+                          className="update-btn"
+                          onClick={() => openModal(acc)}
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className="delete-btn"
+                          onClick={() => handleDelete(acc.accountId)}
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         )}

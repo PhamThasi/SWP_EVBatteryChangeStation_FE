@@ -152,9 +152,9 @@ const SchedulePage = () => {
 
   return (
     <div className="admin-dashboard">
-      <h2 className="dashboard-title">Booking Schedule
-         <button className="save-btn" onClick={() => setIsCreating(true)}>+ Create Booking</button>
+      <h2 className="dashboard-title">Booking Schedule        
       </h2>
+      <button className="save-btn" onClick={() => setIsCreating(true)}>+ Create Booking</button>
       {showGrid ? (
     <div className="event-box-view">
       <button className="cancel-btn" onClick={() => setShowGrid(false)}>← Back to Calendar</button>

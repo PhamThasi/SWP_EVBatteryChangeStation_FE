@@ -40,6 +40,7 @@ import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
 import StaffLayout from "./home/components/StaffLayout";
 import FeedBack from "./home/page/FeedBack";
+import SwappingManagement from "./home/page/SwappingTransaction";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -143,7 +144,8 @@ function App() {
         { path: "", element: <StaffSchedule/> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "battery", element: <BatteryManagement/> },
-        { path: "feedback", element: <FeedBack/> },
+        { path: "Swapping", element: <SwappingManagement/> },
+        { path: "feedback", element: <FeedBack/> },        
       ],
     },
   ]);
