@@ -5,9 +5,10 @@ import { useSupportRequest } from './../../context/SupportRequestContext';
 const TabSection = () => {
   const { activeTab, setActiveTab, allRequests } = useSupportRequest();
   
-  // Đếm số lượng requests theo trạng thái
-  const pendingCount = allRequests.filter(r => r.status === 'pending').length;
-  const resolvedCount = allRequests.filter(r => r.status === 'resolved').length;
+  // Đếm số lượng requests theo responseText
+  // pending: responseText rỗng, resolved: responseText có giá trị
+  const pendingCount = allRequests.filter(r => !r.responseText || r.responseText.trim() === '').length;
+  const resolvedCount = allRequests.filter(r => r.responseText && r.responseText.trim() !== '').length;
 
   return (
     <div className="bg-white border-b border-gray-200">

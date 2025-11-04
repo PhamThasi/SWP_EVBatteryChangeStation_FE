@@ -1,12 +1,14 @@
-// src/home/page/Subscriptions.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import useAuthCheck from "./../../hooks/useAuthCheck";
 import ConfirmModal from "./../components/ConfirmModal";
 import PlanCard from "./../components/PlanCard";
-import { Battery, Shield, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Battery, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
+import subcriptionService from "@/api/subcriptionService";
 
 const Subscriptions = () => {
   const { requireLogin, isModalOpen, confirmLogin, cancelLogin } = useAuthCheck();
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleBuy = (planName) => {
     requireLogin(() => {
@@ -14,63 +16,65 @@ const Subscriptions = () => {
     });
   };
 
-  const plans = [
-    {
-      title: "Gói Cơ Bản",
-      price: "Theo lượt",
-      icon: Battery,
-      gradient: "from-gray-500 to-gray-600",
-      perks: [
-        { text: "Swap từng lần – trả theo lượt" },
-        { text: "Phù hợp người dùng ít di chuyển" },
-        { text: "Linh hoạt – dùng khi cần" },
-        { text: "Không áp dụng ưu đãi gia hạn" },
-        { text: "Không bao gồm bảo dưỡng định kỳ" },
-      ],
-    },
-    {
-      title: "Gói Tiết Kiệm",
-      price: "299K/tháng",
-      badge: "Best Value",
-      highlight: true,
-      icon: TrendingUp,
-      gradient: "from-blue-500 to-indigo-600",
-      perks: [
-        { text: "Thuê pin theo tháng – giảm ~30%" },
-        { text: "10–15 lượt swap miễn phí/tháng" },
-        { text: "Tự động gia hạn tiện lợi" },
-        { text: "Ưu tiên tại trạm trong giờ cao điểm" },
-        { text: "Theo dõi số lần swap còn lại trên app" },
-      ],
-    },
-    {
-      title: "Gói Premium",
-      price: "Liên hệ",
-      icon: Sparkles,
-      gradient: "from-purple-500 to-pink-600",
-      perks: [
-        { text: "Swap gần như không giới hạn" },
-        { text: "Theo dõi tình trạng pin trên App (Km còn lại, chu kỳ sạc)" },
-        { text: "Bảo trì xe toàn diện miễn phí (02 lần/năm)" },
-        { text: "Hỗ trợ & Cứu hộ khẩn cấp 24/7 (< 30 phút)" },
-        { text: "Giảm giá 10–15% khi đăng ký thêm xe" },
-      ],
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await subcriptionService.getSubscriptions();
+        if (res?.data) {
+          // Convert API data -> frontend-friendly structure
+          const formatted = res.data.map((item) => ({
+            title: item.name,
+            price:
+              item.name.toLowerCase().includes("cơ bản")
+                ? "Theo lượt"
+                : item.price
+                ? `${(item.price / 1000).toFixed(0)}K/tháng`
+                : "Liên hệ",
+            icon: item.name.toLowerCase().includes("premium")
+              ? Sparkles
+              : item.name.toLowerCase().includes("tiết")
+              ? TrendingUp
+              : Battery,
+            gradient: item.name.toLowerCase().includes("premium")
+              ? "from-purple-500 to-pink-600"
+              : item.name.toLowerCase().includes("tiết")
+              ? "from-blue-500 to-indigo-600"
+              : "from-gray-500 to-gray-600",
+            highlight: item.name.toLowerCase().includes("tiết"),
+            badge: item.name.toLowerCase().includes("tiết") ? "Best Value" : null,
+            perks: item.description
+              ? item.description.split("\n").map((text) => ({ text }))
+              : [],
+          }));
+          setPlans(formatted);
+        }
+      } catch (error) {
+        console.error("Error fetching subscriptions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-600">
+        Đang tải gói dịch vụ...
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 px-4 pt-32 pb-20">
-        {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-10"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl opacity-10"></div>
-        
+
         <div className="relative max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-2xl bg-white/20 backdrop-blur-sm">
             <Zap className="w-8 h-8 text-white" />
           </div>
-          
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">
             Chọn Gói Dịch Vụ Swap Pin
           </h1>

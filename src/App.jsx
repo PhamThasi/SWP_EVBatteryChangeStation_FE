@@ -41,6 +41,7 @@ import BookingPage from "./users/components/booking-page/BookingPage";
 import StaffLayout from "./home/components/StaffLayout";
 import FeedBack from "./home/page/FeedBack";
 import SwappingManagement from "./home/page/SwappingTransaction";
+import ForgotPassword from "./auth/components/otp/ForgotPassword";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -62,9 +63,15 @@ function App() {
       path: "/login",
       element: (
         <AuthLayout>
-          {/* <SignUp/> */}
           <SignIn />
-          {/* <SignUp/> */}
+        </AuthLayout>
+      ),
+    },
+    {
+      path: "/forgot-password",
+      element: (
+        <AuthLayout>
+          <ForgotPassword />
         </AuthLayout>
       ),
     },
@@ -101,6 +108,7 @@ function App() {
       children: [
         { index: true, element: <UserDashboard /> },
         { path: "booking", element: <BookingPage /> },
+        { path: "subscriptions", element: <Subscriptions /> },
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
         { path: "supportRequest", element: <SupportRequest /> },

@@ -1,3 +1,5 @@
+/* File: AuthLayout.css (Đã sửa lỗi Lệch Layout) */
+
 .auth-container {
     width: 100%;
     min-height: 100vh;
@@ -6,6 +8,8 @@
     align-items: center;
     background: #020024;
     background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(9, 9, 121, 1) 35%, rgba(0, 212, 255, 1) 100%);
+    padding: 1rem;
+    user-select: none;
 }
 
 .auth-left {
@@ -31,7 +35,6 @@
     width: 50rem;
     height: 60rem;
     border-radius: 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /* XÓA: display: flex; justify-content: center; align-items: center; */
+    /* Cho phép form con (SignIn/SignUp) lấp đầy và tự căn giữa nội dung của chúng */
 }

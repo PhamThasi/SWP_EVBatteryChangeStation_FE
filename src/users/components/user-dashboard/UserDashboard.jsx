@@ -1,263 +1,438 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { 
-  Car, 
-  History, 
-  Settings, 
-  Battery, 
-  MessageCircle, 
-  User, 
-  Calendar,
-  MapPin,
-  TrendingUp,
-  Shield
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+// Đã thêm Star cho nút Phản hồi
+import { Battery, Car, Calendar, MapPin, TrendingUp, Star } from "lucide-react"; 
+import bookingService from "@/api/bookingService";
+import carService from "@/api/carService";
+import feedbackService from "@/api/feedbackService";
 import tokenUtils from "@/utils/tokenUtils";
+import Feedback from "./../feedback/Feedback";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 const UserDashboard = () => {
-  const [userData, setUserData] = useState(null);
+  const [user, setUser] = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const [cars, setCars] = useState([]);
+  
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [refreshingFeedbacks, setRefreshingFeedbacks] = useState(false);
+
+  // =================== FETCH DATA ===================
   useEffect(() => {
-    // Get user data from localStorage (decoded from token)
-    const userDataFromStorage = tokenUtils.getUserData();
-    if (userDataFromStorage) {
-      setUserData(userDataFromStorage);
-      console.log("User data loaded:", userDataFromStorage);
-    }
+    const loadUserDashboard = async () => {
+      const userData = tokenUtils.getUserData();
+      if (!userData) return;
+      setUser(userData);
+
+      try {
+        const [userBookings, allCars, allFeedbacks] =
+          await Promise.all([
+            bookingService.getUserBookings(userData.accountId),
+            carService.getAllCars(),
+            feedbackService.getAllFeedbacks(),
+          ]);
+
+        // Unwrap common API shapes
+        const userBookingsArr = Array.isArray(userBookings)
+          ? userBookings
+          : userBookings?.data || userBookings?.Data || [];
+        const allFeedbacksArr = Array.isArray(allFeedbacks)
+          ? allFeedbacks
+          : allFeedbacks?.data?.data || allFeedbacks?.data || [];
+
+        const myCars = allCars.filter(
+          (c) => c.accountId === userData.accountId
+        );
+        const myFeedbacks = Array.isArray(allFeedbacksArr)
+          ? allFeedbacksArr.filter((f) => f.accountId === userData.accountId)
+          : [];
+
+        setCars(myCars);
+        setBookings(Array.isArray(userBookingsArr) ? userBookingsArr : []);
+        setFeedbacks(myFeedbacks);
+      } catch (err) {
+        console.error("Error loading dashboard:", err);
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserDashboard();
   }, []);
 
-  // Mock data - replace with actual data from API
-  const userStats = {
-    totalSwaps: 24,
-    totalSavings: 1250000,
-    batteryHealth: 95,
-    nextService: "2024-02-15"
+  // Refresh feedbacks only
+  const refreshUserFeedbacks = async (accountId) => {
+    if (!accountId) return;
+    try {
+      setRefreshingFeedbacks(true);
+      const allFeedbacks = await feedbackService.getAllFeedbacks();
+      const allFeedbacksArr = Array.isArray(allFeedbacks)
+        ? allFeedbacks
+        : allFeedbacks?.data?.data || allFeedbacks?.data || [];
+      const myFeedbacks = Array.isArray(allFeedbacksArr)
+        ? allFeedbacksArr.filter((f) => f.accountId === accountId)
+        : [];
+      setFeedbacks(myFeedbacks);
+    } catch (err) {
+      console.error("Error refreshing feedbacks:", err);
+    } finally {
+      setRefreshingFeedbacks(false);
+    }
   };
 
-  const recentActivities = [
-    { id: 1, type: "swap", location: "Trạm VinFast Cầu Giấy", time: "2 giờ trước", status: "completed" },
-    { id: 2, type: "maintenance", location: "Trung tâm bảo dưỡng", time: "1 ngày trước", status: "scheduled" },
-    { id: 3, type: "rental", location: "Thuê pin dài hạn", time: "3 ngày trước", status: "active" }
-  ];
+  // =================== CHECK CONDITION ===================
+  const canFeedback = (booking) => {
+    if (!booking.dateTime) return false;
 
-  const quickActions = [
-    {
-      title: "Đổi Pin",
-      description: "Tìm trạm đổi pin gần nhất",
-      icon: <Battery className="w-8 h-8" />,
-      path: "/stations",
-      color: "bg-blue-500"
-    },
-    {
-      title: "Bảo Dưỡng",
-      description: "Đặt lịch bảo dưỡng xe",
-      icon: <Settings className="w-8 h-8" />,
-      path: "/maintenance",
-      color: "bg-green-500"
-    },
-    {
-      title: "Thuê Pin",
-      description: "Đăng ký thuê pin",
-      icon: <Shield className="w-8 h-8" />,
-      path: "/battery-rental",
-      color: "bg-purple-500"
-    },
-    {
-      title: "Hỗ Trợ",
-      description: "Liên hệ hỗ trợ khách hàng",
-      icon: <MessageCircle className="w-8 h-8" />,
-      path: "/userPage/supportRequest",
-      color: "bg-orange-500"
+    const now = new Date();
+    const bookingDate = new Date(booking.dateTime);
+    const diffHours = (now - bookingDate) / (1000 * 60 * 60);
+      const over10Hours = diffHours >= 10;
+
+    const isExpiredStatus =
+      booking.status === "Hết hạn" || booking.statusDisplay === "Hết hạn" || booking.isExpiredStatus === true;
+    const isInactive = booking.status !== "Hoạt động" && booking.status !== true;
+
+    const hasFeedback = feedbacks.some((f) => f.bookingId === booking.bookingId);
+
+    // Có thể đánh giá nếu quá 10 tiếng HOẶC Hết hạn/Không hoạt động VÀ chưa có đánh giá
+    return (over10Hours || isExpiredStatus || isInactive) && !hasFeedback;
+  };
+
+  const isExpiredOrInactive = (booking) => {
+    if (!booking.dateTime) return false;
+    const now = new Date();
+    const bookingDate = new Date(booking.dateTime);
+    const diffHours = (now - bookingDate) / (1000 * 60 * 60);
+    const over10Hours = diffHours >= 10;
+    const isExpiredStatus =
+      booking.status === "Hết hạn" || booking.statusDisplay === "Hết hạn" || booking.isExpiredStatus === true;
+    const isInactive = booking.status !== "Hoạt động" && booking.status !== true;
+    return over10Hours || isExpiredStatus || isInactive;
+  };
+
+  // =================== FORMATTERS & BADGES ===================
+  const formatDateTime = (value) => {
+    if (!value) return "-";
+    try {
+      // Hiển thị đầy đủ cả giờ, phút, ngày, tháng, năm
+      return new Date(value).toLocaleString("vi-VN", {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).replace(',', ' -'); // Ví dụ: "14:44 - 03/11/2025"
+    } catch {
+      return String(value);
     }
-  ];
+  };
+
+  const formatDate = (value) => {
+    if (!value) return "-";
+    try {
+      return new Date(value).toLocaleDateString("vi-VN");
+    } catch {
+      return String(value);
+    }
+  };
+
+  const getStatusBadgeClass = (status) => {
+    const normalized = (status === true ? "Hoạt động" : status === false ? "Không hoạt động" : status) || "";
+    if (["Completed", "Hoạt động", "Đã hoàn tất"].includes(normalized)) {
+      return "bg-green-100 text-green-700";
+    }
+    if (["Hết hạn", "Cancelled", "Đã hủy"].includes(normalized)) {
+      return "bg-red-100 text-red-700";
+    }
+    return "bg-yellow-100 text-yellow-700";
+  };
+
+  const getStatusDisplay = (status) => {
+    const normalized = (status === true ? "Hoạt động" : status === false ? "Không hoạt động" : status) || "";
+    if (normalized === true) return "Hoạt động";
+    if (normalized === false) return "Không hoạt động";
+    return normalized || "Chờ xử lý";
+  }
+
+  // =================== RENDER ===================
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin h-16 w-16 border-4 border-orange-400 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  const validBookings = Array.isArray(bookings) ? bookings : [];
+
+  const totalBookings = validBookings.length;
+  const totalCars = cars.length;
+  const totalStationsVisited = new Set(
+    validBookings.map((b) => b.stationName)
+  ).size;
+  const totalSpent = validBookings.reduce(
+    (sum, b) => sum + (b.totalPrice || 0),
+    0
+  );
+
+  const chartData = Array.from({ length: 12 }, (_, i) => ({
+    month: `${i + 1}`,
+    swaps: validBookings.filter(
+      (b) => new Date(b.dateTime).getMonth() === i
+    ).length,
+  }));
+
+  // Lọc danh sách booking cần đánh giá
+  const bookingsToReview = validBookings
+    .filter((b) => isExpiredOrInactive(b) && !feedbacks.some((f) => f.bookingId === b.bookingId));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Chào mừng trở lại{userData?.fullName ? `, ${userData.fullName}` : ''}!
-        </h1>
-        <p className="text-gray-600">
-          Quản lý xe điện và dịch vụ của bạn một cách dễ dàng
-        </p>
-        {userData && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Tài khoản:</strong> {userData.accountName || userData.email}
-            </p>
-            <p className="text-sm text-blue-800">
-              <strong>Email:</strong> {userData.email}
-            </p>
-            {userData.roleId && (
-              <p className="text-sm text-blue-800">
-                <strong>Vai trò:</strong> {userData.roleId === "ae25395f-c7ec-42ab-92e3-f63bf97c38b2" ? "Staff" : "User"}
-              </p>
-            )}
+    <div className="p-8 bg-gray-50 min-h-screen">
+      {/* Tiêu đề chính: Tăng lên 4XL theo yêu cầu */}
+      <h1 className="text-4xl font-extrabold text-orange-700 mb-8">
+        Xin chào, {user?.fullName || "User"} 👋
+      </h1>
+
+      {/* =================== THỐNG KÊ CARD =================== */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <DashboardCard
+          title="Tổng số lần đổi pin"
+          value={totalBookings}
+          icon={<Battery className="text-blue-600" />}
+        />
+        <DashboardCard
+          title="Xe đã liên kết"
+          value={totalCars}
+          icon={<Car className="text-green-600" />}
+        />
+        <DashboardCard
+          title="Số trạm từng đến"
+          value={totalStationsVisited}
+          icon={<MapPin className="text-purple-600" />}
+        />
+        <DashboardCard
+          title="Tổng chi tiêu (VNĐ)"
+          value={totalSpent.toLocaleString("vi-VN")}
+          icon={<TrendingUp className="text-red-500" />}
+        />
+      </div>
+
+      {/* =================== BIỂU ĐỒ =================== */}
+      {/* Tiêu đề phần: Tăng lên 2XL theo yêu cầu */}
+      <div className="bg-white shadow-xl rounded-xl p-8 mb-12">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          Biểu đồ số lượt đổi pin trong năm
+        </h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+            <XAxis dataKey="month" tickLine={false} axisLine={false} />
+            <YAxis />
+            <Tooltip 
+                formatter={(value) => [`${value} lượt`, 'Số lượt đổi pin']} 
+                labelFormatter={(label) => `Tháng ${label}`}
+            />
+            <Line
+              type="monotone"
+              dataKey="swaps"
+              stroke="#f97316" // Cam chủ đạo
+              strokeWidth={4}
+              dot={{ r: 6, fill: "#f97316" }}
+              activeDot={{ r: 8, stroke: "#f97316", strokeWidth: 2, fill: '#fff' }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* =================== BOOKINGS CHƯA ĐÁNH GIÁ (Cải tiến giao diện) =================== */}
+      <div className="bg-white shadow-xl rounded-xl p-8 mb-12">
+        <div className="flex items-center justify-between mb-6">
+          {/* Tiêu đề phần: Tăng lên 2XL theo yêu cầu */}
+          <h2 className="text-2xl font-bold text-gray-800">
+            Các booking chưa đánh giá
+          </h2>
+          {refreshingFeedbacks && (
+            <span className="text-sm text-gray-400">Đang làm mới...</span>
+          )}
+        </div>
+
+        {bookingsToReview.length === 0 ? (
+          <div className="text-2xl text-green-600 bg-green-50 p-4 rounded-lg border border-green-200">
+            ✅ Bạn đã đánh giá tất cả các booking cần thiết.
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg">
+            {bookingsToReview.map((b) => (
+              <div 
+                key={b.bookingId} 
+                className="py-5 px-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between hover:bg-gray-50 transition duration-150"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3 mb-1">
+                    {/* Tăng kích cỡ ID booking/Tên trạm */}
+                    <span className="text-lg font-bold text-gray-800 truncate">{b.stationName}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(b.status)}`}>
+                      {getStatusDisplay(b.status)}
+                    </span>
+                  </div>
+                  
+                  {/* Thông tin chi tiết - Dùng màu xám nhạt và bố cục gọn */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1 text-xl text-gray-600 mt-2">
+                    <p className="flex items-center gap-1">
+                      <span className="text-gray-400">ID:</span> 
+                      <span className="font-mono">{String(b.bookingId || "-").slice(0, 6)}...{String(b.bookingId || "-").slice(-4)}</span>
+                    </p>
+                    <p className="flex items-center gap-1">
+                        <span className="text-gray-400">Ngày giờ:</span> {formatDateTime(b.dateTime)}
+                    </p>
+                    <p className="flex items-center gap-1 truncate">
+                        <span className="text-gray-400">Ghi chú:</span> {b.notes?.trim() || "-"}
+                    </p>
+                    <p className="flex items-center gap-1">
+                        <span className="text-gray-400">Ngày tạo:</span> {formatDate(b.createdAt || b.createdDate || b.createDate || b.created || b.createdTime)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setSelectedBooking(b);
+                      setShowFeedback(true);
+                    }}
+                    disabled={!isExpiredOrInactive(b)}
+                    // Nút Phản hồi được cải tiến: màu cam nổi bật, có icon Star
+                    className={`flex items-center gap-1 px-4 py-2 rounded-full text-xl font-medium transition shadow-md ${
+                      isExpiredOrInactive(b)
+                        ? "bg-orange-500 text-white hover:bg-orange-600"
+                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    }`}
+                    title={
+                      isExpiredOrInactive(b)
+                        ? "Gửi phản hồi"
+                        : "Bạn chỉ có thể đánh giá khi lịch đã hết hạn hoặc không hoạt động"
+                    }
+                  >
+                    <Star className="w-4 h-4" /> 
+                    Gửi phản hồi
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Tổng số lần đổi pin</p>
-              <p className="text-2xl font-bold text-gray-900">{userStats.totalSwaps}</p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Battery className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Tiết kiệm được</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {userStats.totalSavings.toLocaleString('vi-VN')}đ
+      {/* =================== HOẠT ĐỘNG GẦN ĐÂY =================== */}
+      <div className="bg-white shadow-xl rounded-xl p-8 mb-12">
+        {/* Tiêu đề phần: Tăng lên 2XL theo yêu cầu */}
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          Hoạt động gần đây (5 lần gần nhất)
+        </h2>
+        {validBookings.slice(0, 5).map((b) => (
+          <div
+            key={b.bookingId}
+            className="border-b py-4 flex justify-between items-center text-2xl text-gray-700 hover:bg-gray-50 px-2 -mx-2 rounded transition"
+          >
+            <div className="flex flex-col">
+              <p className="font-semibold text-gray-800">{b.stationName}</p>
+              <p className="text-xl text-gray-500 mt-1">
+                <span className="text-gray-400">Thời gian: </span>
+                {formatDateTime(b.dateTime)}
               </p>
             </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Tình trạng pin</p>
-              <p className="text-2xl font-bold text-gray-900">{userStats.batteryHealth}%</p>
-            </div>
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <Car className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Bảo dưỡng tiếp theo</p>
-              <p className="text-lg font-bold text-gray-900">
-                {new Date(userStats.nextService).toLocaleDateString('vi-VN')}
-              </p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-full">
-              <Calendar className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Thao tác nhanh</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickActions.map((action, index) => (
-            <Link
-              key={index}
-              to={action.path}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 group"
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`p-3 rounded-full ${action.color} text-white group-hover:scale-110 transition-transform duration-200`}>
-                  {action.icon}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{action.title}</h3>
-                  <p className="text-sm text-gray-600">{action.description}</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Activities */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Hoạt động gần đây</h2>
-        <div className="space-y-4">
-          {recentActivities.map((activity) => (
-            <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  {activity.type === "swap" && <Battery className="w-5 h-5 text-blue-600" />}
-                  {activity.type === "maintenance" && <Settings className="w-5 h-5 text-green-600" />}
-                  {activity.type === "rental" && <Shield className="w-5 h-5 text-purple-600" />}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{activity.location}</p>
-                  <p className="text-sm text-gray-600">{activity.time}</p>
-                </div>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                activity.status === "completed" 
-                  ? "bg-green-100 text-green-800" 
-                  : activity.status === "scheduled"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-blue-100 text-blue-800"
-              }`}>
-                {activity.status === "completed" ? "Hoàn thành" : 
-                 activity.status === "scheduled" ? "Đã lên lịch" : "Đang hoạt động"}
+            <div className="flex items-center gap-3">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(b.status)}`}
+              >
+                {getStatusDisplay(b.status)}
               </span>
+
+              {/* Nút phản hồi trong hoạt động gần đây */}
+              {canFeedback(b) && (
+                <button
+                  onClick={() => {
+                    setSelectedBooking(b);
+                    setShowFeedback(true);
+                  }}
+                  className="flex items-center gap-1 bg-orange-100 text-orange-600 px-3 py-1.5 text-xs rounded-full hover:bg-orange-200 transition"
+                >
+                  <Star className="w-3 h-3" />
+                  Gửi phản hồi
+                </button>
+              )}
             </div>
-          ))}
+          </div>
+        ))}
+        {validBookings.length === 0 && (
+             <p className="text-gray-500 text-sm">Chưa có hoạt động đổi pin nào.</p>
+        )}
+      </div>
+
+      {/* =================== LỊCH BẢO DƯỠNG =================== */}
+      <div className="bg-white shadow-xl rounded-xl p-8">
+        {/* Tiêu đề phần: Tăng lên 2XL theo yêu cầu */}
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          Bảo dưỡng sắp tới
+        </h2>
+        <div className="flex items-center justify-between bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <div>
+            <p className="text-base text-gray-700 font-medium">Lần gần nhất: 10/10/2025</p>
+            <p className="text-base text-purple-600 font-semibold mt-1">Kế tiếp: 10/12/2025</p>
+          </div>
+          <Calendar className="text-purple-500 w-10 h-10" />
         </div>
       </div>
 
-      {/* Navigation Links */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link
-          to="/userPage/profileCar"
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 group"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-gray-100 rounded-full group-hover:bg-blue-100 transition-colors duration-200">
-              <Car className="w-6 h-6 text-gray-600 group-hover:text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Thông tin xe</h3>
-              <p className="text-sm text-gray-600">Xem chi tiết xe của bạn</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          to="/userPage/userProfile"
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 group"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-gray-100 rounded-full group-hover:bg-green-100 transition-colors duration-200">
-              <User className="w-6 h-6 text-gray-600 group-hover:text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Thông tin cá nhân</h3>
-              <p className="text-sm text-gray-600">Cập nhật thông tin tài khoản</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          to="/history"
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 group"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-gray-100 rounded-full group-hover:bg-purple-100 transition-colors duration-200">
-              <History className="w-6 h-6 text-gray-600 group-hover:text-purple-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Lịch sử giao dịch</h3>
-              <p className="text-sm text-gray-600">Xem lịch sử đổi pin và dịch vụ</p>
-            </div>
-          </div>
-        </Link>
-      </div>
+      {/* =================== FEEDBACK MODAL =================== */}
+      {showFeedback && selectedBooking && (
+        <Feedback
+          booking={selectedBooking}
+          accountId={user.accountId}
+          onClose={() => {
+            setShowFeedback(false);
+            setSelectedBooking(null);
+          }}
+          onSuccess={() => {
+            setShowFeedback(false);
+            setSelectedBooking(null);
+            refreshUserFeedbacks(user.accountId);
+          }}
+        />
+      )}
     </div>
   );
 };
+
+// =================== CARD COMPONENT (Cải tiến giao diện) ===================
+const DashboardCard = ({ title, value, icon }) => (
+  <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-gray-500 text-sm mb-1">{title}</p>
+        {/* Giá trị thống kê: Tăng lên 4XL theo yêu cầu */}
+        <h2 className="text-4xl font-extrabold text-orange-600">{value}</h2>
+      </div>
+      <div className={`p-4 rounded-full bg-gray-100 ${icon.props.className.includes('blue') ? 'bg-blue-50' : icon.props.className.includes('green') ? 'bg-green-50' : icon.props.className.includes('purple') ? 'bg-purple-50' : 'bg-red-50'}`}>
+        {React.cloneElement(icon, { className: `${icon.props.className} w-7 h-7` })}
+      </div>
+    </div>
+  </div>
+);
 
 export default UserDashboard;

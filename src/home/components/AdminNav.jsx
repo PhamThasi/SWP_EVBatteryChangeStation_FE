@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./AdminNav.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const AdminNav = () => {
-  const navigate = useNavigate();
   const [isSidebar, setIsSidebar] = useState(false);
 
   

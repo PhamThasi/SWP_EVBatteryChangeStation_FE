@@ -1,80 +1,126 @@
+/* signIn.css - Đồng bộ và Khắc phục lỗi Lệch */
+
+/* === CONTAINER CHUNG === */
 .signIn {
-    color: #fff;
-    height: 100%;
-    width: 100%;
-    background: linear-gradient(
-      90deg,
-      rgba(42, 123, 155, 1) 0%,
-      rgba(119, 87, 199, 0.98) 15%,
-      rgba(84, 216, 223, 1) 100%,
-      rgba(83, 219, 237, 1) 100%
-    );
-    border-radius: 1rem;
-    box-sizing: border-box;
-  }
-  
-  .header-signIn {
-    font-weight: 700;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin: 6rem 0;
-  }
-  
-  .signIn-Group {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-left: 4rem;
-  }
-  
-  .signIn-block label {
-    display: block;
-    margin-top: 1rem;
-  }
-  
-  .signIn-block input {
-    outline: none;
-    border: 1px solid black;
-    padding: 1.4rem 1rem;
-    border-radius: 10px;
-    margin-top: 1rem;
-    text-align: left;
-    width: 90%;
-  }
-  
-  .signIn-block input::placeholder {
-    text-align: left;
-  }
-  
-  .butt {
-    margin: 5rem auto;
-  }
-  
-  .footer-text {
-    margin-top: 6rem;
-    text-align: center;
-  }
-  
-  /* ✅ Chỉnh đoạn này */
-  .footer-text a {
-    font-weight: 700;
-    text-decoration: none;
-    background: linear-gradient(
-      90deg,
-      rgba(131, 58, 180, 1) 0%,
-      rgba(253, 29, 29, 1) 50%,
-      rgba(120, 104, 70, 1) 100%
-    );
-    -webkit-background-clip: text; /* cho phép background gradient chỉ đổ trong vùng text */
-    -webkit-text-fill-color: transparent; /* biến background thành màu chữ */
-    background-clip: text;
-    color: transparent; /* bắt buộc để hiện gradient chữ */
-    transition: opacity 0.2s ease-in-out;
-  }
-  
-  .footer-text a:hover {
-    opacity: 0.8;
-  }
-  
+  color: #fff;
+  height: 100%;
+  width: 100%;
+  /* Đồng bộ gradient với signUp.css */
+  background: linear-gradient(
+    90deg,
+    rgba(42, 123, 155, 1) 0%,
+    rgba(119, 87, 199, 0.98) 15%,
+    rgba(84, 216, 223, 1) 100%
+  );
+  border-radius: 1rem;
+  box-sizing: border-box;
+  display: flex; /* Thêm flex để căn giữa toàn bộ nội dung */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  user-select: none; /* Khắc phục lỗi bôi đen */
+}
+
+/* === HEADER CHUNG === */
+.header-signIn {
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 0 3rem 0; /* Giảm margin trên/dưới để khớp với signUp */
+}
+
+/* Đồng bộ cỡ chữ với signUp.css */
+.header-signIn h1 {
+  font-size: 3rem; 
+  margin: 0;
+}
+.header-signIn p {
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
+  opacity: 0.9;
+}
+
+/* === FORM GROUP CHUNG ( signIn-Group ) === */
+.signIn-Group {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 95%;
+  max-width: 400px;
+  margin: 0 auto;
+  /* ❌ KHẮC PHỤC LỖI: Đã Xóa 'margin-left: 4rem;' */
+}
+
+/* === NHÃN INPUT (LABEL) === */
+.signIn-block label {
+  display: block;
+  margin-top: 1rem;
+  font-size: 1.5rem; /* Đồng bộ cỡ chữ */
+  font-weight: 600;
+  text-align: center; /* ✅ KHẮC PHỤC LỖI: Căn giữa nhãn */
+}
+
+/* === INPUT FIELD (Ô NHẬP) === */
+.signIn-block input {
+  outline: none;
+  /* Đồng bộ style input */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+  margin-top: 0.6rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-align: left; 
+  transition: all 0.2s ease;
+}
+
+.signIn-block input:focus {
+  border-color: #54d8df;
+  box-shadow: 0 0 0 2px rgba(84, 216, 223, 0.5);
+}
+
+.signIn-block input::placeholder {
+  color: #ccc;
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+/* === NÚT (BUTTON) === */
+.butt {
+  margin: 3rem auto; /* Giảm margin để khớp với signUp */
+  width: 100%;
+}
+
+/* === FOOTER CHUNG === */
+.footer-text {
+  margin-top: 1rem; /* Giảm margin để khớp với signUp */
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+/* Style Link giữ nguyên */
+.footer-text a {
+  font-weight: 700;
+  text-decoration: none;
+  background: linear-gradient(
+    90deg,
+    rgba(131, 58, 180, 1) 0%,
+    rgba(253, 29, 29, 1) 50%,
+    rgba(120, 104, 70, 1) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.footer-text a:hover {
+  opacity: 0.8;
+}

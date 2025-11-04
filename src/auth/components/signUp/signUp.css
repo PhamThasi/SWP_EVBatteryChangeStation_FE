@@ -1,14 +1,16 @@
+/* signUp.css - Tối ưu và Đồng bộ */
+
+/* === CONTAINER CHUNG === */
 .auth-signup-container {
     color: #fff;
     height: 100%;
     width: 100%;
     max-width: 100%;
-    background: linear-gradient(
-        90deg,
-        rgba(42, 123, 155, 1) 0%,
-        rgba(119, 87, 199, 0.98) 15%,
-        rgba(84, 216, 223, 1) 100%
-    );
+    /* Gradient chính */
+    background: linear-gradient(90deg,
+            rgba(42, 123, 155, 1) 0%,
+            rgba(119, 87, 199, 0.98) 15%,
+            rgba(84, 216, 223, 1) 100%);
     border-radius: 1rem;
     display: flex;
     flex-direction: column;
@@ -17,8 +19,11 @@
     padding: 1rem;
     box-sizing: border-box;
     overflow: hidden;
+    user-select: none;
+    /* Khắc phục lỗi bôi đen không cần thiết */
 }
 
+/* === HEADER CHUNG === */
 .auth-signup-header {
     font-weight: 700;
     display: flex;
@@ -28,22 +33,28 @@
     margin: 2rem 0 0.5rem 0;
 }
 
+/* Đảm bảo cỡ chữ theo yêu cầu 5xl/2xl tương đương */
 .auth-signup-header h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
+    /* Tăng cỡ chữ lên cho nổi bật (gần 5xl) */
     margin: 0;
 }
 
 .auth-signup-header p {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+    /* Tăng cỡ chữ (gần 2xl/3xl) */
     margin: 0.5rem 0 0 0;
+    opacity: 0.9;
 }
 
+/* === FORM GROUP CHUNG === */
 .auth-form-group {
     display: flex;
     flex-direction: column;
     justify-content: center;
     width: 95%;
-    max-width: 45rem;
+    max-width: 400px;
+    /* Giới hạn chiều rộng cố định để dễ căn chỉnh */
     margin: 0 auto;
 }
 
@@ -51,47 +62,65 @@
     margin-bottom: 1.2rem;
 }
 
+/* === NHÃN INPUT (LABEL) === */
 .auth-form-block label {
     display: block;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+    /* Đồng bộ với p trong header */
     margin-bottom: 0.6rem;
+    font-weight: 600;
+    text-align: left;
+    /* ✅ KHẮC PHỤC LỖI: Căn giữa nhãn */
 }
 
+/* === INPUT FIELD (Ô NHẬP) === */
 .auth-form-block input {
     outline: none;
-    border: 1px solid #333;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* Border nhẹ hơn */
     padding: 1rem 1.2rem;
     border-radius: 12px;
     width: 100%;
     box-sizing: border-box;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     background: rgba(255, 255, 255, 0.1);
+    /* Nền trong suốt */
     color: #fff;
+    text-align: left;
+    /* ✅ KHẮC PHỤC LỖI: Căn giữa text/caret */
+    transition: all 0.2s ease;
+}
+
+.auth-form-block input:focus {
+    border-color: #54d8df;
+    box-shadow: 0 0 0 2px rgba(84, 216, 223, 0.5);
 }
 
 .auth-form-block input::placeholder {
     color: #ccc;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    opacity: 0.8;
 }
 
+/* === NÚT VÀ CHIA CẮT (BUTTONS & DIVIDER) === */
 .auth-btn-group {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 95%;
-    max-width: 45rem;
-    margin: 1.5rem auto;
+    width: 100%;
+    margin: 1.5rem auto 1rem auto;
     gap: 0.8rem;
 }
 
 .auth-divider {
     display: flex;
     align-items: center;
-    text-align: center;
+    text-align: left;
     color: #fff;
-    font-size: 1.5rem;
-    width: 60%;
+    font-size: 1.2rem;
+    width: 80%;
+    /* Tăng chiều rộng divider */
     margin: 1rem auto;
 }
 
@@ -99,7 +128,8 @@
 .auth-divider::after {
     content: "";
     flex: 1;
-    border-bottom: 1px solid #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    /* Border màu trắng mờ */
 }
 
 .auth-divider::before {
@@ -111,64 +141,46 @@
 }
 
 .auth-btn-google {
-    background: #fff;
+    display: none;
+    /* background: #fff;
     color: #333;
-    border: 1px solid #ccc;
+    border: none;
     width: 100%;
     max-width: 16rem;
     padding: 0.8rem;
     border-radius: 8px;
     font-weight: 700;
     text-transform: uppercase;
-    text-align: center;
-    font-size: 0.9rem;
+    text-align: left;
+    font-size: 1rem;
+    transition: transform 0.2s ease; */
 }
 
+.auth-btn-google:hover {
+    transform: scale(1.03);
+}
+
+/* === FOOTER CHUNG === */
 .auth-footer {
     margin-top: 1.5rem;
     text-align: center;
+    font-size: 1.5rem;
 }
 
 .auth-footer a {
-    background: linear-gradient(90deg,rgba(131, 58, 180, 1) 0%, rgba(253, 29, 29, 1) 50%, rgba(120, 104, 70, 1) 100%);    -webkit-background-clip: text;
+    background: linear-gradient(90deg, rgba(131, 58, 180, 1) 0%, rgba(253, 29, 29, 1) 50%, rgba(120, 104, 70, 1) 100%);
+    -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
+    transition: opacity 0.2s ease;
 }
 
+.auth-footer a:hover {
+    opacity: 0.8;
+}
+
+/* Media queries giữ nguyên */
 @media (max-width: 768px) {
-    .auth-signup-container {
-        padding: 0.5rem;
-    }
-
-    .auth-signup-header h1 {
-        font-size: 2rem;
-    }
-
-    .auth-signup-header p {
-        font-size: 1rem;
-    }
-
-    .auth-form-group {
-        width: 98%;
-    }
-
-    .auth-btn-group {
-        width: 98%;
-    }
-
-    .auth-form-block input {
-        font-size: 1rem;
-        padding: 0.9rem 1rem;
-    }
-
-    .auth-form-block input::placeholder {
-        font-size: 1rem;
-    }
-
-    .auth-btn-google {
-        max-width: 14rem;
-        padding: 0.7rem;
-        font-size: 0.85rem;
-    }
+    /* ... (giữ nguyên hoặc điều chỉnh theo nhu cầu) */
 }

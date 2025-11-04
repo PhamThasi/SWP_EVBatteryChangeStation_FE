@@ -216,11 +216,83 @@ export const tokenUtils = {
 
   // ==================== UTILITY FUNCTIONS ====================
 
+  // Check if token is valid (not expired)
+  isTokenValid: () => {
+    try {
+      const token = tokenUtils.getToken();
+      if (!token) return false;
+
+      const decoded = tokenUtils.decodeToken(token);
+      if (!decoded) return false;
+
+      // Check if token has expiration time
+      if (decoded.exp) {
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+          console.log("Token has expired");
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error checking token validity:", error);
+      return false;
+    }
+  },
+
   // Check if user is logged in
   isLoggedIn: () => {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
-    return !!(token && userData);
+    const isValid = tokenUtils.isTokenValid();
+    return !!(token && userData && isValid);
+  },
+
+  // Auto login using existing token (for seamless re-login)
+  autoLogin: async () => {
+    try {
+      console.log("Attempting auto login...");
+      
+      const token = tokenUtils.getToken();
+      if (!token) {
+        console.log("No token found");
+        return false;
+      }
+
+      // Check if token is valid
+      if (!tokenUtils.isTokenValid()) {
+        console.log("Token is invalid or expired");
+        tokenUtils.clearUserData();
+        return false;
+      }
+
+      // Check if user data exists
+      let userData = tokenUtils.getUserData();
+      
+      // If no user data or incomplete, fetch from API
+      if (!userData || !userData.email || !userData.fullName) {
+        console.log("User data missing or incomplete, fetching from API...");
+        userData = await tokenUtils.fetchUserDataFromAPI();
+      } else {
+        // Even if we have cached data, refresh it to ensure it's up to date
+        console.log("Refreshing user data from API...");
+        const refreshedData = await tokenUtils.fetchUserDataFromAPI();
+        if (refreshedData) {
+          userData = refreshedData;
+        }
+      }
+
+      if (userData) {
+        console.log("Auto login successful:", userData);
+        return userData;
+      }
+
+      return false;
+    } catch (error) {
+      console.error("Error during auto login:", error);
+      return false;
+    }
   },
 
   // Get user profile - chỉ lấy data từ localStorage

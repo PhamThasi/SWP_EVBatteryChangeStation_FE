@@ -28,7 +28,7 @@
     "@vitejs/plugin-vue": "^6.0.1",
     "antd": "^5.27.4",
     "autoprefixer": "^10.4.21",
-    "axios": "^1.12.2",
+    "axios": "^1.13.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
