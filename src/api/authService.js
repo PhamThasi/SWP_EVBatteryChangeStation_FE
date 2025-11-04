@@ -56,6 +56,45 @@ const authService = {
     }
   },
 
+  // ---------------- FORGOT PASSWORD FLOW ----------------
+  sendForgotOtp: async (email) => {
+    try {
+      const response = await axiosClient.post("/Authen/forgot-password/send-otp", {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Send Forgot OTP Error:", error);
+      throw error;
+    }
+  },
+
+  verifyForgotOtp: async (email, otp) => {
+    try {
+      const response = await axiosClient.post("/Authen/forgot-password/verify-otp", {
+        email,
+        otpCode: otp,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Verify Forgot OTP Error:", error);
+      throw error;
+    }
+  },
+
+  resetPassword: async (email, newPassword) => {
+    try {
+      const response = await axiosClient.post("/Authen/forgot-password/reset", {
+        email,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Reset Password Error:", error);
+      throw error;
+    }
+  },
+
   // ---------------- LOGOUT ----------------
   logout: async () => {
     try {
@@ -115,6 +154,7 @@ const authService = {
       throw error;
     }
   },
+  
 };
 
 export default authService;
