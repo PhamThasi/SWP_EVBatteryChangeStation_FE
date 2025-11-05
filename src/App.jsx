@@ -148,7 +148,7 @@ function App() {
       path: "/staff",
       element: <StaffLayout />,
       children: [
-        { path: "", element: <StaffSchedule/> },
+        { path: "/staff", element: <StaffSchedule/> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "battery", element: <BatteryManagement/> },
         { path: "Swapping", element: <SwappingManagement/> },

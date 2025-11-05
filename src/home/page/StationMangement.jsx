@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../components/AdminStyle.css";
 
-const StationManagement = () => {
+const   StationManagement = () => {
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingStation, setEditingStation] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     address: "",
     phoneNumber: "",
@@ -18,13 +19,21 @@ const StationManagement = () => {
   const BASE_URL = "http://localhost:5204/api/Station";
 
   // Fetch all stations
-  const fetchStations = async () => {
+  const fetchStations = async (suppressError = false) => {
     setLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}/SelectAll`);
       setStations(res.data?.data || []);
     } catch (err) {
-      setError(err.message);
+      console.error("Fetch stations failed", {
+        url: `${BASE_URL}/SelectAll`,
+        status: err?.response?.status,
+        data: err?.response?.data,
+        message: err?.message,
+      });
+      if (!suppressError) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -36,6 +45,7 @@ const StationManagement = () => {
 
   // Open modal (add or update)
   const openModal = (station = null) => {
+    setIsModalOpen(true);
     if (station) {
       setEditingStation(station);
       setFormData({
@@ -60,6 +70,7 @@ const StationManagement = () => {
   // Close modal
   const closeModal = () => {
     setEditingStation(null);
+    setIsModalOpen(false);
   };
 
   // Handle input
@@ -80,32 +91,67 @@ const StationManagement = () => {
   const handleSave = async () => {
     const url = editingStation ? `${BASE_URL}/Update` : `${BASE_URL}/Create`;
 
+    const payload = editingStation
+      ? { stationId: editingStation.stationId, ...formData }
+      : { ...formData };
+
     try {
-      await axios.post(url, {
-        stationId: editingStation?.stationId,
-        ...formData,
-      });
-      closeModal();
-      await fetchStations(); // Refresh table
+      const res = await axios.post(url, payload);
+      if (res?.status >= 200 && res?.status < 300) {
+        alert(editingStation ? "Cập nhật trạm thành công" : "Thêm trạm thành công");
+      } else {
+        alert("Yêu cầu đã gửi nhưng phản hồi bất thường: " + res?.status);
+      }
     } catch (err) {
-      alert("Failed to save station: " + err.message);
+      console.error("Save station failed", {
+        url,
+        payload,
+        status: err?.response?.status,
+        data: err?.response?.data,
+        message: err?.message,
+      });
+        const serverMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        (typeof err?.response?.data === "string" ? err.response.data : "");
+      alert(
+        "station message: " +
+          (err?.response?.status ? `${err.response.status} ` : "") +
+          (serverMsg || err.message)
+      );
+    } finally {
+      // Even if server replied 400 but actually inserted, still refresh list
+      closeModal();
+      await fetchStations(true);
     }
   };
   const handleDelete = async (stationId) => {
     if (!window.confirm("Are you sure you want to delete this station?")) return;
     try {
-      await axios.delete(`${BASE_URL}/Delete?stationId=${stationId}`);
+      // Use hard delete endpoint with path parameter
+      await axios.delete(`${BASE_URL}/HardDelete/${stationId}`);
+      alert("Xóa trạm thành công");
       await fetchStations();
     } catch (err) {
-      alert("Failed to delete battery: " + err.message);
+      console.error("Delete station failed", {
+        url: `${BASE_URL}/HardDelete/${stationId}`,
+        status: err?.response?.status,
+        data: err?.response?.data,
+        message: err?.message,
+      });
+      alert("Failed to delete station: " + (err?.response?.status ? `${err.response.status} ` : "") + err.message);
     }
   };
 
   if (loading) return <p>Loading stations...</p>;
-  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="admin-dashboard">
+      {error && (
+        <div className="dashboard-card" style={{ background: "#fff4f4", color: "#b00020", marginBottom: "1rem" }}>
+          Error: {error}
+        </div>
+      )}
       <h1 className="dashboard-title">Station Management</h1>
 
       {/* Toolbar */}
@@ -166,7 +212,7 @@ const StationManagement = () => {
       </div>
 
       {/* Modal */}
-      {editingStation !== null && (
+      {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editingStation ? "Update Station" : "Add Station"}</h2>
@@ -201,11 +247,11 @@ const StationManagement = () => {
               />
               <select
                 name="status"
-                value={formData.status}
+                value={formData.status ? "true" : "false"}
                 onChange={handleChange}
               >
-                <option value={true}>Active</option>
-                <option value={false}>Inactive</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
               </select>
             </form>
             <div className="modal-actions">
