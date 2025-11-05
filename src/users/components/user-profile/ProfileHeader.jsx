@@ -1,7 +1,9 @@
 import Card from "@/components/card/Card";
 import car from "./../../../assets/car.jpg";
 const ProfileHeader = ({ profile, tempProfile, isEditing, onChange }) => {
-  const { imgProfile, name, role, address } = isEditing ? tempProfile : profile;
+  const { fullName, gender, role, address } = isEditing
+    ? tempProfile
+    : profile;
 
   return (
     <Card className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 p-8">
@@ -25,12 +27,12 @@ const ProfileHeader = ({ profile, tempProfile, isEditing, onChange }) => {
         {isEditing ? (
           <input
             type="text"
-            value={tempProfile.name}
-            onChange={(e) => onChange("name", e.target.value)}
+            value={tempProfile.fullName}
+            onChange={(e) => onChange("fullName", e.target.value)}
             className="text-purple-700 text-3xl font-bold mb-2 border-b-2 border-purple-300 focus:outline-none focus:border-purple-500 w-full"
           />
         ) : (
-          <h1 className="text-purple-700 text-3xl font-bold mb-2">{name}</h1>
+          <h1 className="text-purple-700 text-3xl font-bold mb-2">{fullName}</h1>
         )}
         {isEditing ? (
           <input
@@ -41,6 +43,17 @@ const ProfileHeader = ({ profile, tempProfile, isEditing, onChange }) => {
           />
         ) : (
           <p className="text-gray-600 mb-2">{role}</p>
+        )}
+        {isEditing ? (
+          <input
+            type="text"
+            value={tempProfile.gender}
+            onChange={(e) => onChange("gender", e.target.value)}
+            placeholder="Gender"
+            className="mt-2 text-gray-600 border-b border-gray-300 focus:outline-none focus:border-gray-500 w-full"
+          />
+        ) : (
+          <p className="text-gray-600 mt-1">{gender}</p>
         )}
         {isEditing ? (
           <input
