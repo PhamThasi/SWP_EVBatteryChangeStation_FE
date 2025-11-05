@@ -78,7 +78,7 @@ const AdminSubManage = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this subscription?")) return;
     try {
-      const res = await fetch(`${API_BASE}/Delete/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/SoftDelete/${id}`, { method: "DELETE" });
       if (res.ok) {
         fetchSubscriptions();
         toast.success("Subscription deleted");
@@ -117,6 +117,18 @@ const AdminSubManage = () => {
       <ToastContainer position="top-right" autoClose={2500} />
 
       <h1>Subscription Management</h1>
+      {/* Toolbar */}
+      <div className="account-toolbar">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button className="create-btn" onClick={handleCreate}>
+          + Add Subscription
+        </button>
+      </div>
 
       
 
@@ -153,22 +165,11 @@ const AdminSubManage = () => {
         )}
       </div>
 
-      {/* Toolbar */}
-      <div className="account-toolbar">
-        <input
-          type="text"
-          placeholder="Search by name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button className="create-btn" onClick={handleCreate}>
-          + Add Subscription
-        </button>
-      </div>
+      
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay">
+        <div className="modal">
           <div className="">
             <h2>{isEditing ? "Edit Subscription" : "Create Subscription"}</h2>
             <form onSubmit={handleSubmit} className="modal-form">
