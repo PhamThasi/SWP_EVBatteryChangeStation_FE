@@ -6,15 +6,21 @@ export default function VietMapPlaces({
   stations = [],
   route = null,
   routeInfo = null,
-  userLocation = null,
+  userLocation = null,  // NOTE: bro đang truyền [lng, lat] từ Stations.jsx
   API_KEY,
   mode = "display",
 }) {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
-  const [coords, setCoords] = useState(null); // hiển_: lưu toạ độ hiển thị
 
-  // === Khởi tạo map ===
+  // NEW: tách ref cho từng loại marker
+  const stationMarkersRef = useRef([]);
+  const userMarkerRef = useRef(null);
+  const destMarkerRef = useRef(null);
+
+  const [coords, setCoords] = useState(null);
+
+  // === Init map ===
   useEffect(() => {
     if (mapRef.current) return;
     const map = new vietmapgl.Map({
@@ -28,54 +34,67 @@ export default function VietMapPlaces({
     return () => map.remove();
   }, [API_KEY]);
 
-  // === Render marker trạm ===
+  // === Render markers cho trạm (KHÔNG xoá marker user/dest) ===
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    document.querySelectorAll(".vietmapgl-marker").forEach((m) => m.remove());
+
+    // clear chỉ marker trạm
+    stationMarkersRef.current.forEach(mk => mk.remove());
+    stationMarkersRef.current = [];
+
     if (!stations.length) return;
 
     const bounds = new vietmapgl.LngLatBounds();
     stations.forEach((s, i) => {
-      new vietmapgl.Marker({ color: "#3b82f6" })
-        .setLngLat([s.lng, s.lat])
+      const mk = new vietmapgl.Marker({ color: "#3b82f6" })
+        .setLngLat([s.lng, s.lat]) // [lng, lat]
         .setPopup(
           new vietmapgl.Popup().setHTML(
             `<b>${s.name || `Trạm ${i + 1}`}</b><br>${s.lat}, ${s.lng}`
           )
         )
         .addTo(map);
+
+      stationMarkersRef.current.push(mk);
       bounds.extend([s.lng, s.lat]);
     });
-    if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 48, duration: 600 });
+
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, { padding: 48, duration: 600 });
+    }
   }, [stations]);
 
-  // === Hiển thị vị trí người dùng ===
+  // === Marker vị trí người dùng (update thay vì tạo mới liên tục) ===
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !userLocation) return;
 
-    new vietmapgl.Marker({ color: "red" })
-      .setLngLat(userLocation)
-      .setPopup(new vietmapgl.Popup().setText("📍 Vị trí của bạn"))
-      .addTo(map);
+    // userLocation đang là [lng, lat] từ Stations.jsx
+    const lngLat = userLocation;
 
-    // hiển_: lưu toạ độ hiện tại để hiển thị text
-    setCoords({
-      lat: userLocation[1].toFixed(6),
-      lng: userLocation[0].toFixed(6),
-    });
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setLngLat(lngLat);
+    } else {
+      userMarkerRef.current = new vietmapgl.Marker({ color: "red" })
+        .setLngLat(lngLat)
+        .setPopup(new vietmapgl.Popup().setText("📍 Vị trí của bạn"))
+        .addTo(map);
+    }
 
-    map.flyTo({ center: userLocation, zoom: 13 });
+    setCoords({ lat: lngLat[1].toFixed(6), lng: lngLat[0].toFixed(6) });
+
+    // chỉ flyTo nhẹ: nếu muốn đỡ “giật”, có thể bỏ hoặc throttle
+    map.flyTo({ center: lngLat, zoom: 13 });
   }, [userLocation]);
 
-  // === Vẽ route ===
+  // === Vẽ route + marker đích (quản lý riêng) ===
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !route) return;
 
     if (map.getSource("route")) {
-      map.removeLayer("route-layer");
+      if (map.getLayer("route-layer")) map.removeLayer("route-layer");
       map.removeSource("route");
     }
 
@@ -87,24 +106,25 @@ export default function VietMapPlaces({
       paint: { "line-color": "#2563eb", "line-width": 5 },
     });
 
-    if (routeInfo?.dest && routeInfo?.distance && routeInfo?.time) {
-      new vietmapgl.Marker({ color: "#16a34a" })
-        .setLngLat([routeInfo.dest.lng, routeInfo.dest.lat])
+    // marker đích
+    if (routeInfo?.dest?.lng != null && routeInfo?.dest?.lat != null) {
+      if (destMarkerRef.current) destMarkerRef.current.remove();
+      destMarkerRef.current = new vietmapgl.Marker({ color: "#16a34a" })
+        .setLngLat([routeInfo.dest.lng, routeInfo.dest.lat]) // [lng, lat]
         .setPopup(
           new vietmapgl.Popup({ offset: 25 }).setHTML(
-            `<b>🏁 Đến đích</b><br>
-            Khoảng cách: ${routeInfo.distance} km<br>
-            Thời gian: ${routeInfo.time} phút`
+            `<b>🏁 Đến đích</b><br>Khoảng cách: ${routeInfo.distance} km<br>Thời gian: ${routeInfo.time} phút`
           )
         )
         .addTo(map);
 
-      map.fitBounds(
-        new vietmapgl.LngLatBounds()
-          .extend(userLocation)
-          .extend([routeInfo.dest.lng, routeInfo.dest.lat]),
-        { padding: 80, duration: 800 }
-      );
+      // Fit 2 đầu: user & đích
+      if (Array.isArray(userLocation)) {
+        const bounds = new vietmapgl.LngLatBounds();
+        bounds.extend(userLocation); // [lng, lat]
+        bounds.extend([routeInfo.dest.lng, routeInfo.dest.lat]);
+        map.fitBounds(bounds, { padding: 80, duration: 800 });
+      }
     }
   }, [route, routeInfo, userLocation]);
 
@@ -114,12 +134,9 @@ export default function VietMapPlaces({
         Bản đồ tìm đường đến trạm
       </h2>
 
-      {/* hiển_: hiển thị tọa độ user ngay trên bản đồ */}
       {coords && (
         <div className="text-center text-sm text-gray-700 mb-2">
-          <span className="font-semibold text-blue-700">
-            📍 Tọa độ hiện tại:
-          </span>{" "}
+          <span className="font-semibold text-blue-700">📍 Tọa độ hiện tại:</span>{" "}
           <span>Lat: {coords.lat}</span> | <span>Lng: {coords.lng}</span>
         </div>
       )}
