@@ -8,7 +8,6 @@ import SignUp from "./auth/components/signUp/signUp";
 import NavBar from "./home/components/NavBar";
 import HomeFrame from "./home/components/HomeFrame";
 import AdminLayout from "./home/components/AdminLayout";
-import AdminDash from "./home/page/AdminDash";
 import HomePage from "./home/page/HomePage";
 import ServiceCard from "./home/components/ServiceCard";
 import SideBarApp from "./users/components/side-bar-form/SideBar";
@@ -137,7 +136,7 @@ function App() {
       path: "/admin",
       element: <AdminLayout />,
       children: [
-        {path: "", element: <StaffSchedule/>},
+        {path: "schedule", element: <StaffSchedule/>},
         { path: "battery", element: <BatteryManagement/> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "roles", element: <RoleManagement /> },

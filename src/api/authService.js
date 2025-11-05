@@ -105,6 +105,20 @@ const authService = {
     }
   },
 
+  // ---------------- SOFT DELETE ACCOUNTS ----------------
+  softDeleteAccounts: async (encode) => {
+    try {
+      // Use DELETE with query param `encode`: /Account/SoftDelete?encode=...
+      const response = await axiosClient.delete("/Account/SoftDelete", {
+        params: { encode },
+      });
+      return response.data ?? response;
+    } catch (error) {
+      console.error("SoftDelete Accounts Error:", error);
+      throw error;
+    }
+  }, 
+
   // ---------------- UPDATE PROFILE ----------------
   updateProfile: async (profileData) => {
     try {
@@ -120,6 +134,8 @@ const authService = {
         gender: profileData.gender || "",
         address: profileData.address || "",
         phoneNumber: profileData.phoneNumber || "",
+        stationId: profileData.stationId || null,
+        status: profileData.status ?? true,
         dateOfBirth: profileData.dateOfBirth
           ? new Date(profileData.dateOfBirth).toISOString().split("T")[0]
           : null,
@@ -141,6 +157,36 @@ const authService = {
       throw error;
     }
   }, 
+
+  // ---------------- CREATE ACCOUNT ----------------
+  createAccount: async (accountData) => {
+    try {
+      const payload = {
+        roleId: accountData.roleId,
+        accountName: accountData.accountName,
+        password: accountData.password,
+        fullName: accountData.fullName,
+        email: accountData.email,
+        gender: accountData.gender,
+        address: accountData.address,
+        phoneNumber: accountData.phoneNumber,
+        createDate: accountData.createDate
+          ? new Date(accountData.createDate).toISOString()
+          : new Date().toISOString(),
+        dateOfBirth: accountData.dateOfBirth
+          ? new Date(accountData.dateOfBirth).toISOString().split("T")[0]
+          : null,
+        stationId: accountData.stationId || null,
+        status: accountData.status ?? true,
+      };
+
+      const response = await axiosClient.post("/Account/Create", payload);
+      return response.data ?? response;
+    } catch (error) {
+      console.error("Create Account Error:", error);
+      throw error;
+    }
+  },
 
   // ---------------- GET USER BY NAME ----------------
   getUserByName: async (accountName) => {

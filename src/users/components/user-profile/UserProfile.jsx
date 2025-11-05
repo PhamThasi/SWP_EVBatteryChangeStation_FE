@@ -22,7 +22,14 @@ const UserProfile = () => {
 
       try {
         const userProfile = await tokenUtils.getUserProfile();
-        if (userProfile) setProfile(userProfile);
+        if (userProfile) {
+          const enriched = {
+            ...userProfile,
+            fullName: userProfile.fullName || userProfile.name || "",
+            gender: userProfile.gender || "",
+          };
+          setProfile(enriched);
+        }
       } catch (error) {
         console.error("Error loading user profile:", error);
       }

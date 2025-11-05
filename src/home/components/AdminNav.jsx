@@ -1,10 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./AdminNav.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import authService from "@/api/authService";
+import tokenUtils from "@/utils/tokenUtils";
 
 const AdminNav = () => {
-  const [isSidebar, setIsSidebar] = useState(false);
+  const [isSidebar] = useState(false);
+  const navigate = useNavigate();
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      tokenUtils.clearUserData();
+      navigate("/login");
+    } catch (err) {
+      console.log("Logout error:", err);
+      tokenUtils.clearUserData();
+      navigate("/login");
+    }
+  };
   
 
   return (
@@ -18,6 +32,7 @@ const AdminNav = () => {
         <li><Link to="/admin/roles">Roles</Link></li>
         <li><Link to="/admin/stations">Stations</Link></li>
         <li><Link to="/admin/subscriptions">Subscriptions</Link></li>
+        <li><Link to="#" onClick={handleLogout} >Logout</Link></li>
       </ul>
     </nav>
   );

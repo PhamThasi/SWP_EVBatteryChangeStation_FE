@@ -11,20 +11,17 @@ const PersonalInfoCard = ({
   onCancel,
   onChange,
 }) => {
-  const { dateOfBirth, email, phoneNumber, role, password } = isEditing
-    ? tempProfile
-    : profile;
+  const { gender, dateOfBirth, email, phoneNumber, role, } =
+    isEditing ? tempProfile : profile;
 
   console.log(
     "PersonalInfoCard - profile data:",
     isEditing ? tempProfile : profile
   );
 
-  const [fName, lName] = useMemo(() => {
-    if (!profile.name) return ["", ""];
-    const parts = profile.name.split(" ");
-    return [parts[0], parts.slice(1).join(" ")];
-  }, [profile.name]);
+  const displayFullName = useMemo(() => {
+    return (isEditing ? tempProfile.fullName : profile.fullName) || "";
+  }, [isEditing, tempProfile.fullName, profile.fullName]);
 
   return (
     <Card className="mb-6">
@@ -36,8 +33,21 @@ const PersonalInfoCard = ({
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <InfoField label="First Name" value={fName} />
-        <InfoField label="Last Name" value={lName} />
+        <InfoField
+          label="Full Name"
+          value={displayFullName}
+          isEditing={isEditing}
+          onChange={onChange}
+          name="fullName"
+        />
+
+        <InfoField
+          label="Gender"
+          value={gender}
+          isEditing={isEditing}
+          onChange={onChange}
+          name="gender"
+        />
 
         <InfoField
           label="Date of Birth"

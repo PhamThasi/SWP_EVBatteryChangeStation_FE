@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from "react";
 import "../components/AccountMng.css";
+import authService from "../../api/authService";
 
 const AccountManagement = () => {
   const [search, setSearch] = useState("");
   const [accounts, setAccounts] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [sortRole, setSortRole] = useState([]);
+  const [sortRole, setSortRole] = useState("");
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null); // also used for creating
   const [showModal, setShowModal] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
     fullName: "",
     accountName: "",
+    email: "",
     gender: "",
     address: "",
     phoneNumber: "",
@@ -23,7 +26,7 @@ const AccountManagement = () => {
     stationId: "",
   });
 
-  const BASE_URL = "http://localhost:5204/api/Account"; 
+  const BASE_URL = "http://localhost:5204/api/Account";
   const ROLE_URL = "http://localhost:5204/api/Role/GetAll";
   const STATION_URL = "http://localhost:5204/api/Station/SelectAll";
 
@@ -33,8 +36,12 @@ const AccountManagement = () => {
     try {
       const res = await fetch(`${BASE_URL}/GetAll`);
       if (!res.ok) throw new Error("Failed to fetch accounts");
+
       const result = await res.json();
+
+      console.log(result);
       setAccounts(result.data || []);
+      console.log(result);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -72,10 +79,7 @@ const AccountManagement = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "status"
-          ? value === "true"
-          : value,
+      [name]: name === "status" ? value === "true" : value,
     }));
   };
 
@@ -86,6 +90,7 @@ const AccountManagement = () => {
       setFormData({
         fullName: account.fullName || "",
         accountName: account.accountName || "",
+        email: account.email || "",
         gender: account.gender || "",
         address: account.address || "",
         phoneNumber: account.phoneNumber || "",
@@ -101,6 +106,7 @@ const AccountManagement = () => {
       setFormData({
         fullName: "",
         accountName: "",
+        email: "",
         gender: "",
         address: "",
         phoneNumber: "",
@@ -111,6 +117,7 @@ const AccountManagement = () => {
       });
     }
     setShowModal(true);
+    setFormErrors({});
   };
 
   const closeModal = () => {
@@ -121,26 +128,67 @@ const AccountManagement = () => {
   // Save (Add or Update)
   const handleSave = async () => {
     const isUpdate = !!editingAccount;
-    const url = isUpdate ? `${BASE_URL}/Update` : `${BASE_URL}/Create`;
-
-    const payload = {
-      ...formData,
-      accountId: editingAccount?.accountId,
-      email: isUpdate
-        ? editingAccount.email
-        : `${formData.accountName}@gmail.com`,
-      password: isUpdate ? editingAccount.password : "default@123",
-      createDate: new Date().toISOString(),
-    };
-
+    // Basic validation for create
+    if (!isUpdate) {
+      const errors = {};
+      if (!formData.accountName?.trim()) errors.accountName = "Username is required";
+      if (!formData.fullName?.trim()) errors.fullName = "Full name is required";
+      if (!formData.roleId) errors.roleId = "Role is required";
+      if (!formData.stationId) errors.stationId = "Station is required";
+      if (!formData.gender) errors.gender = "Gender is required";
+      if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Phone is required";
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        return;
+      }
+    } else {
+      const errors = {};
+      if (!formData.accountName?.trim()) errors.accountName = "Username is required";
+      if (!formData.fullName?.trim()) errors.fullName = "Full name is required";
+      if (!formData.roleId) errors.roleId = "Role is required";
+      if (!formData.stationId) errors.stationId = "Station is required";
+      if (!formData.gender) errors.gender = "Gender is required";
+      if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Phone is required";
+      if (!formData.email?.trim()) errors.email = "Email is required";
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        return;
+      }
+    }
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to save account");
+      if (isUpdate) {
+        // Centralized update via service; password included only if provided
+        await authService.updateProfile({
+          accountId: editingAccount?.accountId,
+          roleId: formData.roleId,
+          accountName: formData.accountName,
+          fullName: formData.fullName,
+          email: formData.email,
+          gender: formData.gender,
+          address: formData.address,
+          phoneNumber: formData.phoneNumber,
+          dateOfBirth: formData.dateOfBirth || null,
+          stationId: formData.stationId || null,
+          status: formData.status,
+          password: formData.password || undefined,
+        });
+      } else {
+        // Use service for create; it handles date formatting
+        await authService.createAccount({
+          roleId: formData.roleId,
+          accountName: formData.accountName,
+          password: "default@123",
+          fullName: formData.fullName,
+          email: `${formData.accountName}@gmail.com`,
+          gender: formData.gender,
+          address: formData.address,
+          phoneNumber: formData.phoneNumber,
+          createDate: new Date().toISOString(),
+          dateOfBirth: formData.dateOfBirth || null,
+          stationId: formData.stationId || null,
+          status: formData.status,
+        });
+      }
 
       await fetchAccounts();
       closeModal();
@@ -153,21 +201,18 @@ const AccountManagement = () => {
   const handleDelete = async (accountId) => {
     if (!window.confirm("Confirm delete this account?")) return;
     try {
-      const res = await fetch(`${BASE_URL}/SoftDelete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId }),
-      });
-      if (!res.ok) throw new Error("Failed to delete account");
+      // Backend expects /Account/SoftDelete?encode=...
+      await authService.softDeleteAccounts(accountId);
       await fetchAccounts();
+      alert("Account deleted successfully");
     } catch (err) {
       alert(err.message);
     }
   };
 
-  const filteredAccounts = accounts.filter((acc) =>
-    acc.fullName?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredAccounts = accounts
+    .filter((acc) => acc.status === true)
+    .filter((acc) => acc.accountName?.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) return <p>Loading accounts...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -179,7 +224,11 @@ const AccountManagement = () => {
       {/* Toolbar */}
       <div
         className="dashboard-card"
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
         <input
           type="text"
@@ -197,7 +246,7 @@ const AccountManagement = () => {
         <button className="save-btn" onClick={() => openModal()}>
           + Add Account
         </button>
-         <select
+        <select
           value={sortRole}
           onChange={(e) => setSortRole(e.target.value)}
           style={{
@@ -236,13 +285,15 @@ const AccountManagement = () => {
             </thead>
             <tbody>
               {filteredAccounts
-                .filter((acc) => !sortRole || acc.roleId === sortRole)
+                .filter((acc) => !sortRole || acc.roleId == sortRole)
                 .map((acc) => {
                   const roleName =
                     roles.find((r) => r.roleId === acc.roleId)?.roleName || "-";
                   const stationName =
-                    stations.find((s) => s.stationId === acc.stationId)?.stationName ||
-                    stations.find((s) => s.stationId === acc.stationId)?.address ||
+                    stations.find((s) => s.stationId === acc.stationId)
+                      ?.stationName ||
+                    stations.find((s) => s.stationId === acc.stationId)
+                      ?.address ||
                     "-";
                   return (
                     <tr key={acc.accountId}>
@@ -280,43 +331,64 @@ const AccountManagement = () => {
           <div className="modal">
             <h2>{editingAccount ? "Update Account" : "Add Account"}</h2>
             <form className="modal-form">
+              {/* Full Name */}
+              <label>Full Name *</label>
               <input
                 type="text"
                 name="fullName"
-                placeholder="Full Name"
+                placeholder="Enter full name"
                 value={formData.fullName}
                 onChange={handleChange}
               />
+              {formErrors.fullName && <span className="field-error">{formErrors.fullName}</span>}
+
+              {/* Username */}
+              <label>Username *</label>
               <input
                 type="text"
                 name="accountName"
-                placeholder="Username"
+                placeholder="Enter username"
                 value={formData.accountName}
                 onChange={handleChange}
               />
+              {formErrors.accountName && <span className="field-error">{formErrors.accountName}</span>}
+
+              {/* Gender */}
+              <label>Gender *</label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
               >
-                <option value="">Gender</option>
-                <option value={'Male'}>Male</option>
-                <option value={'Female'}>Female</option>
+                <option value="">Select gender</option>
+                <option value={"Male"}>Male</option>
+                <option value={"Female"}>Female</option>
               </select>
+              {formErrors.gender && <span className="field-error">{formErrors.gender}</span>}
+
+              {/* Address */}
+              <label>Address</label>
               <input
                 type="text"
                 name="address"
-                placeholder="Address"
+                placeholder="Enter address"
                 value={formData.address}
                 onChange={handleChange}
               />
+
+              {/* Phone */}
+              <label>Phone Number *</label>
               <input
-                type="text"
+                type="tel"
                 name="phoneNumber"
-                placeholder="Phone Number"
+                placeholder="Enter phone number"
                 value={formData.phoneNumber}
                 onChange={handleChange}
               />
+              {formErrors.phoneNumber && <span className="field-error">{formErrors.phoneNumber}</span>}
+
+              {/* Date of birth */}
+              <label>Date of Birth</label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -325,32 +397,72 @@ const AccountManagement = () => {
               />
 
               {/* Role dropdown */}
+              <label>Role *</label>
               <select
                 name="roleId"
                 value={formData.roleId}
                 onChange={handleChange}
               >
-                <option value="">Select Role</option>
+                <option value="">Select role</option>
                 {roles.map((r) => (
                   <option key={r.roleId} value={r.roleId}>
                     {r.roleName}
                   </option>
                 ))}
               </select>
+              {formErrors.roleId && <span className="field-error">{formErrors.roleId}</span>}
 
               {/* Station dropdown */}
+              <label>Station *</label>
               <select
                 name="stationId"
                 value={formData.stationId}
                 onChange={handleChange}
               >
-                <option value="">Select Station</option>
+                <option value="">Select station</option>
                 {stations.map((s) => (
                   <option key={s.stationId} value={s.stationId}>
                     {s.address}
                   </option>
                 ))}
               </select>
+              {formErrors.stationId && <span className="field-error">{formErrors.stationId}</span>}
+
+              {/* Email (auto) and Password (default) for create; Email/Password editable for update */}
+              {!editingAccount ? (
+                <>
+                  <label>Email (auto)</label>
+                  <input
+                    type="email"
+                    value={formData.accountName ? `${formData.accountName}@gmail.com` : ""}
+                    readOnly
+                  />
+                  <label>Password (default)</label>
+                  <input type="text" value="default@123" readOnly />
+                </>
+              ) : (
+                <>
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter email"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                  {formErrors.email && (
+                    <span className="field-error">{formErrors.email}</span>
+                  )}
+                  <label>New Password (optional)</label>
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Leave blank to keep current password"
+                    value={formData.password || ""}
+                    onChange={handleChange}
+                  />
+                </>
+              )}
 
               <select
                 name="status"

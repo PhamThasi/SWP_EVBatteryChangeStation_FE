@@ -52,8 +52,21 @@ export default function NavBar() {
         const userData = await tokenUtils.autoLogin();
         
         if (userData) {
-          console.log("Auto login successful, redirecting to user page...");
-          navigate("/userPage");
+          const roleName = (userData.role || "").toLowerCase();
+          const roleId = (userData.roleId || "").toLowerCase();
+          const ADMIN_ROLE_ID = "98817ce2-3b59-49a9-81b6-ed2bf06ec72f";
+          const STAFF_ROLE_ID = "25a09071-17a3-4a84-b6f2-33244fb374f2";
+          // If admin (by name or roleId), go to admin schedule
+          if (roleName === "admin" || roleId === ADMIN_ROLE_ID) {
+            console.log("Auto login successful, admin detected. Redirecting to /admin/schedule...");
+            navigate("/admin/schedule");
+          } else if (roleName === "staff" || roleId === STAFF_ROLE_ID) {
+            console.log("Auto login successful, staff detected. Redirecting to /staff...");
+            navigate("/staff");
+          } else {
+            console.log("Auto login successful, redirecting to user page...");
+            navigate("/userPage");
+          }
         } else {
           // Token might be invalid, clear and redirect to login
           console.log("Auto login failed, redirecting to login page...");
