@@ -41,6 +41,7 @@ import StaffLayout from "./home/components/StaffLayout";
 import FeedBack from "./home/page/FeedBack";
 import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
+import StaffSupportPage from "./home/page/StaffSupportPage";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -153,6 +154,7 @@ function App() {
         { path: "battery", element: <BatteryManagement/> },
         { path: "Swapping", element: <SwappingManagement/> },
         { path: "feedback", element: <FeedBack/> },        
+        { path: "support", element: <StaffSupportPage/> },
       ],
     },
   ]);

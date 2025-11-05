@@ -1,9 +1,8 @@
-
 import React from 'react';
-import { useSupportRequest } from './../../context/SupportRequestContext';
+import { useStaffSupport } from './../../context/StaffSupportContext';
 
-const TabSection = () => {
-  const { activeTab, setActiveTab, allRequests } = useSupportRequest();
+const StaffTabSection = () => {
+  const { activeTab, setActiveTab, allRequests } = useStaffSupport();
   
   // Đếm số lượng requests
   // pending: responseText rỗng VÀ không có staffId
@@ -59,4 +58,5 @@ const TabSection = () => {
   );
 };
 
-export default TabSection;
+export default StaffTabSection;
+

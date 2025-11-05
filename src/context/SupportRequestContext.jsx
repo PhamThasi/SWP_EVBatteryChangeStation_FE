@@ -20,8 +20,9 @@ export const SupportRequestProvider = ({ children }) => {
       // Map data từ API response sang format cho component
       const mappedRequests = (response.data || []).map((item) => {
         const responseText = item.responseText || '';
-        // Status dựa vào responseText: nếu responseText rỗng thì là 'pending', có giá trị thì là 'resolved'
-        const status = responseText.trim() === '' ? 'pending' : 'resolved';
+        const hasStaffId = item.staffId && item.staffId.trim() !== '';
+        // Status: pending nếu responseText rỗng VÀ không có staffId, resolved nếu có responseText HOẶC có staffId
+        const status = (!responseText || responseText.trim() === '') && !hasStaffId ? 'pending' : 'resolved';
         
         return {
           id: item.requestId,
@@ -62,9 +63,10 @@ export const SupportRequestProvider = ({ children }) => {
     // Nếu newRequest có data từ API response
     const requestData = newRequest.data || newRequest;
     
-    // Đảm bảo request mới luôn có responseText rỗng và status là 'pending'
+    // Đảm bảo request mới luôn có responseText rỗng và không có staffId, status là 'pending'
     const responseText = requestData.responseText || '';
-    const status = responseText.trim() === '' ? 'pending' : 'resolved';
+    const hasStaffId = requestData.staffId && requestData.staffId.trim() !== '';
+    const status = (!responseText || responseText.trim() === '') && !hasStaffId ? 'pending' : 'resolved';
     
     const request = {
       id: requestData.requestId || Date.now(),
@@ -120,12 +122,15 @@ export const SupportRequestProvider = ({ children }) => {
     }
   }, []);
 
-  // Lọc requests theo tab hiện tại - dựa vào responseText
-  // pending: responseText rỗng, resolved: responseText có giá trị
+  // Lọc requests theo tab hiện tại - dựa vào responseText HOẶC staffId
+  // pending: responseText rỗng VÀ không có staffId
+  // resolved: có responseText HOẶC có staffId
   const filteredRequests = useMemo(() => {
     return requests.filter(req => {
-      const isEmpty = !req.responseText || req.responseText.trim() === '';
-      return activeTab === 'pending' ? isEmpty : !isEmpty;
+      const hasResponseText = req.responseText && req.responseText.trim() !== '';
+      const hasStaffId = req.staffId && req.staffId.trim() !== '';
+      const isResolved = hasResponseText || hasStaffId;
+      return activeTab === 'pending' ? !isResolved : isResolved;
     });
   }, [requests, activeTab]);
 
