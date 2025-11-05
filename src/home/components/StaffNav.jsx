@@ -20,6 +20,9 @@ const StaffNav = () => {
         <li>
           <Link to="/staff/swapping">Swapping</Link>
         </li>
+        <li>
+          <Link to="/staff/support">Support</Link>
+        </li>
       </ul>
     </nav>
   );
