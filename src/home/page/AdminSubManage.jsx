@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "../components/AdminStyle.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -15,7 +14,6 @@ const AdminSubManage = () => {
     extraFee: "",
     description: "",
     durationPackage: "",
-    accountId: "da44578a-ef06-4c4c-a64c-947460c4d3b2",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -25,9 +23,8 @@ const AdminSubManage = () => {
       const res = await fetch(`${API_BASE}/SelectAll`);
       const json = await res.json();
       setSubscriptions(json.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load subscriptions");
-      console.error(err);
     }
   };
 
@@ -49,10 +46,11 @@ const AdminSubManage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-     const method = isEditing ? "PUT" : "POST";
+
+    const method = isEditing ? "PUT" : "POST";
     const url = isEditing
-    ? `${API_BASE}/Update/${form.subscriptionId}`
-    : `${API_BASE}/Create`;
+      ? `${API_BASE}/Update/${form.subscriptionId}`
+      : `${API_BASE}/Create`;
 
     try {
       const res = await fetch(url, {
@@ -61,17 +59,12 @@ const AdminSubManage = () => {
         body: JSON.stringify(form),
       });
 
-      if (res.ok) {
-        await fetchSubscriptions();
-        toast.success(isEditing ? "Subscription updated" : "Subscription created");
-        closeModal();
-      } else {
-        const msg = await res.text();
-        toast.error(`Operation failed: ${msg}`);
-      }
-    } catch (err) {
-      toast.error("Network error");
-      console.error(err);
+      if (!res.ok) throw new Error();
+      await fetchSubscriptions();
+      toast.success(isEditing ? "Subscription updated" : "Subscription created");
+      closeModal();
+    } catch {
+      toast.error("Operation failed");
     }
   };
 
@@ -79,19 +72,15 @@ const AdminSubManage = () => {
     if (!window.confirm("Delete this subscription?")) return;
     try {
       const res = await fetch(`${API_BASE}/SoftDelete/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        fetchSubscriptions();
-        toast.success("Subscription deleted");
-      } else {
-        toast.error("Failed to delete");
-      }
-    } catch (err) {
+      if (!res.ok) throw new Error();
+      fetchSubscriptions();
+      toast.success("Subscription deleted");
+    } catch {
       toast.error("Delete failed");
-      console.error(err);
     }
   };
 
-  const resetForm = () => {
+  const resetForm = () =>
     setForm({
       subscriptionId: "",
       name: "",
@@ -99,9 +88,7 @@ const AdminSubManage = () => {
       extraFee: "",
       description: "",
       durationPackage: "",
-      accountId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     });
-  };
 
   const closeModal = () => {
     setShowModal(false);
@@ -113,49 +100,68 @@ const AdminSubManage = () => {
   );
 
   return (
-    <div className="admin-dashboard">
+    <div className="min-h-screen bg-white px-6 md:px-32 pt-32 text-gray-800 font-inter">
       <ToastContainer position="top-right" autoClose={2500} />
 
-      <h1>Subscription Management</h1>
+      {/* Title */}
+      <h1 className="text-3xl font-semibold text-center border-b-2 border-blue-600 pb-2 mb-10">
+        Subscription Management
+      </h1>
+
       {/* Toolbar */}
-      <div className="account-toolbar">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <input
           type="text"
           placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <button className="create-btn" onClick={handleCreate}>
+        <button
+          onClick={handleCreate}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+        >
           + Add Subscription
         </button>
       </div>
 
-      
-
       {/* List */}
-      <div className="account-list">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSubs.length === 0 ? (
-          <p className="no-data">No subscriptions found.</p>
+          <p className="text-center text-gray-500 col-span-full">
+            No subscriptions found.
+          </p>
         ) : (
           filteredSubs.map((sub) => (
-            <div className="account-card" key={sub.subscriptionId}>
-              <div className="account-info">
-                <h3>{sub.name}</h3>
-                <p>Price: {sub.price}</p>
-                <p>Extra Fee: {sub.extraFee}</p>
-                <p>Duration: {sub.durationPackage} days</p>
-                <p>Status: {sub.isActive ? "Active" : "Inactive"}</p>
+            <div
+              key={sub.subscriptionId}
+              className="bg-white border border-gray-200 shadow-sm rounded-lg p-4 hover:shadow-md transition"
+            >
+              <div className="space-y-1 mb-3">
+                <h3 className="text-lg font-semibold">{sub.name}</h3>
+                <p className="text-gray-700">Price: {sub.price}</p>
+                <p className="text-gray-700">Extra Fee: {sub.extraFee}</p>
+                <p className="text-gray-700">
+                  Duration: {sub.durationPackage} days
+                </p>
+                <p
+                  className={`font-medium ${
+                    sub.isActive ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  Status: {sub.isActive ? "Active" : "Inactive"}
+                </p>
               </div>
-              <div className="account-actions">
+              <div className="flex justify-end gap-2">
                 <button
-                  className="update-btn"
                   onClick={() => handleEdit(sub)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1.5 rounded-md transition"
                 >
                   Edit
                 </button>
                 <button
-                  className="delete-btn"
                   onClick={() => handleDelete(sub.subscriptionId)}
+                  className="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1.5 rounded-md transition"
                 >
                   Delete
                 </button>
@@ -165,20 +171,21 @@ const AdminSubManage = () => {
         )}
       </div>
 
-      
-
       {/* Modal */}
       {showModal && (
-        <div className="modal">
-          <div className="">
-            <h2>{isEditing ? "Edit Subscription" : "Create Subscription"}</h2>
-            <form onSubmit={handleSubmit} className="modal-form">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 max-w-full">
+            <h2 className="text-xl font-semibold text-center mb-4">
+              {isEditing ? "Edit Subscription" : "Create Subscription"}
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-3">
               <input
                 type="text"
                 placeholder="Name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
@@ -188,6 +195,7 @@ const AdminSubManage = () => {
                   setForm({ ...form, price: Number(e.target.value) })
                 }
                 required
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
@@ -196,6 +204,7 @@ const AdminSubManage = () => {
                 onChange={(e) =>
                   setForm({ ...form, extraFee: Number(e.target.value) })
                 }
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
@@ -207,6 +216,7 @@ const AdminSubManage = () => {
                     durationPackage: Number(e.target.value),
                   })
                 }
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <textarea
                 placeholder="Description"
@@ -214,15 +224,19 @@ const AdminSubManage = () => {
                 onChange={(e) =>
                   setForm({ ...form, description: e.target.value })
                 }
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <div className="modal-actions">
-                <button type="submit" className="save-btn">
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="submit"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
+                >
                   {isEditing ? "Update" : "Create"}
                 </button>
                 <button
                   type="button"
-                  className="cancel-btn"
                   onClick={closeModal}
+                  className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md text-sm"
                 >
                   Cancel
                 </button>
