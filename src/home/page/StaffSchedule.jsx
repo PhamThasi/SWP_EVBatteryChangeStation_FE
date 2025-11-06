@@ -5,6 +5,7 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import parseISO from "date-fns/parseISO";
 import "../components/AdminStyle.css";
 import { formatDateTime } from "@/utils/dateFormat"; 
+import axios from "axios";
 
 const locales = { "en-US": undefined };
 const localizer = dateFnsLocalizer({
@@ -22,6 +23,12 @@ const SchedulePage = () => {
   const [error, setError] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [stations, setStations] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [filteredAccounts, setFilteredAccounts] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [accountSearch, setAccountSearch] = useState("");
+
   const BASE_URL = "http://localhost:5204/api/Booking/SelectAll";
   const DETAIL_URL = "http://localhost:5204/api/Booking/Select/";
   const [formData, setFormData] = useState({
@@ -49,9 +56,7 @@ const SchedulePage = () => {
     setGridDate(date);
     setShowGrid(true);
   };
-
-  useEffect(() => {
-    const fetchBookings = async () => {
+  const fetchBookings = async () => {
       setLoading(true);
       try {
         const res = await fetch(BASE_URL);
@@ -74,19 +79,35 @@ const SchedulePage = () => {
         setLoading(false);
       }
     };
+
+  useEffect(() => {    
     fetchBookings();
   }, []);
   const handleCreateBooking = async (e) => {
     e.preventDefault();
     try {
+    //   const payload = {
+    //     ...formData,
+    //     dateTime: new Date(formData.dateTime).toISOString(),
+    //     createdDate: new Date().toISOString(),
+    //   };
+
+    //   console.log("Booking payload:", payload); // log the object
+    //  console.log("JSON body:", JSON.stringify(payload, null, 2)); 
       const res = await fetch("http://localhost:5204/api/Booking/Create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+        ...formData,
+        dateTime: new Date(formData.dateTime).toISOString(),
+        createdDate: new Date().toISOString(),
+      }),
       });
       if (!res.ok) throw new Error("Failed to create booking");
       alert("Booking created successfully");
+      fetchBookings();
       setIsCreating(false);
+      
     } catch (err) {
       alert(err.message);
     }
@@ -106,6 +127,37 @@ const SchedulePage = () => {
       setModalOpen(false);
     } catch (err) {
       alert(err.message);
+    }
+  };
+
+  const handleAccountSearch = (query) => {
+    if (!query) return setFilteredAccounts([]);
+    const filtered = accounts.filter(acc =>
+      acc.fullName.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredAccounts(filtered);
+  };
+  const handleFetchCars = async (accountId) => {
+    try {
+      const res = await axios.get(`http://localhost:5204/api/Car/GetCarByOwner?ownerId=${accountId}`);
+      setCars(res.data.data || []);
+    } catch {
+      setCars([]);
+    }
+  };
+
+  const handleOpenCreateModal = async () => {
+    setIsCreating(true);
+    try {
+      const [stationRes, accountRes] = await Promise.all([
+        axios.get("http://localhost:5204/api/Station/SelectAll"),
+        axios.get("http://localhost:5204/api/Account/GetAll"),
+      ]);
+      setStations(stationRes.data.data || []);
+      setAccounts(accountRes.data.data || []);
+    } catch {
+      setStations([]);
+      setAccounts([]);
     }
   };
 
@@ -154,7 +206,7 @@ const SchedulePage = () => {
     <div className="admin-dashboard">
       <h2 className="dashboard-title">Booking Schedule        
       </h2>
-      <button className="save-btn" onClick={() => setIsCreating(true)}>+ Create Booking</button>
+      <button className="save-btn" onClick={handleOpenCreateModal}>+ Create Booking</button>
       {showGrid ? (
     <div className="event-box-view">
       <button className="cancel-btn" onClick={() => setShowGrid(false)}>← Back to Calendar</button>
@@ -222,35 +274,71 @@ const SchedulePage = () => {
                 onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
                 required
               />
+              {/* Account search */}
+              <label>Account</label>
+              <input
+                type="text"
+                placeholder="Search by full name"
+                value={accountSearch}
+                onChange={(e) => {
+                  setAccountSearch(e.target.value);
+                  handleAccountSearch(e.target.value);
+                }}
+                required
+              />
+              {filteredAccounts.length > 0 && (
+                <ul className="dropdown-list">
+                  {filteredAccounts.map((acc) => (
+                    <li
+                      key={acc.accountId}
+                      onClick={() => {
+                        setFormData({ ...formData, accountId: acc.accountId });
+                        setAccountSearch(acc.fullName);
+                        setFilteredAccounts([]);
+                        handleFetchCars(acc.accountId);
+                      }}
+                    >
+                      {acc.fullName}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Car selection */}
+              <label>Vehicle</label>
+              <select
+                value={formData.vehicleId}
+                onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
+                required
+              >
+                <option value="">Select a Car</option>
+                {cars.map((car) => (
+                  <option key={car.vehicleId} value={car.vehicleId}>
+                    {car.model}
+                  </option>
+                ))}
+              </select>
+              
+              {/* Station selection */}
+              <label>Station</label>
+              <select
+                value={formData.stationId}
+                onChange={(e) => setFormData({ ...formData, stationId: e.target.value })}
+                required
+              >
+                <option value="">Select a Station</option>
+                {stations.map((station) => (
+                  <option key={station.stationId} value={station.stationId}>
+                    {station.address}
+                  </option>
+                ))}
+              </select>
+              
 
               <label>Notes</label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              />
-
-              <label>Station ID</label>
-              <input
-                type="text"
-                value={formData.stationId}
-                onChange={(e) => setFormData({ ...formData, stationId: e.target.value })}
-                required
-              />
-
-              <label>Vehicle ID</label>
-              <input
-                type="text"
-                value={formData.vehicleId}
-                onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
-                required
-              />
-
-              <label>Account ID</label>
-              <input
-                type="text"
-                value={formData.accountId}
-                onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
-                required
               />
 
               <div className="modal-actions">
@@ -261,6 +349,7 @@ const SchedulePage = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

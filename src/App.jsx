@@ -136,7 +136,7 @@ function App() {
       path: "/admin",
       element: <AdminLayout />,
       children: [
-        {path: "schedule", element: <StaffSchedule/>},
+        {path: "", element: <StaffSchedule/>},
         { path: "battery", element: <BatteryManagement/> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "roles", element: <RoleManagement /> },

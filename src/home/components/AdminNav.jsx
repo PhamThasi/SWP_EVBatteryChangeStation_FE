@@ -26,7 +26,7 @@ const AdminNav = () => {
       
 
       <ul className="navbar-links">
-        <li><Link to="/admin/schedule">Schedule</Link></li>
+        <li><Link to="/admin">Schedule</Link></li>
         <li><Link to="/admin/battery">Battery</Link></li>
         <li><Link to="/admin/accounts">Accounts</Link></li>
         <li><Link to="/admin/roles">Roles</Link></li>

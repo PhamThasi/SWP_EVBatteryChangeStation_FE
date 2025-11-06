@@ -96,54 +96,107 @@
     flex-direction: column;
   }
 }
-/* Modal background overlay */
+/* Overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 999;
+  backdrop-filter: blur(4px);
 }
 
-/* Modal window */
+/* Modal container */
 .modal {
-  background: #fff;
-  padding: 24px;
+  background: #ffffff;
   border-radius: 12px;
-  width: 400px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  padding: 24px 28px;
+  width: 420px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.modal h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 16px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+/* Form */
+.modal-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 5px;
+  gap: 10px;
 }
 
-.modal h2 {
-  margin: 5px;
-  font-size: 20px;
-  text-align: center;
+.modal-form label {
+  font-weight: 500;
+  color: #444;
+  margin-top: 8px;
 }
 
 .modal-form input,
-.modal-form textarea {
+.modal-form textarea,
+.modal-form select {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
   font-size: 14px;
-  margin: 3px;
+  transition: border-color 0.2s ease;
 }
 
+.modal-form input:focus,
+.modal-form textarea:focus,
+.modal-form select:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+/* Dropdown list for account search */
+.dropdown-list {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: -5px;
+  padding: 0;
+  list-style: none;
+  z-index: 1000;
+}
+
+.dropdown-list li {
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dropdown-list li:hover {
+  background: #f2f2f2;
+}
+
+/* Actions */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .save-btn {

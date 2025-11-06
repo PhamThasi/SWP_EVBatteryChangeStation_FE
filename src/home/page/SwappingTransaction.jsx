@@ -205,11 +205,13 @@ const SwappingManagement = () => {
             <h3>Payment Details</h3>
             <p><b>Price:</b> {selectedPayment.price.toLocaleString()} VND</p>
             <p><b>Method:</b> {selectedPayment.method}</p>
-            <p><b>Status:</b> {selectedPayment.status ? "Success" : "Failed"}</p>
+            <p><b>Status:</b> {selectedPayment.status ? "Success" : "Failed"}</p>            
             <p><b>Date:</b> {new Date(selectedPayment.createDate).toLocaleString()}</p>
-             <button className="save-btn" onClick={handlePaymentSuccess}>
-              ✅Payment Success
-            </button>
+            {!selectedPayment.status && (
+              <button className="save-btn" onClick={handlePaymentSuccess}>
+                ✅ Payment Success
+              </button>
+            )}
             
             <button className="delete-btn" onClick={closeModal}>
               Close
