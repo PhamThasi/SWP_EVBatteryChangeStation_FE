@@ -1,184 +1,285 @@
+/* src/pages/Home/HomeFrame.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500&display=swap');
+
 .home-frame {
   margin: 0;
   padding: 0;
-  color: white;
-  background: linear-gradient(90deg, #001f54, #0077b6, #00b4d8);
+  background: linear-gradient(135deg, #001f54 0%, #0077b6 50%, #00b4d8 100%);
+  color: #f8f9fa;
+  font-family: 'Inter', sans-serif;
   min-height: 100vh;
 }
 
-.car-video {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  /* chiếm hết chiều cao viewport */
-  overflow: hidden;
-  /* cắt bớt phần dư */
-  box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.3)
-}
-
-.car-video video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* quan trọng: giữ tỉ lệ, cover toàn màn hình */
-  transform: translate(-50%, -50%);
-  z-index: 0;
-}
-
-.power-service-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
-  text-align: center;
- 
-}
-
-.power-service-container h1 {
-  font-size: 4rem;
-  font-weight: 600;
-  color: #fff;
-  /* xanh ngọc giống trong ảnh */
-  margin-bottom: 1.5rem;
-}
-
-.power-service-container .genki-text {
-
-  max-width: 800px;
-  margin: 0 auto 3rem auto;
-  line-height: 1.7;
-  font-size: 2rem;
-}
-
+/* REVEAL ANIMATION */
 .reveal {
   opacity: 0;
-  transform: translateY(40px);
+  transform: translateY(50px);
   transition: all 0.8s ease-out;
 }
-
 .reveal.active {
   opacity: 1;
   transform: translateY(0);
 }
 
-.power-service-logo-ui {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
-  flex-wrap: wrap;
-  padding: 5rem;
-  margin: 4rem;
-  list-style: none;
+/* CONTAINER */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
-.power-service-logo-ui li {
+/* HERO */
+.hero-section {
+  position: relative;
+  height: 90vh;
+  overflow: hidden;
+}
+
+.car-video {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+}
+
+.car-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,31,84,0.8), rgba(0,119,182,0.9));
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.hero-content h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.highlight {
   color: #e8f00e;
-  transition: transform 0.3s ease;
+  text-shadow: 0 0 10px rgba(232,240,14,0.5);
 }
 
-.power-service-logo-ui li:hover {
-  transform: translateY(-5px);
+.hero-content p {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
 }
 
-/* Separator */
-.power-service-items hr {
-  margin: 2rem auto;
-  width: 90%;
-  border: 0;
-  border-top: 1px solid #ddd;
-}
-
-/* Caption dưới */
-.power-service-items p {
-  font-size: 2rem;
+.hero-actions button {
+  margin: 0 0.5rem;
+  padding: 0.8rem 1.8rem;
+  border-radius: 50px;
   font-weight: 600;
-  margin-top: 1rem;
-  color: #001f54;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.Section-video {
-  margin: 0 auto;
-  text-align: center;
-  /* border: 1px saddlebrown solid; */
-}
-
-.Section-video video {
-  display: inline-block;
-  width: 70%;
-  box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.3)
-}
-
-
-
-/* Car section */
-.station-section {
-  margin: 2rem 0;
-  text-align: center;
+.btn-primary {
+  background: #00b4d8;
   color: white;
+  border: none;
+}
+.btn-primary:hover { background: #00d4ff; transform: translateY(-2px); }
+
+.btn-outline {
+  background: transparent;
+  color: white;
+  border: 2px solid #00b4d8;
+}
+.btn-outline:hover { background: #00b4d8; }
+
+/* GENKI INTRO */
+.genki-intro {
+  padding: 5rem 0;
+  text-align: center;
+  background: rgba(0,0,0,0.2);
 }
 
-.station-cards {
+.genki-intro h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto 2rem;
+}
+
+.intro-grid p {
+  font-size: 1.2rem;
+  line-height: 1.7;
+}
+
+/* SERVICE ICONS */
+.services-icons {
+  padding: 4rem 0;
+}
+
+.icon-grid {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* VIDEO SECTION */
+.video-section {
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.video-header {
+  margin-bottom: 2rem;
+}
+
+.video-header h3 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.swap-video {
+  width: 70%;
+  max-width: 900px;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+/* STATIONS */
+.stations-section {
+  padding: 4rem 0;
+}
+
+.station-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* căn giữa */
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-.station-card {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 1rem;
-  backdrop-filter: blur(6px);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.station-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.4);
-}
-
-.station-card img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-}
-
-.station-card h4 {
-  margin: 0.5rem 0;
-  font-size: 1.2rem;
-  color: #00b4d8;
-}
-
-
-/* Service section */
-.service-section {
-  margin-top: 2rem;
-  text-align: center;
-}
-
-.service-cards {
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 1rem;
   justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
 }
-.map-placeholder {
+
+.station-card-wrapper {
+  position: relative;
+}
+
+.station-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.status-badge {
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.status-badge.active { background: #28a745; color: white; }
+.status-badge.paused { background: #ffc107; color: #212529; }
+
+.btn-directions {
+  background: #00b4d8;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.btn-directions:hover { background: #00d4ff; }
+
+/* PACKAGES */
+.packages-section {
+  padding: 5rem 0;
+  background: rgba(0,0,0,0.15);
+}
+
+.package-grid {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  position: relative;
+}
+
+.package-popular {
+  position: relative;
+}
+
+.package-popular::before {
+  content: "Phổ biến nhất";
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #ff6b6b;
+  color: white;
+  padding: 0.5rem 1.2rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.price {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #e8f00e;
+  margin: 1rem 0;
+}
+
+.btn-select {
+  margin-top: auto;
+  background: #00b4d8;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 12px;
+  width: 100%;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-select:hover { background: #00d4ff; }
+
+/* MAP */
+.map-section {
+  padding: 5rem 0;
   text-align: center;
 }
 
-.map-animation {
-  margin-top: 1rem;
-  padding: 4rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+.map-section h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.map-container {
+  height: 500px;
+  margin-top: 2rem;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .hero-content h1 { font-size: 2.5rem; }
+  .intro-grid { grid-template-columns: 1fr; }
+  .icon-grid { gap: 1.5rem; }
+  .swap-video { width: 95%; }
 }
