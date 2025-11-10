@@ -28,6 +28,7 @@ import AboutUs from "./home/page/AboutUs";
 
 import Subscriptions from "./home/page/Subscriptions";
 import Stations from "./home/page/Stations";
+import Payment from "./home/page/Payment";
 
 import StaffSchedule from "./home/page/StaffSchedule";
 import RoleManagement from "./home/page/RoleManagement";
@@ -100,6 +101,7 @@ function App() {
         { path: "subscriptions", element: <Subscriptions /> },
         { path: "stations", element: <Stations /> },
         { path: "contact", element: <ContactUs /> },
+        { path: "payment", element: <Payment /> },
       ],
     },
     {
@@ -114,6 +116,7 @@ function App() {
         { path: "supportRequest", element: <SupportRequest /> },
         { path: "contact", element: <ContactUs /> },
         { path: "stations", element: <Stations /> },
+        { path: "payment", element: <Payment /> },
         // sau này thêm: history, maintenance, support...
       ],
     },

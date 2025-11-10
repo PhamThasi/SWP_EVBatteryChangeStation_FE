@@ -37,7 +37,7 @@ const SignIn = () => {
         case "admin":
           return "/admin";
         case "staff":
-          return "/admin"; // nếu có StaffLayout thì đổi thành /staff
+          return "/staff"; // nếu có StaffLayout thì đổi thành /staff
         case "customer":
         default:
           return "/userPage";
