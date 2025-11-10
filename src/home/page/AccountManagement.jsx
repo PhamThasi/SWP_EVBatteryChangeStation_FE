@@ -295,12 +295,15 @@ const AccountManagement = () => {
                     stations.find((s) => s.stationId === acc.stationId)
                       ?.address ||
                     "-";
+                  // Display fullName, fallback to accountName if fullName is empty or null
+                  const displayName = acc.fullName?.trim() || acc.accountName || "-";
+                  
                   return (
                     <tr key={acc.accountId}>
-                      <td>{acc.fullName}</td>
-                      <td>{acc.gender}</td>
-                      <td>{acc.address}</td>
-                      <td>{acc.phoneNumber}</td>
+                      <td>{displayName}</td>
+                      <td>{acc.gender || "-"}</td>
+                      <td>{acc.address || "-"}</td>
+                      <td>{acc.phoneNumber || "-"}</td>
                       <td>{roleName}</td>
                       <td>{stationName}</td>
                       <td style={{ textAlign: "center" }}>

@@ -56,6 +56,16 @@ const feedbackService = {
       throw error;
     }
   },
+  getFeedbackByAccountId: async (id) => {
+    try {
+      const res = await axiosClient.get(`/FeedBack/SelectByAccount/${id}`);
+      return res.data;
+    } catch (error) {
+      console.error("❌ Error fetching feedback:", error);
+      throw error;
+    }
+  },
+
 };
 
 export default feedbackService;
