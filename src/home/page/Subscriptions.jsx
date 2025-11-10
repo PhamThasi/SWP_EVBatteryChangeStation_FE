@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuthCheck from "./../../hooks/useAuthCheck";
 import ConfirmModal from "./../components/ConfirmModal";
 import PlanCard from "./../components/PlanCard";
@@ -8,11 +9,23 @@ import subcriptionService from "@/api/subcriptionService";
 const Subscriptions = () => {
   const { requireLogin, isModalOpen, confirmLogin, cancelLogin } = useAuthCheck();
   const [plans, setPlans] = useState([]);
+  const [subscriptionsData, setSubscriptionsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const handleBuy = (planName) => {
+  const handleBuy = (planTitle) => {
     requireLogin(() => {
-      alert(`Thanh toán cho gói ${planName} (mock)`);
+      // Tìm subscription tương ứng với plan title
+      const subscription = subscriptionsData.find(
+        (sub) => sub.name === planTitle
+      );
+      
+      if (subscription && subscription.subscriptionId) {
+        // Navigate đến trang payment với subscriptionId
+        navigate(`/payment?subscriptionId=${subscription.subscriptionId}`);
+      } else {
+        alert("Không tìm thấy thông tin gói dịch vụ");
+      }
     });
   };
 
@@ -21,6 +34,9 @@ const Subscriptions = () => {
       try {
         const res = await subcriptionService.getSubscriptions();
         if (res?.data) {
+          // Lưu data gốc để sử dụng khi navigate
+          setSubscriptionsData(res.data);
+          
           // Convert API data -> frontend-friendly structure
           const formatted = res.data.map((item) => ({
             title: item.name,
