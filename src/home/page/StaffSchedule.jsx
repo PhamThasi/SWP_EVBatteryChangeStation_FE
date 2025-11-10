@@ -35,6 +35,7 @@ const SchedulePage = () => {
     dateTime: "",
     notes: "",
     status: true,
+    isApproved: "Pending",
     createdDate: new Date().toISOString(),
     stationId: "",
     vehicleId: "",
@@ -101,6 +102,7 @@ const SchedulePage = () => {
         ...formData,
         dateTime: new Date(formData.dateTime).toISOString(),
         createdDate: new Date().toISOString(),
+        isApproved: formData.isApproved || "Pending",
       }),
       });
       if (!res.ok) throw new Error("Failed to create booking");
@@ -119,6 +121,7 @@ const SchedulePage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...selectedBooking,
+          isApproved: selectedBooking.isApproved || "Pending",
           createdDate: selectedBooking.createdDate || new Date().toISOString(),
         }),
       });
@@ -254,6 +257,19 @@ const SchedulePage = () => {
             <p><strong>Vehicle:</strong> {selectedBooking.carModel}</p>
             <p><strong>Time and Date:</strong> {formatDateTime(selectedBooking.dateTime)}</p>
             <p><strong>Notes:</strong> {selectedBooking.notes || "None"}</p>
+            <label>Status (isApproved)</label>
+            <select
+              value={selectedBooking.isApproved || "Pending"}
+              onChange={(e) =>
+                setSelectedBooking({ ...selectedBooking, isApproved: e.target.value })
+              }
+              className="modal-select"
+            >
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Canceled">Canceled</option>
+            </select>
             <div className="modal-actions">              
               <button className="batupdate-btn" onClick={handleUpdateBooking}>Update</button>
               <button className="cancel-btn" onClick={() => setModalOpen(false)}>Close</button>
@@ -340,6 +356,17 @@ const SchedulePage = () => {
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               />
+              <label>Status (isApproved)</label>
+              <select
+                value={formData.isApproved}
+                onChange={(e) => setFormData({ ...formData, isApproved: e.target.value })}
+                required
+              >
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Canceled">Canceled</option>
+              </select>
 
               <div className="modal-actions">
                 <button type="submit" className="save-btn">Save</button>

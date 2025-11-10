@@ -7,6 +7,7 @@ import authService from "@/api/authService";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const navigate = useNavigate();
@@ -20,6 +21,14 @@ const SignUp = () => {
     }
 
     try {
+      // Lưu tạm fullName để cập nhật hồ sơ sau khi verify/login đầu tiên
+      if (fullName && fullName.trim() !== "") {
+        localStorage.setItem(
+          "pendingProfile",
+          JSON.stringify({ fullName: fullName.trim() })
+        );
+      }
+
       await authService.register(email, password);
       navigate("/verifyOtp", { state: { email } });
       console.log(email);
@@ -37,6 +46,16 @@ const SignUp = () => {
       </div>
 
       <form className="auth-form-group" onSubmit={handleSubmit}>
+        <div className="auth-form-block">
+          <label>Full Name (optional)</label>
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Enter your full name"
+          />
+        </div>
+
         <div className="auth-form-block">
           <label>Email</label>
           <input

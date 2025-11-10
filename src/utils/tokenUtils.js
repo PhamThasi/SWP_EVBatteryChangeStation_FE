@@ -64,6 +64,38 @@ export const tokenUtils = {
     }
   },
 
+  // Apply pending fullName to local user immediately for UI display
+  applyPendingProfileLocally: () => {
+    try {
+      const pending = localStorage.getItem("pendingProfile");
+      if (!pending) return false;
+      const pendingProfile = JSON.parse(pending);
+      if (!pendingProfile?.fullName || pendingProfile.fullName.trim() === "") {
+        return false;
+      }
+      const userJson = localStorage.getItem("user");
+      if (!userJson) return false;
+      const user = JSON.parse(userJson);
+      // Only override when current fullName is missing/empty
+      const hasNoFullName =
+        user?.fullName === undefined ||
+        user?.fullName === null ||
+        (typeof user.fullName === "string" && user.fullName.trim() === "");
+      if (!hasNoFullName) return false;
+      const updated = {
+        ...user,
+        fullName: pendingProfile.fullName.trim(),
+        name: pendingProfile.fullName.trim(),
+      };
+      localStorage.setItem("user", JSON.stringify(updated));
+      console.log("Applied pending fullName to local user profile immediately");
+      return true;
+    } catch (e) {
+      console.error("applyPendingProfileLocally error:", e);
+      return false;
+    }
+  },
+
   // Clear user data (for logout)
   clearUserData: () => {
     localStorage.removeItem("token");
@@ -123,6 +155,9 @@ export const tokenUtils = {
   processLoginToken: async (token) => {
     try {
       console.log("Processing login token...");
+
+      // Áp dụng ngay fullName tạm để UI hiển thị tức thì (nếu có)
+      tokenUtils.applyPendingProfileLocally();
 
       // Decode token để lấy name
       const decoded = tokenUtils.decodeToken(token);
@@ -198,11 +233,45 @@ export const tokenUtils = {
           : response.data;
 
         // Map dữ liệu
-        const userProfile = tokenUtils.mapApiResponseToUserProfile(apiUser);
+        let userProfile = tokenUtils.mapApiResponseToUserProfile(apiUser);
 
-        // Lưu vào localStorage
+        // Lưu trước vào localStorage
         tokenUtils.saveUserData(userProfile);
 
+        // Nếu có fullName tạm (lưu từ bước đăng ký) và hồ sơ hiện tại chưa có fullName,
+        // cập nhật hồ sơ thông qua API rồi đồng bộ lại localStorage
+        try {
+          const pending = localStorage.getItem("pendingProfile");
+          const pendingProfile = pending ? JSON.parse(pending) : null;
+
+          const shouldUpdateFullName =
+            pendingProfile?.fullName &&
+            pendingProfile.fullName.trim() !== "" &&
+            (!userProfile.fullName || userProfile.fullName.trim() === "");
+
+          if (shouldUpdateFullName) {
+            await authService.updateProfile({
+              accountId: userProfile.accountId,
+              roleId: userProfile.roleId,
+              accountName: userProfile.accountName,
+              fullName: pendingProfile.fullName.trim(),
+              email: userProfile.email,
+              gender: userProfile.gender,
+              address: userProfile.address,
+              phoneNumber: userProfile.phoneNumber,
+              stationId: userProfile.stationId,
+              status: userProfile.status,
+              dateOfBirth: userProfile.dateOfBirth,
+            });
+
+            // Cập nhật lại localStorage và xoá cờ pending
+            userProfile = { ...userProfile, fullName: pendingProfile.fullName.trim(), name: pendingProfile.fullName.trim() };
+            tokenUtils.saveUserData(userProfile);
+            localStorage.removeItem("pendingProfile");
+          }
+        } catch (e) {
+          console.error("Failed to apply pending fullName to profile:", e);
+        }
 
         return userProfile;
       }
@@ -269,6 +338,8 @@ export const tokenUtils = {
 
       // Check if user data exists
       let userData = tokenUtils.getUserData();
+      // Áp dụng ngay fullName tạm vào localStorage nếu có
+      tokenUtils.applyPendingProfileLocally();
       
       // If no user data or incomplete, fetch from API
       if (!userData || !userData.email || !userData.fullName) {
@@ -306,6 +377,9 @@ export const tokenUtils = {
           return apiData;
         }
       }
+
+      // Áp dụng local pending fullName trước khi đọc cache để UI có dữ liệu ngay
+      tokenUtils.applyPendingProfileLocally();
 
       // Lấy data từ localStorage
       const cachedData = tokenUtils.getUserData();
