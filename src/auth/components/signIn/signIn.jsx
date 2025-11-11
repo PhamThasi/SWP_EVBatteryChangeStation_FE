@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../components/button";
-import "./signIn.css";
+import { toast } from "react-toastify";
 import authService from "@/api/authService";
 import tokenUtils from "@/utils/tokenUtils";
-import roleService from "@/api/roleService";
+import "./signIn.css";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -15,29 +15,22 @@ const SignIn = () => {
     const checkExistingLogin = async () => {
       if (tokenUtils.isLoggedIn()) {
         const userData = tokenUtils.getUserData();
-        if (!userData) return;
-        const roleRedirect = await getRedirectPathByRole(userData.roleId);
-        navigate(roleRedirect);
+        if (userData?.roleName) {
+          navigate(getRedirectPathByRole(userData.roleName));
+        }
       }
     };
     checkExistingLogin();
   }, [navigate]);
 
-  const getRedirectPathByRole = async (roleId) => {
-    try {
-      const allRoles = await roleService.getAllRoles();
-      const matchedRole = allRoles?.data?.find((r) => r.roleId === roleId);
-      if (!matchedRole) return "/userPage";
-      switch (matchedRole.roleName.toLowerCase()) {
-        case "admin":
-          return "/admin";
-        case "staff":
-          return "/staff";
-        default:
-          return "/userPage";
-      }
-    } catch {
-      return "/userPage";
+  const getRedirectPathByRole = (roleName) => {
+    switch (roleName.toLowerCase()) {
+      case "admin":
+        return "/admin";
+      case "staff":
+        return "/staff";
+      default:
+        return "/userPage";
     }
   };
 
@@ -45,40 +38,26 @@ const SignIn = () => {
     e.preventDefault();
     try {
       const res = await authService.login(email, password);
-      if (!res?.data?.data) {
-        alert("Đăng nhập thất bại!");
+      const token = res?.data?.data;
+
+      if (!token) {
+        toast.error("Đăng nhập thất bại!");
         return;
       }
 
-      const token = res.data.data;
       localStorage.setItem("token", token);
-
       const userProfile = await tokenUtils.processLoginToken(token);
+
       if (!userProfile) {
-        alert("Không thể lấy thông tin user!");
+        toast.error("Không thể lấy thông tin người dùng!");
         return;
       }
 
-      // ✅ Check & update fullname nếu còn pending
-      const pending = JSON.parse(localStorage.getItem("pendingProfile"));
-      if (pending?.fullName) {
-        try {
-          await authService.updateProfile({
-            ...userProfile,
-            fullName: pending.fullName,
-          });
-          localStorage.removeItem("pendingProfile");
-          console.log("✅ Updated fullname after login fallback");
-        } catch (err) {
-          console.error("⚠️ Fallback update fullname failed:", err);
-        }
-      }
-
-      const redirectPath = await getRedirectPathByRole(userProfile.roleId);
-      navigate(redirectPath);
+      toast.success(`Xin chào ${userProfile.fullName || "User"}!`);
+      navigate(getRedirectPathByRole(userProfile.roleName));
     } catch (err) {
       console.error("Login failed:", err);
-      alert("Sai tài khoản hoặc mật khẩu!");
+      toast.error(err?.response?.data?.message || "Sai tài khoản hoặc mật khẩu!");
     }
   };
 
