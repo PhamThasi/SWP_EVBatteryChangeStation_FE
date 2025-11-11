@@ -5,8 +5,10 @@ import "../components/AccountMng.css";
 const BatteryManagement = () => {
   const [batteries, setBatteries] = useState([]);
   const [filteredBatteries, setFilteredBatteries] = useState([]);
+  const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBattery, setEditingBattery] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("");
@@ -38,6 +40,7 @@ const BatteryManagement = () => {
           "http://localhost:5204/api/Station/SelectAll"
         );
         stationsData = stationRes.data?.data || [];
+        setStations(stationsData);
       } catch (e) {
         console.warn("Station fetch failed:", e.message);
       }
@@ -144,9 +147,10 @@ const BatteryManagement = () => {
         lastUsed: "",
       });
     }
+    setIsModalOpen(true);
   };
 
-  const closeModal = () => setEditingBattery(null);
+  const closeModal = () => setIsModalOpen(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -303,7 +307,7 @@ const BatteryManagement = () => {
       </div>
 
       {/* Modal */}
-      {editingBattery !== null && (
+      {isModalOpen  && (
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editingBattery ? "Update Battery" : "Add Battery"}</h2>
@@ -332,14 +336,14 @@ const BatteryManagement = () => {
                 value={formData.percentUse}
                 onChange={handleChange}
               />
-              <label>Type Battery</label>
-              <input
-                type="text"
-                name="typeBattery"
-                placeholder="Type Battery"
-                value={formData.typeBattery}
-                onChange={handleChange}
-              />
+              <label>Type Battery</label>              
+              <select
+              name ="battery type"
+              value={formData.typeBattery}
+              onChange={handleChange}>
+                <option value="Solid-state">Solid-state</option>
+                <option value="Lithium-ion">Lithium-ion</option>
+              </select>
               <label>Insurance Date</label>
               <input
                 type="date"
@@ -349,13 +353,19 @@ const BatteryManagement = () => {
                 onChange={handleChange}
               />
               <label>Station ID</label>
-              <input
-                type="text"
+              <select
                 name="stationId"
-                placeholder="Station ID"
                 value={formData.stationId}
                 onChange={handleChange}
-              />
+                required
+              >
+                <option value="">Select a station</option>
+                {stations.map((s) => (
+                  <option key={s.stationId} value={s.stationId}>
+                    {s.address}
+                  </option>
+                ))}
+              </select>
               {editingBattery && (
                 <>
                  <label>Last Used</label>

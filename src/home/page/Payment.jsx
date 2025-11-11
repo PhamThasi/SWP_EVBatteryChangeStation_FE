@@ -232,40 +232,6 @@ const Payment = () => {
                     <p className="text-sm text-gray-500">Thanh toán qua VNPay</p>
                   </div>
                 </label>
-                <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="MOMO"
-                    checked={paymentMethod === "MOMO"}
-                    onChange={(e) => {
-                      setPaymentMethod(e.target.value);
-                      setPaymentGateId(2);
-                    }}
-                    className="mr-3 w-4 h-4 text-blue-600"
-                  />
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">MoMo</p>
-                    <p className="text-sm text-gray-500">Thanh toán qua MoMo</p>
-                  </div>
-                </label>
-                <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="BANK_TRANSFER"
-                    checked={paymentMethod === "BANK_TRANSFER"}
-                    onChange={(e) => {
-                      setPaymentMethod(e.target.value);
-                      setPaymentGateId(3);
-                    }}
-                    className="mr-3 w-4 h-4 text-blue-600"
-                  />
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Chuyển khoản ngân hàng</p>
-                    <p className="text-sm text-gray-500">Thanh toán qua chuyển khoản</p>
-                  </div>
-                </label>
               </div>
             </div>
           </div>

@@ -47,7 +47,7 @@ const SignUp = () => {
 
       <form className="auth-form-group" onSubmit={handleSubmit}>
         <div className="auth-form-block">
-          <label>Full Name (optional)</label>
+          <label>Full Name</label>
           <input
             type="text"
             value={fullName}

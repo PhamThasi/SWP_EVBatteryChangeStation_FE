@@ -33,7 +33,7 @@ const SchedulePage = () => {
   const DETAIL_URL = "http://localhost:5204/api/Booking/Select/";
   const [formData, setFormData] = useState({
     dateTime: "",
-    notes: "",
+    notes: "Battery transfer",
     status: true,
     isApproved: "Pending",
     createdDate: new Date().toISOString(),
@@ -140,9 +140,9 @@ const SchedulePage = () => {
     );
     setFilteredAccounts(filtered);
   };
-  const handleFetchCars = async (accountId) => {
+  const handleFetchCars = async () => {
     try {
-      const res = await axios.get(`http://localhost:5204/api/Car/GetCarByOwner?ownerId=${accountId}`);
+      const res = await axios.get("http://localhost:5204/api/Car/GetAllCar");
       setCars(res.data.data || []);
     } catch {
       setCars([]);

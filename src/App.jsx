@@ -146,7 +146,6 @@ function App() {
       element: <AdminLayout />,
       children: [
         {path: "", element: <StaffSchedule/>},
-        { path: "battery", element: <BatteryManagement/> },
         { path: "accounts", element: <AccountManagement /> },
         { path: "roles", element: <RoleManagement /> },
         { path: "stations", element: <StationManagement /> },
