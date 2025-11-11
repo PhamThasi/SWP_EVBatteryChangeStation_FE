@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../components/button";
-import "./signUp.css";
-import OTPConfirmation from "../otp/OTPConfirmation";
+import { toast } from "react-toastify";
 import authService from "@/api/authService";
+import "./signUp.css";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -16,13 +16,12 @@ const SignUp = () => {
     e.preventDefault();
 
     if (password !== confirm) {
-      alert("Mật khẩu không trùng khớp!");
+      toast.error("Mật khẩu không trùng khớp!");
       return;
     }
 
     try {
-      // Lưu tạm fullName để cập nhật hồ sơ sau khi verify/login đầu tiên
-      if (fullName && fullName.trim() !== "") {
+      if (fullName.trim()) {
         localStorage.setItem(
           "pendingProfile",
           JSON.stringify({ fullName: fullName.trim() })
@@ -30,11 +29,11 @@ const SignUp = () => {
       }
 
       await authService.register(email, password);
+      toast.success("Đăng ký thành công! Vui lòng kiểm tra OTP trong email.");
       navigate("/verifyOtp", { state: { email } });
-      console.log(email);
     } catch (err) {
       console.error("Sign up failed:", err);
-      alert("Đăng ký thất bại!");
+      toast.error(err?.response?.data?.message || "Đăng ký thất bại!");
     }
   };
 
