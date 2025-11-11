@@ -42,6 +42,7 @@ import FeedBack from "./home/page/FeedBack";
 import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
 import StaffSupportPage from "./home/page/StaffSupportPage";
+import SuccessPage from "./home/page/pay-succ";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -132,6 +133,10 @@ function App() {
     {
       path: "/debugLogin",
       element: <LoginDebugger />,
+    },
+    {
+      path: "/payment-success",
+      element: <SuccessPage />,
     },
     {
       path: "/admin",
