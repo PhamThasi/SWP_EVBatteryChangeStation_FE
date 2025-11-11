@@ -7,9 +7,9 @@ import tokenUtils from "@/utils/tokenUtils";
 import "./signIn.css";
 
 const ROLE_ID_ROUTE = {
-  "0126651e-bbc4-4319-829d-7c932972a382": "/admin",    // admin
-  "1197bada-e8fc-4959-8b11-cc481c114636": "/staff",    // staff
-  "bb73fcd6-87d3-4e10-8d25-57c610d074d1": "/userPage", // customer
+  "cde0b58d-9e49-4b2b-8ef2-d991d07af541": "/admin",    // admin
+  "5dc92b82-be9e-4614-88f5-cc393bbdae7a": "/staff",    // staff
+  "5109c33d9596ba845b28-74bd-4fe6-b1a3-5109c33d9596": "/userPage", // customer
 };
 
 const getRedirectPath = (user) => {
