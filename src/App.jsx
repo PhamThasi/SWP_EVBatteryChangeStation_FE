@@ -28,7 +28,6 @@ import AboutUs from "./home/page/AboutUs";
 
 import Subscriptions from "./home/page/Subscriptions";
 import Stations from "./home/page/Stations";
-import Payment from "./home/page/Payment";
 
 import StaffSchedule from "./home/page/StaffSchedule";
 import RoleManagement from "./home/page/RoleManagement";
@@ -43,7 +42,7 @@ import Feedback from "./home/page/FeedBack";
 import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
 import StaffSupportPage from "./home/page/StaffSupportPage";
-import SuccessPage from "./home/page/pay-succ";
+import Payment from "./users/components/payment/Payment";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -102,7 +101,6 @@ function App() {
         { path: "subscriptions", element: <Subscriptions /> },
         { path: "stations", element: <Stations /> },
         { path: "feedback", element: <Feedback/> },
-        { path: "payment", element: <Payment /> },
       ],
     },
     {
@@ -136,10 +134,6 @@ function App() {
     {
       path: "/debugLogin",
       element: <LoginDebugger />,
-    },
-    {
-      path: "/payment-success",
-      element: <SuccessPage />,
     },
     {
       path: "/admin",

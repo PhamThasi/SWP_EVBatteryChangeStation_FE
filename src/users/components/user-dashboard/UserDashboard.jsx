@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 // Đã thêm Star cho nút Phản hồi
 import { Battery, Car, Calendar, MapPin, TrendingUp, Star } from "lucide-react"; 
 import bookingService from "@/api/bookingService";
-import carService from "@/api/carService";
 import feedbackService from "@/api/feedbackService";
 import tokenUtils from "@/utils/tokenUtils";
 import Feedback from "./../feedback/Feedback";
@@ -19,7 +18,6 @@ import {
 const UserDashboard = () => {
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [cars, setCars] = useState([]);
   
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,10 +34,9 @@ const UserDashboard = () => {
       setUser(userData);
 
       try {
-        const [userBookings, allCars, allFeedbacks] =
+        const [userBookings, allFeedbacks] =
           await Promise.all([
             bookingService.getUserBookings(userData.accountId),
-            carService.getAllCars(),
             feedbackService.getAllFeedbacks(),
           ]);
 
@@ -51,14 +48,10 @@ const UserDashboard = () => {
           ? allFeedbacks
           : allFeedbacks?.data?.data || allFeedbacks?.data || [];
 
-        const myCars = allCars.filter(
-          (c) => c.accountId === userData.accountId
-        );
         const myFeedbacks = Array.isArray(allFeedbacksArr)
           ? allFeedbacksArr.filter((f) => f.accountId === userData.accountId)
           : [];
 
-        setCars(myCars);
         setBookings(Array.isArray(userBookingsArr) ? userBookingsArr : []);
         setFeedbacks(myFeedbacks);
       } catch (err) {
@@ -180,7 +173,6 @@ const UserDashboard = () => {
   const validBookings = Array.isArray(bookings) ? bookings : [];
 
   const totalBookings = validBookings.length;
-  const totalCars = cars.length;
   const totalStationsVisited = new Set(
     validBookings.map((b) => b.stationName)
   ).size;
@@ -200,6 +192,11 @@ const UserDashboard = () => {
   const bookingsToReview = validBookings
     .filter((b) => isExpiredOrInactive(b) && !feedbacks.some((f) => f.bookingId === b.bookingId));
 
+  // Những booking sắp tới: isApproved = "Pending"
+  const upcomingBookings = validBookings
+    .filter((b) => String(b.isApproved || b.isApprove || "").toLowerCase() === "pending")
+    .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Tiêu đề chính: Tăng lên 4XL theo yêu cầu */}
@@ -213,11 +210,6 @@ const UserDashboard = () => {
           title="Tổng số lần đổi pin"
           value={totalBookings}
           icon={<Battery className="text-blue-600" />}
-        />
-        <DashboardCard
-          title="Xe đã liên kết"
-          value={totalCars}
-          icon={<Car className="text-green-600" />}
         />
         <DashboardCard
           title="Số trạm từng đến"
@@ -384,19 +376,42 @@ const UserDashboard = () => {
         )}
       </div>
 
-      {/* =================== LỊCH BẢO DƯỠNG =================== */}
+      {/* =================== NHỮNG BOOKING SẮP TỚI =================== */}
       <div className="bg-white shadow-xl rounded-xl p-8">
         {/* Tiêu đề phần: Tăng lên 2XL theo yêu cầu */}
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Bảo dưỡng sắp tới
+          Những booking sắp tới
         </h2>
-        <div className="flex items-center justify-between bg-purple-50 p-4 rounded-lg border border-purple-200">
-          <div>
-            <p className="text-base text-gray-700 font-medium">Lần gần nhất: 10/10/2025</p>
-            <p className="text-base text-purple-600 font-semibold mt-1">Kế tiếp: 10/12/2025</p>
+        {upcomingBookings.length === 0 ? (
+          <p className="text-gray-500">Không có booking đang chờ duyệt.</p>
+        ) : (
+          <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg">
+            {upcomingBookings.map((b) => (
+              <div
+                key={b.bookingId}
+                className="py-4 px-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between hover:bg-gray-50 transition"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-gray-800">{b.stationName}</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                      Đang chờ duyệt
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mt-1">
+                    <span className="text-gray-400">Thời gian: </span>
+                    {formatDateTime(b.dateTime)}
+                  </p>
+                  {b.notes && (
+                    <p className="text-gray-600 mt-1 truncate">
+                      <span className="text-gray-400">Ghi chú: </span>{b.notes}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-          <Calendar className="text-purple-500 w-10 h-10" />
-        </div>
+        )}
       </div>
 
       {/* =================== FEEDBACK MODAL =================== */}

@@ -54,8 +54,8 @@ export default function NavBar() {
         if (userData) {
           const roleName = (userData.role || "").toLowerCase();
           const roleId = (userData.roleId || "").toLowerCase();
-          const ADMIN_ROLE_ID = "0126651e-bbc4-4319-829d-7c932972a382";
-          const STAFF_ROLE_ID = "1197bada-e8fc-4959-8b11-cc481c114636";
+          const ADMIN_ROLE_ID = "cde0b58d-9e49-4b2b-8ef2-d991d07af541";
+          const STAFF_ROLE_ID = "5dc92b82-be9e-4614-88f5-cc393bbdae7a";
           
           
           // If admin (by name or roleId), go to admin schedule
