@@ -54,12 +54,14 @@ export default function NavBar() {
         if (userData) {
           const roleName = (userData.role || "").toLowerCase();
           const roleId = (userData.roleId || "").toLowerCase();
-          const ADMIN_ROLE_ID = "98817ce2-3b59-49a9-81b6-ed2bf06ec72f";
-          const STAFF_ROLE_ID = "25a09071-17a3-4a84-b6f2-33244fb374f2";
+          const ADMIN_ROLE_ID = "0126651e-bbc4-4319-829d-7c932972a382";
+          const STAFF_ROLE_ID = "1197bada-e8fc-4959-8b11-cc481c114636";
+          
+          
           // If admin (by name or roleId), go to admin schedule
           if (roleName === "admin" || roleId === ADMIN_ROLE_ID) {
             console.log("Auto login successful, admin detected. Redirecting to /admin/schedule...");
-            navigate("/admin/schedule");
+            navigate("/admin");
           } else if (roleName === "staff" || roleId === STAFF_ROLE_ID) {
             console.log("Auto login successful, staff detected. Redirecting to /staff...");
             navigate("/staff");
