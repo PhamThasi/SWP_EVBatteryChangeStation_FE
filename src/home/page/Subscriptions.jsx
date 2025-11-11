@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuthCheck from "./../../hooks/useAuthCheck";
 import ConfirmModal from "./../components/ConfirmModal";
 import PlanCard from "./../components/PlanCard";
@@ -6,13 +7,26 @@ import { Battery, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
 import subcriptionService from "@/api/subcriptionService";
 
 const Subscriptions = () => {
-  const { requireLogin, isModalOpen, confirmLogin, cancelLogin } = useAuthCheck();
+  const { requireLogin, isModalOpen, confirmLogin, cancelLogin } =
+    useAuthCheck();
   const [plans, setPlans] = useState([]);
+  const [subscriptionsData, setSubscriptionsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const handleBuy = (planName) => {
+  const handleBuy = (planTitle) => {
     requireLogin(() => {
-      alert(`Thanh toán cho gói ${planName} (mock)`);
+      // Tìm subscription tương ứng với plan title
+      const subscription = subscriptionsData.find(
+        (sub) => sub.name === planTitle
+      );
+
+      if (subscription && subscription.subscriptionId) {
+        // Navigate đến trang payment với subscriptionId
+        navigate(`/payment?subscriptionId=${subscription.subscriptionId}`);
+      } else {
+        alert("Không tìm thấy thông tin gói dịch vụ");
+      }
     });
   };
 
@@ -21,29 +35,37 @@ const Subscriptions = () => {
       try {
         const res = await subcriptionService.getSubscriptions();
         if (res?.data) {
+          // Lưu data gốc để sử dụng khi navigate
+          setSubscriptionsData(res.data);
+
           // Convert API data -> frontend-friendly structure
           const formatted = res.data.map((item) => ({
             title: item.name,
-            price:
-              item.name.toLowerCase().includes("cơ bản")
-                ? "Theo lượt"
-                : item.price
-                ? `${(item.price / 1000).toFixed(0)}K/tháng`
-                : "Liên hệ",
-            icon: item.name.toLowerCase().includes("premium")
+            price: item.name.toLowerCase().includes("cơ bản")
+              ? "Theo lượt"
+              : item.price
+              ? `${(item.price / 1000).toFixed(0)}K/tháng`
+              : "Liên hệ",
+            icon: item.name.toLowerCase().includes("nâng cao")
               ? Sparkles
-              : item.name.toLowerCase().includes("tiết")
+              : item.name.toLowerCase().includes("tiết kiệm")
               ? TrendingUp
               : Battery,
-            gradient: item.name.toLowerCase().includes("premium")
+            gradient: item.name.toLowerCase().includes("nâng cao")
               ? "from-purple-500 to-pink-600"
-              : item.name.toLowerCase().includes("tiết")
+              : item.name.toLowerCase().includes("tiết kiệm")
               ? "from-blue-500 to-indigo-600"
               : "from-gray-500 to-gray-600",
-            highlight: item.name.toLowerCase().includes("tiết"),
-            badge: item.name.toLowerCase().includes("tiết") ? "Best Value" : null,
+            highlight: item.name.toLowerCase().includes("tiết kiệm"),
+            badge: item.name.toLowerCase().includes("tiết kiệm")
+              ? "Best Value"
+              : null,
             perks: item.description
-              ? item.description.split("\n").map((text) => ({ text }))
+              ? item.description
+                  .replace(/\\n/g, "\n") // Quan trọng: fix \\n → \n
+                  .split("\n")
+                  .filter((line) => line.trim())
+                  .map((text) => ({ text: text.trim() }))
               : [],
           }));
           setPlans(formatted);

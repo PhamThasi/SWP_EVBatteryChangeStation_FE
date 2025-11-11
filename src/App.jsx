@@ -28,17 +28,18 @@ import AboutUs from "./home/page/AboutUs";
 
 import Subscriptions from "./home/page/Subscriptions";
 import Stations from "./home/page/Stations";
+import Payment from "./home/page/Payment";
 
 import StaffSchedule from "./home/page/StaffSchedule";
 import RoleManagement from "./home/page/RoleManagement";
 import StationManagement from "./home/page/StationMangement";
 import AdminSubManage from "./home/page/AdminSubManage";
-import ContactUs from "./home/page/ContactUs";
+import UserFeedback from "./home/page/UserFeedback";
 import BatteryManagement from "./home/page/BatteryManagement";
 import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
 import StaffLayout from "./home/components/StaffLayout";
-import FeedBack from "./home/page/FeedBack";
+import Feedback from "./home/page/FeedBack";
 import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
 import StaffSupportPage from "./home/page/StaffSupportPage";
@@ -100,7 +101,8 @@ function App() {
         { path: "about", element: <AboutUs /> },
         { path: "subscriptions", element: <Subscriptions /> },
         { path: "stations", element: <Stations /> },
-        { path: "contact", element: <ContactUs /> },
+        { path: "feedback", element: <Feedback/> },
+        { path: "payment", element: <Payment /> },
       ],
     },
     {
@@ -113,8 +115,9 @@ function App() {
         { path: "profileCar", element: <ProfileCar /> },
         { path: "userProfile", element: <UserProfile /> },
         { path: "supportRequest", element: <SupportRequest /> },
-        { path: "contact", element: <ContactUs /> },
+        { path: "userfeedback", element: <UserFeedback /> },
         { path: "stations", element: <Stations /> },
+        { path: "payment", element: <Payment /> },
         // sau này thêm: history, maintenance, support...
       ],
     },
@@ -158,7 +161,7 @@ function App() {
         { path: "accounts", element: <AccountManagement /> },
         { path: "battery", element: <BatteryManagement/> },
         { path: "Swapping", element: <SwappingManagement/> },
-        { path: "feedback", element: <FeedBack/> },        
+        { path: "feedback", element: <Feedback/> },        
         { path: "support", element: <StaffSupportPage/> },
       ],
     },

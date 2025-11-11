@@ -11,7 +11,7 @@ const OTPConfirmation = () => {
   const navigate = useNavigate();
 
   const email = location.state?.email;
-  const flow = location.state?.flow || "verify"; // "verify" | "reset"
+  const flow = location.state?.flow || "verify";
   const [step, setStep] = useState("otp");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,7 +22,7 @@ const OTPConfirmation = () => {
     setMess("");
 
     if (otp.length !== 6) {
-      setMess("Vui lòng nhập đầy đủ mã OTP (6 số).");
+      setMess("Vui lòng nhập đủ 6 số OTP.");
       setLoading(false);
       return;
     }
@@ -34,8 +34,29 @@ const OTPConfirmation = () => {
         setStep("set-password");
       } else {
         await authService.verifyOtp(email, otp);
-        setMess("Xác thực OTP thành công! Bạn có thể đăng nhập.");
-        setTimeout(() => navigate("/login"), 1500);
+        setMess("Xác thực OTP thành công!");
+
+        // ✅ Sau khi verify -> update fullname nếu có
+        const pending = JSON.parse(localStorage.getItem("pendingProfile"));
+        if (pending?.fullName) {
+          try {
+            const allUsers = await authService.getAll();
+            const foundUser = allUsers.find((u) => u.email === email);
+            if (foundUser) {
+              await authService.updateProfile({
+                ...foundUser,
+                fullName: pending.fullName,
+              });
+              console.log("✅ Updated fullName for:", email);
+              localStorage.removeItem("pendingProfile");
+            }
+          } catch (err) {
+            console.error("⚠️ Failed to update fullname:", err);
+          }
+        }
+
+        setMess("Xác thực thành công! Bạn có thể đăng nhập.");
+        setTimeout(() => navigate("/login"), 2000);
       }
     } catch (err) {
       console.error("OTP verification failed:", err);
@@ -68,36 +89,27 @@ const OTPConfirmation = () => {
       setLoading(false);
     }
   };
+
   return (
-    // Container chính, sử dụng gradient và layout giống hệt signUp/signIn
     <div
       className="flex h-full w-full flex-col items-center justify-center rounded-2xl p-4 text-white
-                    bg-[linear-gradient(90deg,_rgba(42,123,155,1)_0%,_rgba(119,87,199,0.98)_15%,_rgba(84,216,223,1)_100%)]"
+                  bg-[linear-gradient(90deg,_rgba(42,123,155,1)_0%,_rgba(119,87,199,0.98)_15%,_rgba(84,216,223,1)_100%)]"
     >
-      {/* Header */}
       <div className="mb-12 text-center font-bold">
-        <h1 className="text-5xl">Xác nhận OTP</h1> {/* <-- Yêu cầu 5xl */}
+        <h1 className="text-5xl">Xác nhận OTP</h1>
         <p className="mt-2 text-2xl opacity-90">
-          {" "}
-          {/* <-- Yêu cầu 2xl/3xl */}
-          Nhập mã OTP được gửi tới{" "}
-          <span className="font-semibold">{email}</span>
+          Nhập mã OTP được gửi tới <span className="font-semibold">{email}</span>
         </p>
       </div>
 
       {step === "otp" && (
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col items-center gap-8"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-8">
           <OTPInput
             value={otp}
             onChange={setOtp}
             numInputs={6}
             shouldAutoFocus
-            renderSeparator={
-              <span className="mx-2 text-2xl text-white">-</span>
-            }
+            renderSeparator={<span className="mx-2 text-2xl text-white">-</span>}
             renderInput={(props) => (
               <input
                 {...props}
@@ -109,7 +121,6 @@ const OTPConfirmation = () => {
               />
             )}
           />
-
           <button
             type="submit"
             disabled={loading}
@@ -122,10 +133,7 @@ const OTPConfirmation = () => {
       )}
 
       {flow === "reset" && step === "set-password" && (
-        <form
-          onSubmit={handleResetPassword}
-          className="mt-8 w-full max-w-md flex flex-col gap-4"
-        >
+        <form onSubmit={handleResetPassword} className="mt-8 w-full max-w-md flex flex-col gap-4">
           <input
             type="password"
             placeholder="Mật khẩu mới"
@@ -152,7 +160,6 @@ const OTPConfirmation = () => {
         </form>
       )}
 
-      {/* Thông báo */}
       {mess && <p className="mt-8 text-center text-lg font-semibold">{mess}</p>}
     </div>
   );

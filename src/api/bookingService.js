@@ -7,16 +7,27 @@ const bookingService = {
     stationId,
     vehicleId,
     accountId,
+    isApproved = "Pending",
   }) => {
     // eslint-disable-next-line no-useless-catch
     try {
       const res = await axiosClient.post("/Booking/Create", {
         dateTime,
         notes,
+        isApproved,
         stationId,
         vehicleId,
         accountId,
       });
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  updateBooking: async (id, payload) => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+      const res = await axiosClient.put(`/Booking/Update/${id}`, payload);
       return res.data;
     } catch (error) {
       throw error;

@@ -36,7 +36,7 @@ export default function NavBar() {
     { to: "/about", label: "Giới thiệu" },
     { to: "/subscriptions", label: "Gói dịch vụ" },
     { to: "/stations", label: "Trạm gần nhất" },
-    { to: "/contact", label: "Liên hệ" },
+    { to: "/feedback", label: "Đánh giá" },
   ];
 
   const solid = pathname !== "/"; // <= khác home thì dùng nền sáng

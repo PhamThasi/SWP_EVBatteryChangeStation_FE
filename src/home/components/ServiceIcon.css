@@ -1,0 +1,60 @@
+/* src/pages/Home/ServiceIcon.css */
+.service-icon-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+    text-align: center;
+    width: 180px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .icon-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+  
+  .icon-wrapper img {
+    width: 60px;
+    height: 60px;
+    filter: drop-shadow(0 0 8px rgba(0,180,216,0.5));
+  }
+  
+  .fa-overlay {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00b4d8;
+    font-size: 1.8rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .service-icon-card h5 {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+    color: #e0fffa;
+  }
+  
+  .tooltip {
+    font-size: 0.9rem;
+    color: #ccc;
+    opacity: 0;
+    transition: opacity 0.3s;
+    margin-top: 0.5rem;
+  }
+  
+  .service-icon-card:hover {
+    background: rgba(0,180,216,0.25);
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(0,180,216,0.3);
+  }
+  
+  .service-icon-card:hover .fa-overlay,
+  .service-icon-card:hover .tooltip {
+    opacity: 1;
+  }
