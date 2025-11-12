@@ -27,10 +27,7 @@ const Payment = () => {
     // Kiểm tra đăng nhập
     if (!tokenUtils.isLoggedIn()) {
       navigate("/login");
-      return;
-    }
-
-    
+      return;  }   
 
     // Lấy thông tin subscription
     const fetchSubscription = async () => {
@@ -95,8 +92,7 @@ const Payment = () => {
       const paymentData = {
         price: totalPrice,
         method: paymentMethod,
-        paymentGateId: paymentGateId,
-        status: false, // Chưa thanh toán
+        paymentGateId: paymentGateId,       
         createDate: new Date().toISOString(),
         subscriptionId: subscription.subscriptionId,
         transactionId: transactionId,
@@ -106,14 +102,14 @@ const Payment = () => {
 
       // 1️⃣ Tạo payment
       const createRes = await axios.post("http://localhost:5204/api/Payment/create", paymentData);
-
+      
       if (createRes?.data?.transactionId) {
         const txnId = createRes.data.transactionId;
 
         // 2️⃣ Lấy paymentId từ transactionId
         const getPaymentRes = await axios.get(`http://localhost:5204/api/Payment/get-by-transaction/${txnId}`);
         const paymentId = getPaymentRes?.data?.data?.paymentId;
-
+        console.log(" pay id", paymentId);
         if (!paymentId) {
           setError("Không lấy được payment ID");
           setProcessing(false);
@@ -123,7 +119,7 @@ const Payment = () => {
         // 3️⃣ Tạo VNPay URL
         const vnPayRes = await axios.get(`http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`);
         const paymentUrl = vnPayRes?.data?.data;
-
+        console.log("vnpay link:", paymentUrl);
         if (!paymentUrl) {
           setError("Không tạo được link thanh toán VNPay");
           setProcessing(false);
