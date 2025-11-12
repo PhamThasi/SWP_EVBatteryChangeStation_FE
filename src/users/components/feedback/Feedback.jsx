@@ -1,6 +1,7 @@
 // src/components/Feedback.jsx
 import React, { useState } from "react";
 import feedbackService from "@/api/feedbackService";
+import { notifySuccess, notifyError, notifyWarning } from "@/components/notification/notification";
 
 const Feedback = ({ booking, accountId, onClose, onSuccess }) => {
   const [rating, setRating] = useState(5);
@@ -8,7 +9,10 @@ const Feedback = ({ booking, accountId, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!comment.trim()) return alert("Vui lòng nhập phản hồi!");
+    if (!comment.trim()) {
+      notifyWarning("Vui lòng nhập phản hồi!");
+      return;
+    }
     try {
       setLoading(true);
       await feedbackService.createFeedback({
@@ -17,12 +21,12 @@ const Feedback = ({ booking, accountId, onClose, onSuccess }) => {
         rating,
         comment,
       });
-      alert(" Cảm ơn bạn đã gửi phản hồi!");
+      notifySuccess("Cảm ơn bạn đã gửi phản hồi!");
       onSuccess?.(); // refresh dashboard
       onClose();
     } catch (err) {
       console.error("Error submitting feedback:", err);
-      alert("Gửi phản hồi thất bại!");
+      notifyError("Gửi phản hồi thất bại!");
     } finally {
       setLoading(false);
     }

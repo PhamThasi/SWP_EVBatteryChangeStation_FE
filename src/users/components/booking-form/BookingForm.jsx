@@ -92,7 +92,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc.");
+      notifyWarning("Vui lòng điền đầy đủ thông tin bắt buộc.");
       return;
     }
     try {

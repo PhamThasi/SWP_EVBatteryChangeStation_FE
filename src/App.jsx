@@ -28,7 +28,6 @@ import AboutUs from "./home/page/AboutUs";
 
 import Subscriptions from "./home/page/Subscriptions";
 import Stations from "./home/page/Stations";
-import Payment from "./home/page/Payment";
 
 import StaffSchedule from "./home/page/StaffSchedule";
 import RoleManagement from "./home/page/RoleManagement";
@@ -36,6 +35,7 @@ import StationManagement from "./home/page/StationMangement";
 import AdminSubManage from "./home/page/AdminSubManage";
 import UserFeedback from "./home/page/UserFeedback";
 import BatteryManagement from "./home/page/BatteryManagement";
+import AdminCarManagement from "./home/page/AdminCarManagement";
 import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
 import StaffLayout from "./home/components/StaffLayout";
@@ -102,7 +102,6 @@ function App() {
         { path: "subscriptions", element: <Subscriptions /> },
         { path: "stations", element: <Stations /> },
         { path: "feedback", element: <Feedback/> },
-        { path: "payment", element: <Payment /> },
       ],
     },
     {
@@ -138,10 +137,6 @@ function App() {
       element: <LoginDebugger />,
     },
     {
-      path: "/payment-success",
-      element: <SuccessPage />,
-    },
-    {
       path: "/admin",
       element: <AdminLayout />,
       children: [
@@ -150,6 +145,7 @@ function App() {
         { path: "roles", element: <RoleManagement /> },
         { path: "stations", element: <StationManagement /> },
         { path: "subscriptions", element: <AdminSubManage /> },
+        { path: "cars", element: <AdminCarManagement /> },
       ],
     },
     {
@@ -168,6 +164,7 @@ function App() {
   return (
     <div>
       <RouterProvider router={route}></RouterProvider>
+      <ToastContainer />
     </div>
   );
 }

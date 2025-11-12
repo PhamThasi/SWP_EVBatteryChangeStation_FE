@@ -6,6 +6,7 @@ import React, {
 } from "react";
 import BookingForm from "@/users/components/booking-form/BookingForm";
 import bookingService from "@/api/bookingService";
+import { notifySuccess, notifyError, notifyWarning } from "@/components/notification/notification";
 
 const BookingPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -216,11 +217,11 @@ const BookingPage = () => {
         vehicleId: b.vehicleId,
         accountId: b.accountId,
       });
-      alert("Hủy lịch thành công!");
+      notifySuccess("Hủy lịch thành công!");
       fetchBookings();
     } catch (error) {
       console.error("Lỗi khi hủy booking:", error);
-      alert("Hủy lịch thất bại, vui lòng thử lại.");
+      notifyError("Hủy lịch thất bại, vui lòng thử lại.");
     }
   };
 

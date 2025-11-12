@@ -1,100 +1,89 @@
-import authService from "@/api/authService";
 import React, { useState } from "react";
-import OTPInput from "react-otp-input";
 import { useLocation, useNavigate } from "react-router-dom";
+import OTPInput from "react-otp-input";
+import { toast } from "react-toastify";
+import authService from "@/api/authService";
 
 const OTPConfirmation = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mess, setMess] = useState("");
+  const [step, setStep] = useState("otp");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
 
   const email = location.state?.email;
   const flow = location.state?.flow || "verify";
-  const [step, setStep] = useState("otp");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setMess("");
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (otp.length !== 6) {
-      setMess("Vui lòng nhập đủ 6 số OTP.");
-      setLoading(false);
+      toast.warning("Vui lòng nhập đủ 6 số OTP!");
       return;
     }
 
+    setLoading(true);
     try {
       if (flow === "reset") {
         await authService.verifyForgotOtp(email, otp);
-        setMess("Mã OTP hợp lệ! Vui lòng đặt mật khẩu mới.");
         setStep("set-password");
-      } else {
-        await authService.verifyOtp(email, otp);
-        setMess("Xác thực OTP thành công!");
-
-        // ✅ Sau khi verify -> update fullname nếu có
-        const pending = JSON.parse(localStorage.getItem("pendingProfile"));
-        if (pending?.fullName) {
-          try {
-            const allUsers = await authService.getAll();
-            const foundUser = allUsers.find((u) => u.email === email);
-            if (foundUser) {
-              await authService.updateProfile({
-                ...foundUser,
-                fullName: pending.fullName,
-              });
-              console.log("✅ Updated fullName for:", email);
-              localStorage.removeItem("pendingProfile");
-            }
-          } catch (err) {
-            console.error("⚠️ Failed to update fullname:", err);
-          }
-        }
-
-        setMess("Xác thực thành công! Bạn có thể đăng nhập.");
-        setTimeout(() => navigate("/login"), 2000);
+        toast.success("OTP hợp lệ! Đặt lại mật khẩu mới.");
+        return;
       }
+
+      // --- Verify account flow ---
+      await authService.verifyOtp(email, otp);
+      toast.success("Xác thực OTP thành công!");
+
+      // ✅ Update fullName nếu có pending
+      const pending = JSON.parse(localStorage.getItem("pendingProfile"));
+      if (pending?.fullName) {
+        try {
+          await authService.updateProfileByEmail(email, { fullName: pending.fullName });
+          toast.success("Cập nhật họ tên thành công!");
+        } catch (err) {
+          console.error("Failed to update fullName:", err);
+        } finally {
+          localStorage.removeItem("pendingProfile");
+        }
+      }
+
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error("OTP verification failed:", err);
-      setMess("Mã OTP không hợp lệ hoặc đã hết hạn!");
+      toast.error("Mã OTP không hợp lệ hoặc đã hết hạn!");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResetPassword = async (event) => {
-    event.preventDefault();
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      toast.warning("Mật khẩu phải có ít nhất 6 ký tự!");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.warning("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
     setLoading(true);
-    setMess("");
     try {
-      if (!newPassword || newPassword.length < 6) {
-        setMess("Mật khẩu phải có ít nhất 6 ký tự.");
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        setMess("Mật khẩu xác nhận không khớp.");
-        return;
-      }
       await authService.resetPassword(email, newPassword);
-      setMess("Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
-      setTimeout(() => navigate("/login"), 1500);
+      toast.success("Đặt lại mật khẩu thành công!");
+      setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
       console.error("Reset password failed:", err);
-      setMess("Không thể đặt lại mật khẩu. Vui lòng thử lại.");
+      toast.error("Không thể đặt lại mật khẩu. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="flex h-full w-full flex-col items-center justify-center rounded-2xl p-4 text-white
-                  bg-[linear-gradient(90deg,_rgba(42,123,155,1)_0%,_rgba(119,87,199,0.98)_15%,_rgba(84,216,223,1)_100%)]"
-    >
+    <div className="flex h-full w-full flex-col items-center justify-center rounded-2xl p-4 text-white bg-[linear-gradient(90deg,_rgba(42,123,155,1)_0%,_rgba(119,87,199,0.98)_15%,_rgba(84,216,223,1)_100%)]">
       <div className="mb-12 text-center font-bold">
         <h1 className="text-5xl">Xác nhận OTP</h1>
         <p className="mt-2 text-2xl opacity-90">
@@ -113,9 +102,7 @@ const OTPConfirmation = () => {
             renderInput={(props) => (
               <input
                 {...props}
-                className="!h-14 !w-14 rounded-lg border border-gray-700 bg-white/10 
-                           text-center text-2xl font-semibold text-white
-                           focus:outline-none focus:ring-2 focus:ring-[#54d8df]"
+                className="!h-14 !w-14 rounded-lg border border-gray-700 bg-white/10 text-center text-2xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-[#54d8df]"
                 inputMode="numeric"
                 maxLength="1"
               />
@@ -124,8 +111,7 @@ const OTPConfirmation = () => {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 rounded-lg bg-white px-8 py-3 text-lg font-bold text-[#2a7b9b] 
-                       shadow-lg transition-all hover:opacity-90 disabled:opacity-70"
+            className="mt-6 rounded-lg bg-white px-8 py-3 text-lg font-bold text-[#2a7b9b] shadow-lg transition-all hover:opacity-90 disabled:opacity-70"
           >
             {loading ? "Đang xác thực..." : "Xác nhận"}
           </button>
@@ -159,8 +145,6 @@ const OTPConfirmation = () => {
           </button>
         </form>
       )}
-
-      {mess && <p className="mt-8 text-center text-lg font-semibold">{mess}</p>}
     </div>
   );
 };

@@ -31,6 +31,7 @@ const AdminNav = () => {
         <li><Link to="/admin/roles">Roles</Link></li>
         <li><Link to="/admin/stations">Stations</Link></li>
         <li><Link to="/admin/subscriptions">Subscriptions</Link></li>
+        <li><Link to="/admin/cars">Cars</Link></li>
         <li><Link to="#" onClick={handleLogout} >Logout</Link></li>
       </ul>
     </nav>
