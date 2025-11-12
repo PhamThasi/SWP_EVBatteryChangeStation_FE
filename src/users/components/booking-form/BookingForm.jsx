@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
 import axiosClient from "@/api/axiosClient";
+import { notifySuccess, notifyError, notifyWarning } from "@/components/notification/notification";
 
 const BookingForm = ({ onSuccess, onCancel }) => {
   // Form state được gộp thành 1 object
@@ -87,7 +88,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) {
-      alert("Vui lòng điền đầy đủ thông tin bắt buộc.");
+      notifyWarning("Vui lòng điền đầy đủ thông tin bắt buộc.");
       return;
     }
     try {
@@ -150,11 +151,11 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       }),
     });
 
-    alert("Đặt lịch và tạo swapping thành công!");
+    notifySuccess("Đặt lịch và tạo swapping thành công!");
     if (onSuccess) onSuccess();
   } catch (e) {
     console.error("Booking or swapping error:", e);
-    alert("Không thể hoàn tất đặt lịch và swapping.");
+    notifyError("Không thể hoàn tất đặt lịch và swapping.");
   } finally {
     setSubmitting(false);
   }

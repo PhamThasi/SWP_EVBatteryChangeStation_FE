@@ -10,6 +10,7 @@ import {
 } from "@/context/SupportRequestContext";
 import ModalForm from "@/components/modalForm/ModalForm";
 import supportRequestService from "@/api/supportRequestService";
+import { notifySuccess, notifyError } from "@/components/notification/notification";
 
 const SupportRequestContent = () => {
   const { setIsModalOpen, isModalOpen, addRequest, fetchRequests, loading, setActiveTab } = useSupportRequest();
@@ -95,7 +96,7 @@ const SupportRequestContent = () => {
       setActiveTab('pending');
 
       setIsModalOpen(false);
-      alert("Yêu cầu hỗ trợ đã được gửi thành công!");
+      notifySuccess("Yêu cầu hỗ trợ đã được gửi thành công!");
       
       // Không refresh ngay lập tức vì đã có addRequest
       // Chỉ refresh sau một khoảng thời gian ngắn để đảm bảo data đồng bộ
@@ -107,7 +108,7 @@ const SupportRequestContent = () => {
       // }
     } catch (error) {
       console.error("Error submitting support request:", error);
-      alert("Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại!");
+      notifyError("Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại!");
       throw error; // Ném lỗi để Formik biết submission failed
     }
   };

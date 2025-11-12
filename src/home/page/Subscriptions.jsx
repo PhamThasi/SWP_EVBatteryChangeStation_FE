@@ -23,7 +23,7 @@ const Subscriptions = () => {
 
       if (subscription && subscription.subscriptionId) {
         // Navigate đến trang payment với subscriptionId
-        navigate(`/payment?subscriptionId=${subscription.subscriptionId}`);
+        navigate(`/userPage/payment?subscriptionId=${subscription.subscriptionId}`);
       } else {
         alert("Không tìm thấy thông tin gói dịch vụ");
       }

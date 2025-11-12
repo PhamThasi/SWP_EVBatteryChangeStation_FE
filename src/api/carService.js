@@ -1,14 +1,15 @@
 import axiosClient from "./axiosClient";
 
 const carService = {
-  createCar: async ({ model, batteryType, producer, createDate, status }) => {
+  createCar: async ({ model, batteryType, producer, createDate, images, status }) => {
     try {
       const res = await axiosClient.post("/Car/CreateCar", {
         model: model,
         batteryType: batteryType,
         producer: producer,
-        createDate: createDate,
-        status: status,
+        createDate: createDate || new Date().toISOString(),
+        images: images || null,
+        status: status || "Available",
       });
       console.log("CarService: Create car response:", res);
       return res.data;
@@ -22,7 +23,6 @@ const carService = {
     try {
       const res = await axiosClient.get("/Car/GetAllCar");
       console.log("CarService: Get all cars response:", res);
-      // API returns { message, data: [...] }, we need the data array
       return res.data.data || [];
     } catch (error) {
       console.error("CarService: Get all cars API Error:", error);
@@ -30,12 +30,15 @@ const carService = {
     }
   },
 
-  updateCar: async (carId, { model, batteryType, producer, status }) => {
+  updateCar: async (vehicleId, { model, batteryType, producer, images, createDate, status }) => {
     try {
-      const res = await axiosClient.put(`/Car/UpdateCar/${carId}`, {
+      const res = await axiosClient.put("/Car/UpdateCar", {
+        vehicleId: vehicleId,
         model: model,
         batteryType: batteryType,
         producer: producer,
+        images: images || null,
+        createDate: createDate,
         status: status,
       });
       console.log("CarService: Update car response:", res);
