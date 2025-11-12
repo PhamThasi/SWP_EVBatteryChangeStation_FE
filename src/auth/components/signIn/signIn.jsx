@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../components/button";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "@/components/notification/notification";
 import authService from "@/api/authService";
 import tokenUtils from "@/utils/tokenUtils";
 import "./signIn.css";
@@ -61,7 +61,7 @@ const SignIn = () => {
       const token = res?.data?.data;
 
       if (!token) {
-        toast.error("Đăng nhập thất bại!");
+        notifyError("Đăng nhập thất bại!");
         return;
       }
 
@@ -69,15 +69,15 @@ const SignIn = () => {
 
       const userProfile = await tokenUtils.processLoginToken(token);
       if (!userProfile) {
-        toast.error("Không thể lấy thông tin người dùng!");
+        notifyError("Không thể lấy thông tin người dùng!");
         return;
       }
 
-      toast.success(`Xin chào ${userProfile.fullName || "User"}!`);
+      notifySuccess(`Xin chào ${userProfile.fullName || "User"}!`);
       navigate(getRedirectPath(userProfile)); // ✅ dùng đúng hàm
     } catch (err) {
       console.error("Login failed:", err);
-      toast.error(err?.response?.data?.message || "Sai tài khoản hoặc mật khẩu!");
+      notifyError(err?.response?.data?.message || "Sai tài khoản hoặc mật khẩu!");
     }
   };
 

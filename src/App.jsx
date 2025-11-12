@@ -35,6 +35,7 @@ import StationManagement from "./home/page/StationMangement";
 import AdminSubManage from "./home/page/AdminSubManage";
 import UserFeedback from "./home/page/UserFeedback";
 import BatteryManagement from "./home/page/BatteryManagement";
+import AdminCarManagement from "./home/page/AdminCarManagement";
 import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
 import StaffLayout from "./home/components/StaffLayout";
@@ -43,6 +44,7 @@ import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
 import StaffSupportPage from "./home/page/StaffSupportPage";
 import Payment from "./users/components/payment/Payment";
+import ToastContainer from "./components/notification/ToastContainer";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -144,6 +146,7 @@ function App() {
         { path: "roles", element: <RoleManagement /> },
         { path: "stations", element: <StationManagement /> },
         { path: "subscriptions", element: <AdminSubManage /> },
+        { path: "cars", element: <AdminCarManagement /> },
       ],
     },
     {
@@ -162,6 +165,7 @@ function App() {
   return (
     <div>
       <RouterProvider router={route}></RouterProvider>
+      <ToastContainer />
     </div>
   );
 }

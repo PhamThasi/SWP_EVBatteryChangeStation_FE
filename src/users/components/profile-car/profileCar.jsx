@@ -16,8 +16,8 @@ const ProfileCar = () => {
       const cars = await carService.getAllCars();
       
       // Transform API data to UI format
-      // API returns: vehicleId, model, batteryType, producer, createDate, status
-      // UI expects: id, model, batteryType, producer, createDate, batteryLevel, shared
+      // API returns: vehicleId, model, batteryType, producer, createDate, images, status
+      // UI expects: id, model, batteryType, producer, createDate, batteryLevel, shared, images
       const transformedCars = cars.map((car) => ({
         id: car.vehicleId,
         model: car.model,
@@ -26,6 +26,7 @@ const ProfileCar = () => {
         createDate: car.createDate ? car.createDate.split('T')[0] : new Date().toISOString().split("T")[0], // Format date
         batteryLevel: Math.floor(Math.random() * 41) + 30, // Random battery level 30-70 for demo
         status: car.status,
+        images: car.images, // Lấy ảnh từ API
         shared: false, // Default value for shared flag
       }));
       
@@ -87,11 +88,20 @@ const ProfileCar = () => {
               key={car.id} 
               className="bg-white rounded-2xl shadow-2xl p-6 hover:shadow-3xl transition-all duration-300 flex flex-col transform hover:-translate-y-2 hover:scale-105 cursor-pointer group"
             >
-              <div className="overflow-hidden rounded-xl mb-4">
+                <div className="overflow-hidden rounded-xl mb-4 bg-gray-100">
                 <img
-                  src={vf8}
-                  alt="Car"
+                  src={car.images || vf8}
+                  alt={car.model || "Car"}
                   className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => {
+                    // Nếu ảnh từ API lỗi, fallback về ảnh mặc định
+                    if (e.target.src !== vf8) {
+                      e.target.src = vf8;
+                    } else {
+                      // Nếu cả ảnh mặc định cũng lỗi, dùng noInfoCar
+                      e.target.src = noInfoCar;
+                    }
+                  }}
                 />
               </div>
               <h2 className="text-2xl font-bold text-[#001f54] mb-2 group-hover:text-[#0077b6] transition-colors duration-300">
