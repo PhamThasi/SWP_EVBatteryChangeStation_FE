@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
 import axiosClient from "@/api/axiosClient";
+import { notifyWarning } from "@/components/notification/notification";
 import { useNavigate } from "react-router-dom";
 
 
@@ -69,7 +70,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
         const stationList = res?.data?.data || [];
         const mappedStations = stationList.map((s) => ({
           id: s.stationId,
-          label: s.accountName || s.stationName || s.address,
+          label: s.address || s.stationName || s.accountName,
         }));
         setStations(mappedStations);
         // Set station mặc định nếu chưa có
@@ -115,7 +116,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       const latestBooking = bookingData.data?.[bookingData.data.length - 1];
       if (!latestBooking) throw new Error("Không tìm thấy dữ liệu đặt lịch.");
 
-      const { vehicleId, dateTime, notes } = latestBooking;
+      const { vehicleId, dateTime } = latestBooking;
       
 
       // 3. Get random staff
@@ -181,15 +182,12 @@ const BookingForm = ({ onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Tài khoản</label>
-        <input
-          className="border p-2 rounded-lg w-full bg-gray-100"
-          type="text"
-          value={bookingForm.accountId}
-          disabled
-        />
-      </div>
+      <input
+        type="hidden"
+        name="accountId"
+        value={bookingForm.accountId}
+        readOnly
+      />
 
       <div>
         <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn xe</label>
@@ -205,7 +203,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn trạm</label>
+        <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn địa chỉ trạm</label>
         <select
           className="border p-2 rounded-lg w-full"
           value={bookingForm.stationId}
