@@ -28,24 +28,26 @@ const Subscriptions = () => {
 
   const handleBuy = (planTitle) => {
     requireLogin(() => {
-      // Tìm subscription tương ứng với plan title
+      // Find subscription by plan title
       const subscription = subscriptionsData.find(
         (sub) => sub.name === planTitle
       );
 
-      if (subscription.subscriptionId === "62851019-e0ef-496f-88af-9499867db183") {
-        navigate("/userPage/booking"); // home page
+      if (!subscription || !subscription.subscriptionId) {
+        alert("Không tìm thấy thông tin gói dịch vụ");
         return;
       }
 
-      if (subscription && subscription.subscriptionId) {
-        // Navigate đến trang payment với subscriptionId
-        navigate(`/payment?subscriptionId=${subscription.subscriptionId}&transactionId=${transactionId}`);
-        
-
-      } else {
-        alert("Không tìm thấy thông tin gói dịch vụ");
+      // If this specific subscription, go back to home
+      if (subscription.subscriptionId === "62851019-e0ef-496f-88af-9499867db183") {
+        navigate("/"); // home page
+        return;
       }
+
+      // Otherwise, navigate to payment with subscriptionId and transactionId
+      navigate(
+        `/userPage/payment?subscriptionId=${subscription.subscriptionId}&transactionId=${transactionId}`
+      );
     });
   };
 

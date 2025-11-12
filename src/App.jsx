@@ -44,6 +44,8 @@ import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
 import StaffSupportPage from "./home/page/StaffSupportPage";
 import SuccessPage from "./home/page/Payment-success";
+import Payment from "./home/page/Payment";
+import ToastContainer from "./components/notification/ToastContainer";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
