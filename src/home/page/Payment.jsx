@@ -4,16 +4,15 @@ import { CreditCard, Lock, ArrowLeft, CheckCircle, AlertCircle } from "lucide-re
 import paymentService from "@/api/paymentService";
 import subcriptionService from "@/api/subcriptionService";
 import tokenUtils from "@/utils/tokenUtils";
+import axios from "axios";
+import { useLocation } from "react-router-dom";
 
-// Helper function to generate transaction ID
-const generateTransactionId = () => {
-  return `txn_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-};
 
 const Payment = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const subscriptionId = searchParams.get("subscriptionId");
+  const transactionId = searchParams.get("transactionId");
   
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,6 +21,7 @@ const Payment = () => {
   const [paymentGateId, setPaymentGateId] = useState(1);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     // Kiểm tra đăng nhập
@@ -29,6 +29,8 @@ const Payment = () => {
       navigate("/login");
       return;
     }
+
+    
 
     // Lấy thông tin subscription
     const fetchSubscription = async () => {
@@ -60,6 +62,15 @@ const Payment = () => {
     }
   }, [subscriptionId, navigate]);
 
+  useEffect(() => {
+    if (!transactionId) {
+      setError("Thiếu transaction ID");
+    } else {
+      console.log("Transaction ID:", transactionId);
+      // you can now use it in your payment creation request
+    }
+  }, [transactionId]);
+
   const handlePayment = async () => {
     if (!subscription) return;
 
@@ -68,16 +79,19 @@ const Payment = () => {
 
     try {
       const userData = tokenUtils.getUserData();
-      if (!userData || !userData.accountId) {
+      if (!userData?.accountId) {
         setError("Không thể lấy thông tin người dùng");
         setProcessing(false);
         return;
       }
+      if (!transactionId) {
+        setError("Thiếu transaction ID từ đặt lịch");
+        setProcessing(false);
+        return;
+      }
 
-      // Tính tổng tiền (price + extraFee)
       const totalPrice = (subscription.price || 0) + (subscription.extraFee || 0);
 
-      // Tạo payment data
       const paymentData = {
         price: totalPrice,
         method: paymentMethod,
@@ -85,20 +99,41 @@ const Payment = () => {
         status: false, // Chưa thanh toán
         createDate: new Date().toISOString(),
         subscriptionId: subscription.subscriptionId,
-        transactionId: generateTransactionId(), // Generate transaction ID
+        transactionId: transactionId,
       };
 
-      // Gọi API tạo payment
-      const response = await paymentService.createPayment(paymentData);
-      
-      if (response && response.status === 200) {
-        setSuccess(true);
-        // Có thể redirect đến trang thành công hoặc quay về trang subscriptions
-        setTimeout(() => {
-          navigate("/userPage/subscriptions");
-        }, 2000);
+      console.log("Create Payment API payload:", paymentData);
+
+      // 1️⃣ Tạo payment
+      const createRes = await axios.post("http://localhost:5204/api/Payment/create", paymentData);
+
+      if (createRes?.data?.transactionId) {
+        const txnId = createRes.data.transactionId;
+
+        // 2️⃣ Lấy paymentId từ transactionId
+        const getPaymentRes = await axios.get(`http://localhost:5204/api/Payment/get-by-transaction/${txnId}`);
+        const paymentId = getPaymentRes?.data?.data?.paymentId;
+
+        if (!paymentId) {
+          setError("Không lấy được payment ID");
+          setProcessing(false);
+          return;
+        }
+
+        // 3️⃣ Tạo VNPay URL
+        const vnPayRes = await axios.get(`http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`);
+        const paymentUrl = vnPayRes?.data?.data;
+
+        if (!paymentUrl) {
+          setError("Không tạo được link thanh toán VNPay");
+          setProcessing(false);
+          return;
+        }
+
+        // 4️⃣ Chuyển hướng đến VNPay
+        window.location.href = paymentUrl;
       } else {
-        setError(response?.message || "Thanh toán thất bại");
+        setError("Tạo payment thất bại");
       }
     } catch (error) {
       console.error("Error processing payment:", error);

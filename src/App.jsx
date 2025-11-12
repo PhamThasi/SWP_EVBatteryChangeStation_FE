@@ -43,7 +43,7 @@ import Feedback from "./home/page/FeedBack";
 import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
 import StaffSupportPage from "./home/page/StaffSupportPage";
-import SuccessPage from "./home/page/pay-succ";
+import SuccessPage from "./home/page/Payment-success";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"

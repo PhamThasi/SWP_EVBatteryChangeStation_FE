@@ -6,6 +6,8 @@ import PlanCard from "./../components/PlanCard";
 import { Battery, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
 import subcriptionService from "@/api/subcriptionService";
 
+import { useLocation } from "react-router-dom";
+
 const Subscriptions = () => {
   const { requireLogin, isModalOpen, confirmLogin, cancelLogin } =
     useAuthCheck();
@@ -13,6 +15,16 @@ const Subscriptions = () => {
   const [subscriptionsData, setSubscriptionsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+  const transactionId = location.state?.transactionId;
+
+  useEffect(() => {
+    if (!transactionId) {
+      console.error("Missing transactionId in subscription page!");
+    } else {
+      console.log("Transaction ID received in subscription page:", transactionId);
+    }
+  }, [transactionId]);
 
   const handleBuy = (planTitle) => {
     requireLogin(() => {
@@ -21,9 +33,16 @@ const Subscriptions = () => {
         (sub) => sub.name === planTitle
       );
 
+      if (subscription.subscriptionId === "62851019-e0ef-496f-88af-9499867db183") {
+        navigate("/userPage/booking"); // home page
+        return;
+      }
+
       if (subscription && subscription.subscriptionId) {
         // Navigate đến trang payment với subscriptionId
-        navigate(`/payment?subscriptionId=${subscription.subscriptionId}`);
+        navigate(`/payment?subscriptionId=${subscription.subscriptionId}&transactionId=${transactionId}`);
+        
+
       } else {
         alert("Không tìm thấy thông tin gói dịch vụ");
       }

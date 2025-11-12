@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
 import axiosClient from "@/api/axiosClient";
+import { useNavigate } from "react-router-dom";
+
+
 
 const BookingForm = ({ onSuccess, onCancel }) => {
   // Form state được gộp thành 1 object
@@ -20,6 +23,8 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   const updateField = (field) => {
     setBookingForm((prev) => ({ ...prev, ...field }));
   };
+
+  const navigate = useNavigate();
 
   const decodeAccountIdFromToken = () => {
     try {
@@ -111,6 +116,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       if (!latestBooking) throw new Error("Không tìm thấy dữ liệu đặt lịch.");
 
       const { vehicleId, dateTime, notes } = latestBooking;
+      
 
       // 3. Get random staff
       const resStaff = await fetch(
@@ -136,11 +142,11 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       throw new Error("Không thể chọn staff hoặc battery.");
 
     // 5. Create swapping
-    await fetch("http://localhost:5204/api/Swapping/Create", {
+    await fetch("http://localhost:5204/api/Swapping/CreateSwapping", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        notes,
+        notes: "Battery transfer",
         staffId,
         oldBatteryId: "", // can leave empty
         vehicleId,
@@ -150,14 +156,27 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       }),
     });
 
-    alert("Đặt lịch và tạo swapping thành công!");
-    if (onSuccess) onSuccess();
-  } catch (e) {
-    console.error("Booking or swapping error:", e);
-    alert("Không thể hoàn tất đặt lịch và swapping.");
-  } finally {
-    setSubmitting(false);
-  }
+    // alert("Đặt lịch và tạo swapping thành công!");
+    if (onSuccess) onSuccess(); // 6️⃣ Fetch the latest swapping to get transactionId
+      const resSwapping = await fetch("http://localhost:5204/api/Swapping/GetAllSwapping");
+      const swappingData = await resSwapping.json();
+      const latestSwapping = swappingData.data?.[swappingData.data.length - 1];
+      const transactionId = latestSwapping?.transactionId;
+      if (!transactionId) throw new Error("Không lấy được transactionId từ swapping.");
+
+      console.log("Transaction ID from swapping:", transactionId);
+
+      // 7️⃣ Redirect to subscription page with transactionId
+      navigate("/userPage/subscriptions", { state: { transactionId } });
+
+      if (onSuccess) onSuccess();
+
+    } catch (e) {
+      console.error("Booking or swapping error:", e);
+      alert("Không thể hoàn tất đặt lịch và swapping.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
