@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useCallback, useEffect, useState } from "react";
+import { notifyError, notifySuccess } from "@/components/notification/notification";
+import stationSevice from "@/api/stationService";
 import "../components/AdminStyle.css";
 
-const   StationManagement = () => {
+const StationManagement = () => {
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,32 +17,55 @@ const   StationManagement = () => {
     batteryQuantity: 0,
   });
 
-  const BASE_URL = "http://localhost:5204/api/Station";
+  const extractMessage = useCallback(
+    (error, fallback) =>
+      error?.response?.data?.message ||
+      error?.response?.data?.title ||
+      (typeof error?.response?.data === "string" ? error.response.data : "") ||
+      error?.message ||
+      fallback,
+    []
+  );
+
+  const resolveMessage = useCallback((response, fallback) => {
+    if (!response) return fallback;
+    if (typeof response === "string") return response || fallback;
+    return (
+      response?.message ||
+      response?.Message ||
+      response?.data?.message ||
+      response?.data?.Message ||
+      fallback
+    );
+  }, []);
 
   // Fetch all stations
-  const fetchStations = async (suppressError = false) => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${BASE_URL}/SelectAll`);
-      setStations(res.data?.data || []);
-    } catch (err) {
-      console.error("Fetch stations failed", {
-        url: `${BASE_URL}/SelectAll`,
-        status: err?.response?.status,
-        data: err?.response?.data,
-        message: err?.message,
-      });
-      if (!suppressError) {
-        setError(err.message);
+  const fetchStations = useCallback(
+    async (suppressError = false) => {
+      setLoading(true);
+      try {
+        const data = await stationSevice.getStationList();
+        setStations(data || []);
+      } catch (err) {
+        console.error("Fetch stations failed", {
+          status: err?.response?.status,
+          data: err?.response?.data,
+          message: err?.message,
+        });
+        if (!suppressError) {
+          setError(err.message);
+          notifyError(extractMessage(err, "Không thể tải danh sách trạm!"));
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [extractMessage]
+  );
 
   useEffect(() => {
     fetchStations();
-  }, []);
+  }, [fetchStations]);
 
   // Open modal (add or update)
   const openModal = (station = null) => {
@@ -89,35 +113,36 @@ const   StationManagement = () => {
 
   // Save (Add or Update)
   const handleSave = async () => {
-    const url = editingStation ? `${BASE_URL}/Update` : `${BASE_URL}/Create`;
-
     const payload = editingStation
       ? { stationId: editingStation.stationId, ...formData }
       : { ...formData };
 
     try {
-      const res = await axios.post(url, payload);
-      if (res?.status >= 200 && res?.status < 300) {
-        alert(editingStation ? "Cập nhật trạm thành công" : "Thêm trạm thành công");
-      } else {
-        alert("Yêu cầu đã gửi nhưng phản hồi bất thường: " + res?.status);
-      }
+      const result = editingStation
+        ? await stationSevice.updateStation(editingStation.stationId, payload)
+        : await stationSevice.createStation(payload);
+
+      notifySuccess(
+        resolveMessage(
+          result,
+          editingStation ? "Cập nhật trạm thành công" : "Thêm trạm thành công"
+        )
+      );
     } catch (err) {
       console.error("Save station failed", {
-        url,
         payload,
         status: err?.response?.status,
         data: err?.response?.data,
         message: err?.message,
       });
-        const serverMsg =
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        (typeof err?.response?.data === "string" ? err.response.data : "");
-      alert(
-        "station message: " +
-          (err?.response?.status ? `${err.response.status} ` : "") +
-          (serverMsg || err.message)
+      const message = extractMessage(
+        err,
+        editingStation ? "Cập nhật trạm thất bại!" : "Thêm trạm thất bại!"
+      );
+      notifyError(
+        `${editingStation ? "Update" : "Create"} station: ${
+          err?.response?.status ? `${err.response?.status} ` : ""
+        }${message}`
       );
     } finally {
       // Even if server replied 400 but actually inserted, still refresh list
@@ -128,18 +153,20 @@ const   StationManagement = () => {
   const handleDelete = async (stationId) => {
     if (!window.confirm("Are you sure you want to delete this station?")) return;
     try {
-      // Use hard delete endpoint with path parameter
-      await axios.delete(`${BASE_URL}/HardDelete/${stationId}`);
-      alert("Xóa trạm thành công");
+      const result = await stationSevice.deleteStation(stationId);
+      notifySuccess(resolveMessage(result, "Xóa trạm thành công"));
       await fetchStations();
     } catch (err) {
       console.error("Delete station failed", {
-        url: `${BASE_URL}/HardDelete/${stationId}`,
         status: err?.response?.status,
         data: err?.response?.data,
         message: err?.message,
       });
-      alert("Failed to delete station: " + (err?.response?.status ? `${err.response.status} ` : "") + err.message);
+      notifyError(
+        "Xóa trạm thất bại: " +
+          (err?.response?.status ? `${err.response.status} ` : "") +
+          extractMessage(err, err.message)
+      );
     }
   };
 

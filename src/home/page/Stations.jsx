@@ -3,6 +3,10 @@ import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
 import stationService from "@/api/stationService";
 import { vietmapService } from "@/api/vietmapService";
 import { MapPin, Navigation, Battery } from "lucide-react";
+import {
+  notifyError,
+  notifyWarning,
+} from "@/components/notification/notification";
 
 const Stations = () => {
   const API_KEY = import.meta.env.VITE_APP_VIETMAP_API_KEY;
@@ -117,14 +121,21 @@ const Stations = () => {
     try {
       const searchRes = await vietmapService.searchPlace(API_KEY, searchTerm, userLocation);
       const refid = searchRes?.[0]?.ref_id;
-      if (!refid) return alert("Không tìm thấy trạm phù hợp!");
+      if (!refid) {
+        notifyWarning("Không tìm thấy trạm phù hợp!");
+        return;
+      }
 
       const dest = await vietmapService.getPlaceByRef(API_KEY, refid);
-      if (!dest?.lat || !dest?.lng) return alert("Không tìm thấy tọa độ!");
+      if (!dest?.lat || !dest?.lng) {
+        notifyWarning("Không tìm thấy tọa độ của trạm này!");
+        return;
+      }
 
       destRef.current = { lat: dest.lat, lng: dest.lng };
       updateRoute(userLocation, destRef.current);
     } catch (err) {
+      notifyError("Không thể tìm trạm. Vui lòng thử lại!");
       console.error("Lỗi khi tìm trạm:", err);
     }
   };
@@ -153,12 +164,6 @@ const Stations = () => {
     } catch (err) {
       console.error("Lỗi khi cập nhật route:", err);
     }
-  };
-
-  // ========== FORM SEARCH ==========
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    findAndDrawRoute();
   };
 
   return (
