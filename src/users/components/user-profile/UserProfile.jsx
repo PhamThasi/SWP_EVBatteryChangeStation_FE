@@ -40,9 +40,67 @@ const UserProfile = () => {
     loadUserProfile();
   }, []);
 
+  // ---------------- VALIDATION ----------------
+  const validateProfile = (profileData) => {
+    const errors = {};
+
+    // Validate password (required)
+    if (!profileData.password || profileData.password.trim() === "") {
+      errors.password = "Mật khẩu là bắt buộc để cập nhật thông tin";
+    }
+
+    // Validate phone number (must be exactly 10 digits)
+    if (profileData.phoneNumber) {
+      const cleaned = profileData.phoneNumber.replace(/\D/g, "");
+      if (cleaned.length !== 10) {
+        errors.phoneNumber = "Số điện thoại phải có đúng 10 chữ số (ví dụ: 0912345678)";
+      }
+    }
+
+    // Validate date of birth
+    if (profileData.dateOfBirth) {
+      try {
+        const dateObj = new Date(profileData.dateOfBirth);
+        if (isNaN(dateObj.getTime())) {
+          errors.dateOfBirth = "Ngày sinh không hợp lệ";
+        } else {
+          const now = new Date();
+          if (dateObj > now) {
+            errors.dateOfBirth = "Ngày sinh không thể lớn hơn ngày hiện tại";
+          }
+        }
+      } catch {
+        errors.dateOfBirth = "Ngày sinh không hợp lệ";
+      }
+    }
+
+    // Validate email format
+    if (profileData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(profileData.email)) {
+        errors.email = "Địa chỉ email không hợp lệ";
+      }
+    }
+
+    // Validate full name
+    if (!profileData.fullName || profileData.fullName.trim() === "") {
+      errors.fullName = "Họ và tên không được để trống";
+    }
+
+    return errors;
+  };
+
   // ---------------- HANDLERS ----------------
   const handleEdit = async () => {
     if (isEditing) {
+      // Validate before submitting
+      const validationErrors = validateProfile(tempProfile);
+      if (Object.keys(validationErrors).length > 0) {
+        const errorMessages = Object.values(validationErrors).map(msg => `* ${msg}`).join("\n");
+        alert("⚠️ Vui lòng sửa các lỗi sau:\n\n" + errorMessages);
+        return;
+      }
+
       const confirmed = window.confirm(
         "Bạn có chắc chắn muốn cập nhật thông tin cá nhân không?\n\nThông tin sẽ được lưu và không thể hoàn tác."
       );
@@ -51,7 +109,7 @@ const UserProfile = () => {
       try {
         const sanitizedProfile = {
           ...tempProfile,
-          password: tempProfile.password || "string", // thêm dòng này
+          password: tempProfile.password, // Password is required and validated
         };
 
         const response = await authService.updateProfile(sanitizedProfile);

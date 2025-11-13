@@ -16,6 +16,7 @@ import tramsac_testla from "./../../assets/tramsac_testla.jpg";
 import tramsac_vinfast from "./../../assets/tramsac_vinfast.jpg";
 import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
 import stationService from "@/api/stationService";
+import batteryService from "@/api/batteryService";
 import { vietmapService } from "@/api/vietmapService";
 import subcriptionService from "@/api/subcriptionService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -57,6 +58,7 @@ const HomeFrame = () => {
   // Fetch stations
   const [stations, setStations] = useState([]);
   const [mapStations, setMapStations] = useState([]);
+  const [batteryCounts, setBatteryCounts] = useState({});
   const [stationsLoading, setStationsLoading] = useState(false);
   const [stationsError, setStationsError] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
@@ -75,7 +77,21 @@ const HomeFrame = () => {
         setStationsLoading(true);
         setStationsError(null);
         const data = await stationService.getStationList();
-        setStations(Array.isArray(data) ? data : []);
+        const stationsList = Array.isArray(data) ? data : [];
+        setStations(stationsList);
+
+        // Tính số pin cho mỗi trạm
+        const counts = {};
+        for (const station of stationsList) {
+          try {
+            const count = await batteryService.getBatteryCountByStationId(station.stationId);
+            counts[station.stationId] = count;
+          } catch (err) {
+            console.warn(`Không thể đếm pin cho trạm ${station.stationId}:`, err);
+            counts[station.stationId] = 0;
+          }
+        }
+        setBatteryCounts(counts);
       } catch {
         setStations([]);
         setStationsError("Không tải được danh sách trạm");
@@ -317,7 +333,7 @@ const HomeFrame = () => {
               const title = station.accountName || station.name || `Station ${id}`;
               const address = station.address || "Địa chỉ đang cập nhật";
               const phone = station.phoneNumber || "Chưa cập nhật";
-              const batteries = station.batteryQuantity ?? "Chưa có dữ liệu";
+              const batteries = batteryCounts[id] ?? 0;
               const isActive = station.status !== false;
               const imageUrl = stationImages[id] || tramsac_vinfast;
 

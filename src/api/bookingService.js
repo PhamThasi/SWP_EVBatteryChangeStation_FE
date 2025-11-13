@@ -43,7 +43,6 @@ const bookingService = {
     }
   },
   getUserBookings: async (accountId) => {
-    // eslint-disable-next-line no-useless-catch
     try {
       const res = await axiosClient.get(`/Booking/User/${accountId}`);
       return res.data;
@@ -51,8 +50,15 @@ const bookingService = {
       throw error;
     }
   },
+  getBookingById: async (bookingId) => {
+    try {
+      const res = await axiosClient.get(`/Booking/Select/${bookingId}`);
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   deleteBooking: async (id) => {
-    // eslint-disable-next-line no-useless-catch
     try {
       const res = await axiosClient.delete(`/Booking/Delete/${id}`);
       return res.data;

@@ -54,9 +54,10 @@ const Subscriptions = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await subcriptionService.getSubscriptions();
+        // Chỉ lấy các subscriptions đang active cho user
+        const res = await subcriptionService.getActiveSubscriptions();
         if (res?.data) {
-          // Lưu data gốc để sử dụng khi navigate
+          // Lưu data gốc để sử dụng khi navigate (chỉ active subscriptions)
           setSubscriptionsData(res.data);
 
           // Convert API data -> frontend-friendly structure

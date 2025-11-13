@@ -20,7 +20,7 @@ const SideBarApp = () => {
       header: "ĐẶT HÀNG VÀ DỊCH VỤ",
       items: [
         { icon: "", label: "Các gói dịch vụ", path: "/userPage/subscriptions" },
-        { icon: "", label: "Lịch sử giao dịch", path: "/history" },
+        { icon: "", label: "Lịch sử giao dịch", path: "/userPage/swapping-history" },
       ],
     },
     {
