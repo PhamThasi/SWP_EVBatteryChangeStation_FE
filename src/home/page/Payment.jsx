@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CreditCard, Lock, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
-import paymentService from "@/api/paymentService";
+import { CreditCard, Lock, ArrowLeft, CheckCircle, AlertCircle, Banknote } from "lucide-react";
 import subcriptionService from "@/api/subcriptionService";
 import tokenUtils from "@/utils/tokenUtils";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
 
 
 const Payment = () => {
@@ -17,11 +15,10 @@ const Payment = () => {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("VNPAY");
-  const [paymentGateId, setPaymentGateId] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [paymentGateId, setPaymentGateId] = useState(0);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     // Kiểm tra đăng nhập
@@ -103,31 +100,12 @@ const Payment = () => {
       // 1️⃣ Tạo payment
       const createRes = await axios.post("http://localhost:5204/api/Payment/create", paymentData);
       
-      if (createRes?.data?.transactionId) {
-        const txnId = createRes.data.transactionId;
-
-        // 2️⃣ Lấy paymentId từ transactionId
-        const getPaymentRes = await axios.get(`http://localhost:5204/api/Payment/get-by-transaction/${txnId}`);
-        const paymentId = getPaymentRes?.data?.data?.paymentId;
-        console.log(" pay id", paymentId);
-        if (!paymentId) {
-          setError("Không lấy được payment ID");
-          setProcessing(false);
-          return;
-        }
-
-        // 3️⃣ Tạo VNPay URL
-        const vnPayRes = await axios.get(`http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`);
-        const paymentUrl = vnPayRes?.data?.data;
-        console.log("vnpay link:", paymentUrl);
-        if (!paymentUrl) {
-          setError("Không tạo được link thanh toán VNPay");
-          setProcessing(false);
-          return;
-        }
-
-        // 4️⃣ Chuyển hướng đến VNPay
-        window.location.href = paymentUrl;
+      if (createRes?.data) {
+        // Nếu là thanh toán tiền mặt, không cần redirect đến VNPay
+        setSuccess(true);
+        setTimeout(() => {
+          navigate("/subscriptions");
+        }, 2000);
       } else {
         setError("Tạo payment thất bại");
       }
@@ -242,25 +220,28 @@ const Payment = () => {
             {/* Payment Method */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
+                <Banknote className="w-5 h-5 text-green-600" />
                 Phương thức thanh toán
               </h2>
               <div className="space-y-3">
-                <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                <label className="flex items-center p-4 border-2 border-green-200 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="VNPAY"
-                    checked={paymentMethod === "VNPAY"}
+                    value="CASH"
+                    checked={paymentMethod === "CASH"}
                     onChange={(e) => {
                       setPaymentMethod(e.target.value);
-                      setPaymentGateId(1);
+                      setPaymentGateId(0);
                     }}
-                    className="mr-3 w-4 h-4 text-blue-600"
+                    className="mr-3 w-4 h-4 text-green-600"
                   />
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">VNPay</p>
-                    <p className="text-sm text-gray-500">Thanh toán qua VNPay</p>
+                    <p className="font-semibold text-gray-900">Tiền mặt</p>
+                    <p className="text-sm text-gray-500">Thanh toán bằng tiền mặt khi nhận dịch vụ</p>
+                  </div>
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Banknote className="w-5 h-5 text-green-600" />
                   </div>
                 </label>
               </div>
@@ -329,8 +310,8 @@ const Payment = () => {
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-4 flex items-center justify-center gap-1">
-                <Lock className="w-3 h-3" />
-                Thanh toán an toàn và bảo mật
+                <Banknote className="w-3 h-3" />
+                Thanh toán bằng tiền mặt khi nhận dịch vụ tại trạm
               </p>
             </div>
           </div>

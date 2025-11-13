@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
 import stationService from "@/api/stationService";
+import batteryService from "@/api/batteryService";
 import { vietmapService } from "@/api/vietmapService";
 import { MapPin, Navigation, Battery } from "lucide-react";
 import {
@@ -14,6 +15,7 @@ const Stations = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [stations, setStations] = useState([]);
   const [stationsWithCoords, setStationsWithCoords] = useState([]);
+  const [batteryCounts, setBatteryCounts] = useState({});
   const [route, setRoute] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
   const [selectedStation, setSelectedStation] = useState(null);
@@ -49,6 +51,19 @@ const Stations = () => {
       try {
         const list = await stationService.getStationList();
         setStations(list);
+        
+        // Tính số pin cho mỗi trạm
+        const counts = {};
+        for (const station of list || []) {
+          try {
+            const count = await batteryService.getBatteryCountByStationId(station.stationId);
+            counts[station.stationId] = count;
+          } catch (err) {
+            console.warn(`Không thể đếm pin cho trạm ${station.stationId}:`, err);
+            counts[station.stationId] = 0;
+          }
+        }
+        setBatteryCounts(counts);
         
         const withCoords = await Promise.all(
           list.map(async (s) => {
@@ -284,7 +299,7 @@ const Stations = () => {
                         <div className="flex items-center gap-6 text-xl text-gray-500 mt-4">
                           <div className="flex items-center gap-2">
                             <Battery className="w-5 h-5" />
-                            <span>{station.batteryQuantity} pin</span>
+                            <span>{batteryCounts[station.stationId] ?? 0} pin</span>
                           </div>
                           {station.distance && (
                             <div className="flex items-center gap-2">

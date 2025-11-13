@@ -49,6 +49,16 @@ const carService = {
     }
   },
 
+  getCarById: async (vehicleId) => {
+    try {
+      const res = await axiosClient.get(`/Car/GetCarById?carId=${vehicleId}`);
+      return res.data?.data;
+    } catch (error) {
+      console.error("CarService: Get car by ID API Error:", error);
+      throw error;
+    }
+  },
+
   deleteCar: async (carId) => {
     try {
       const res = await axiosClient.delete(`/Car/DeleteCar/${carId}`);

@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
 import axiosClient from "@/api/axiosClient";
-import { notifyWarning } from "@/components/notification/notification";
-import { useNavigate } from "react-router-dom";
+import { notifyWarning, notifySuccess } from "@/components/notification/notification";
 
 
 
@@ -24,8 +23,6 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   const updateField = (field) => {
     setBookingForm((prev) => ({ ...prev, ...field }));
   };
-
-  const navigate = useNavigate();
 
   const decodeAccountIdFromToken = () => {
     try {
@@ -98,6 +95,8 @@ const BookingForm = ({ onSuccess, onCancel }) => {
     }
     try {
       setSubmitting(true);
+      // Chỉ tạo booking, không tạo swapping ngay
+      // Swapping sẽ được tạo khi staff approve booking
       await bookingService.createBooking({
         dateTime: bookingForm.dateTime,
         notes: bookingForm.notes,
@@ -105,76 +104,12 @@ const BookingForm = ({ onSuccess, onCancel }) => {
         vehicleId: bookingForm.vehicleId,
         accountId: bookingForm.accountId,
       });
-       // Wait briefly in case DB persistence is async
-      await new Promise((r) => setTimeout(r, 500));
 
-      // 2. Fetch user's bookings and get the latest one
-      const resBooking = await fetch(
-        `http://localhost:5204/api/Booking/User/${bookingForm.accountId}`
-      );
-      const bookingData = await resBooking.json();
-      const latestBooking = bookingData.data?.[bookingData.data.length - 1];
-      if (!latestBooking) throw new Error("Không tìm thấy dữ liệu đặt lịch.");
-
-      const { vehicleId, dateTime } = latestBooking;
-      
-
-      // 3. Get random staff
-      const resStaff = await fetch(
-        "http://localhost:5204/api/Account/GetAllStaffAccount"
-      );
-      const staffData = await resStaff.json();
-      const staffList = staffData.data || [];
-      const randomStaff =
-        staffList[Math.floor(Math.random() * staffList.length)];
-      const staffId = randomStaff?.accountId;
-
-      // 4. Get random battery
-      const resBattery = await fetch(
-        "http://localhost:5204/api/Battery/GetAllBattery"
-      );
-      const batteryData = await resBattery.json();
-      const batteryList = batteryData.data || [];
-    const randomBattery =
-      batteryList[Math.floor(Math.random() * batteryList.length)];
-    const newBatteryId = randomBattery?.batteryId;
-
-    if (!staffId || !newBatteryId)
-      throw new Error("Không thể chọn staff hoặc battery.");
-
-    // 5. Create swapping
-    await fetch("http://localhost:5204/api/Swapping/CreateSwapping", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        notes: "Battery transfer",
-        staffId,
-        oldBatteryId: "", // can leave empty
-        vehicleId,
-        newBatteryId,
-        status: "pending",
-        createDate: dateTime,
-      }),
-    });
-
-    // alert("Đặt lịch và tạo swapping thành công!");
-    if (onSuccess) onSuccess(); // 6️⃣ Fetch the latest swapping to get transactionId
-      const resSwapping = await fetch("http://localhost:5204/api/Swapping/GetAllSwapping");
-      const swappingData = await resSwapping.json();
-      const latestSwapping = swappingData.data?.[swappingData.data.length - 1];
-      const transactionId = latestSwapping?.transactionId;
-      if (!transactionId) throw new Error("Không lấy được transactionId từ swapping.");
-
-      console.log("Transaction ID from swapping:", transactionId);
-
-      // 7️⃣ Redirect to subscription page with transactionId
-      navigate("/userPage/subscriptions", { state: { transactionId } });
-
+      notifySuccess("Đặt lịch thành công! Vui lòng chờ staff xác nhận.");
       if (onSuccess) onSuccess();
-
     } catch (e) {
-      console.error("Booking or swapping error:", e);
-      alert("Không thể hoàn tất đặt lịch và swapping.");
+      console.error("Booking error:", e);
+      notifyWarning("Không thể tạo đặt lịch. Vui lòng thử lại!");
     } finally {
       setSubmitting(false);
     }

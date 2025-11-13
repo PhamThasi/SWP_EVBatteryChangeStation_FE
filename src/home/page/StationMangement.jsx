@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { notifyError, notifySuccess } from "@/components/notification/notification";
 import stationSevice from "@/api/stationService";
+import batteryService from "@/api/batteryService";
 import "../components/AdminStyle.css";
 
 const StationManagement = () => {
@@ -14,8 +15,8 @@ const StationManagement = () => {
     phoneNumber: "",
     status: true,
     accountName: "",
-    batteryQuantity: 0,
   });
+  const [batteryCounts, setBatteryCounts] = useState({});
 
   const extractMessage = useCallback(
     (error, fallback) =>
@@ -39,13 +40,26 @@ const StationManagement = () => {
     );
   }, []);
 
-  // Fetch all stations
+  // Fetch all stations và tính số pin động
   const fetchStations = useCallback(
     async (suppressError = false) => {
       setLoading(true);
       try {
         const data = await stationSevice.getStationList();
         setStations(data || []);
+
+        // Tính số pin cho mỗi trạm
+        const counts = {};
+        for (const station of data || []) {
+          try {
+            const count = await batteryService.getBatteryCountByStationId(station.stationId);
+            counts[station.stationId] = count;
+          } catch (err) {
+            console.warn(`Không thể đếm pin cho trạm ${station.stationId}:`, err);
+            counts[station.stationId] = 0;
+          }
+        }
+        setBatteryCounts(counts);
       } catch (err) {
         console.error("Fetch stations failed", {
           status: err?.response?.status,
@@ -77,7 +91,6 @@ const StationManagement = () => {
         phoneNumber: station.phoneNumber || "",
         status: station.status ?? true,
         accountName: station.accountName || "",
-        batteryQuantity: station.batteryQuantity || 0,
       });
     } else {
       setEditingStation(null);
@@ -86,7 +99,6 @@ const StationManagement = () => {
         phoneNumber: "",
         status: true,
         accountName: "",
-        batteryQuantity: 0,
       });
     }
   };
@@ -102,12 +114,7 @@ const StationManagement = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "status"
-          ? value === "true"
-          : name === "batteryQuantity"
-          ? parseInt(value) || 0
-          : value,
+      [name]: name === "status" ? value === "true" : value,
     }));
   };
 
@@ -116,6 +123,9 @@ const StationManagement = () => {
     const payload = editingStation
       ? { stationId: editingStation.stationId, ...formData }
       : { ...formData };
+
+    // Không gửi batteryQuantity vì nó được tính động từ BatteryManagement
+    delete payload.batteryQuantity;
 
     try {
       const result = editingStation
@@ -215,7 +225,7 @@ const StationManagement = () => {
                   <td>{station.phoneNumber}</td>
                   <td>{station.status ? "Active" : "Inactive"}</td>
                   <td>{station.accountName}</td>
-                  <td>{station.batteryQuantity}</td>
+                  <td>{batteryCounts[station.stationId] ?? "Đang tải..."}</td>
                   <td style={{ textAlign: "center" }}>
                     <button
                       className="batupdate-btn"
@@ -263,13 +273,6 @@ const StationManagement = () => {
                 name="accountName"
                 placeholder="Account Name"
                 value={formData.accountName}
-                onChange={handleChange}
-              />
-              <input
-                type="number"
-                name="batteryQuantity"
-                placeholder="Battery Quantity"
-                value={formData.batteryQuantity}
                 onChange={handleChange}
               />
               <select

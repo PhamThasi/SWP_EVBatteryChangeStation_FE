@@ -3,6 +3,7 @@ import logo from "./../../assets/logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import tokenUtils from "@/utils/tokenUtils";
+import roleService from "@/api/roleService";
 
 export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
@@ -52,23 +53,13 @@ export default function NavBar() {
         const userData = await tokenUtils.autoLogin();
         
         if (userData) {
-          const roleName = (userData.role || "").toLowerCase();
-          const roleId = (userData.roleId || "").toLowerCase();
-          const ADMIN_ROLE_ID = "cde0b58d-9e49-4b2b-8ef2-d991d07af541";
-          const STAFF_ROLE_ID = "5dc92b82-be9e-4614-88f5-cc393bbdae7a";
+          const roleName = userData.roleName || userData.role || "";
+          const roleId = userData.roleId || "";
           
-          
-          // If admin (by name or roleId), go to admin schedule
-          if (roleName === "admin" || roleId === ADMIN_ROLE_ID) {
-            console.log("Auto login successful, admin detected. Redirecting to /admin/schedule...");
-            navigate("/admin");
-          } else if (roleName === "staff" || roleId === STAFF_ROLE_ID) {
-            console.log("Auto login successful, staff detected. Redirecting to /staff...");
-            navigate("/staff");
-          } else {
-            console.log("Auto login successful, redirecting to user page...");
-            navigate("/userPage");
-          }
+          // Lấy redirect path từ roleService
+          const redirectPath = await roleService.getRedirectPathByRole(roleName, roleId);
+          console.log(`Auto login successful, redirecting to ${redirectPath}...`);
+          navigate(redirectPath);
         } else {
           // Token might be invalid, clear and redirect to login
           console.log("Auto login failed, redirecting to login page...");
