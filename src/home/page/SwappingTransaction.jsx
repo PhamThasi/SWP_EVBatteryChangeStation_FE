@@ -26,7 +26,7 @@ const SwappingManagement = () => {
               return {
                 ...swap,
                 carModel: carRes.data.data.model,
-                ownerName: ownerRes.data.data.fullName,
+                  ownerName:ownerRes.data.data.fullName || ownerRes.data.data.accountName || "-",
                 accountId: ownerRes.data.data.accountId,
               };
             } catch {
@@ -99,7 +99,7 @@ const SwappingManagement = () => {
       const updated = {
         paymentId: selectedPayment.paymentId,
         accountId: relatedTx.accountId, // use from the transaction
-        status: true,
+        status: "Success",
       };
 
       // console.log(updated); // log all 3 fields
@@ -107,7 +107,7 @@ const SwappingManagement = () => {
       await axios.put("http://localhost:5204/api/Payment/update", updated);
 
       alert("Payment marked as success.");
-      setSelectedPayment({ ...selectedPayment, status: true });
+      setSelectedPayment({ ...selectedPayment, status: "Success" });
     } catch (err) {
       console.error("Failed to update payment:", err);
       alert("Failed to update payment status.");
@@ -118,6 +118,9 @@ const SwappingManagement = () => {
     setPaymentModalOpen(false);
     setSelectedPayment(null);
   };
+  const sorted = [...transactions].sort(
+          (a, b) => new Date(b.createDate) - new Date(a.createDate)
+        );
 
 
   if (loading) return <p>Loading...</p>;
@@ -128,8 +131,8 @@ const SwappingManagement = () => {
 
       {transactions.length === 0 ? (
         <p>No transactions found.</p>
-      ) : (
-        transactions.map((tx) => (
+      ) : (        
+        sorted.map((tx)  => (
           <div
             key={tx.transactionId}
             style={{
@@ -153,9 +156,7 @@ const SwappingManagement = () => {
                 onChange={(e) => handleStatusChange(tx.transactionId, e.target.value)}
                 style={{ padding: "0.5rem", borderRadius: "6px" }}
               >
-                <option value="">Status</option>
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
+                <option value="">Active</option>
                 <option value="Finish">Finish</option>
               </select>
 
@@ -205,9 +206,9 @@ const SwappingManagement = () => {
             <h3>Payment Details</h3>
             <p><b>Price:</b> {selectedPayment.price.toLocaleString()} VND</p>
             <p><b>Method:</b> {selectedPayment.method}</p>
-            <p><b>Status:</b> {selectedPayment.status ? "Success" : "Failed"}</p>            
+            <p><b>Status:</b> {selectedPayment.status}</p>           
             <p><b>Date:</b> {new Date(selectedPayment.createDate).toLocaleString()}</p>
-            {!selectedPayment.status && (
+            {selectedPayment.status === "Pending" && (
               <button className="save-btn" onClick={handlePaymentSuccess}>
                 ✅ Payment Success
               </button>

@@ -116,6 +116,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       if (!latestBooking) throw new Error("Không tìm thấy dữ liệu đặt lịch.");
 
       const { vehicleId, dateTime, notes } = latestBooking;
+      const createDate = dateTime;
       
 
       // 3. Get random staff
@@ -152,7 +153,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
         vehicleId,
         newBatteryId,
         status: "pending",
-        createDate: dateTime,
+        createDate: createDate,
       }),
     });
 
@@ -160,8 +161,16 @@ const BookingForm = ({ onSuccess, onCancel }) => {
     if (onSuccess) onSuccess(); // 6️⃣ Fetch the latest swapping to get transactionId
       const resSwapping = await fetch("http://localhost:5204/api/Swapping/GetAllSwapping");
       const swappingData = await resSwapping.json();
-      const latestSwapping = swappingData.data?.[swappingData.data.length - 1];
-      const transactionId = latestSwapping?.transactionId;
+      // 3) Find the swapping with the same createDate
+      const found = swappingData.data.find(
+        (s) => s.createDate === createDate
+      );
+
+      if (!found) {
+        throw new Error("Không tìm thấy swapping với createDate đã dùng.");
+      }
+
+      const transactionId = found.transactionId;
       if (!transactionId) throw new Error("Không lấy được transactionId từ swapping.");
 
       console.log("Transaction ID from swapping:", transactionId);

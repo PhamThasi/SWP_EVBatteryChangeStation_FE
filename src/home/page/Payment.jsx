@@ -92,7 +92,7 @@ const Payment = () => {
       const paymentData = {
         price: totalPrice,
         method: paymentMethod,
-        paymentGateId: paymentGateId,       
+        paymentGateId: paymentGateId,
         createDate: new Date().toISOString(),
         subscriptionId: subscription.subscriptionId,
         transactionId: transactionId,
@@ -100,29 +100,25 @@ const Payment = () => {
 
       console.log("Create Payment API payload:", paymentData);
 
-      // 1️⃣ Tạo payment
+       // 1️⃣ Tạo payment
       const createRes = await axios.post("http://localhost:5204/api/Payment/create", paymentData);
-      
-      if (createRes?.data?.transactionId) {
-        const txnId = createRes.data.transactionId;
+      console.log("Response từ Backend:", createRes.data);
 
-        // 2️⃣ Lấy paymentId từ transactionId
-        const getPaymentRes = await axios.get(`http://localhost:5204/api/Payment/get-by-transaction/${txnId}`);
-        const paymentId = getPaymentRes?.data?.data?.paymentId;
-        console.log(" pay id", paymentId);
-        if (!paymentId) {
-          setError("Không lấy được payment ID");
-          setProcessing(false);
-          return;
-        }
+      // ⭐️ SỬA LỖI: Đọc 'paymentId' từ 'createRes.data.data' (dựa trên ServiceResult và PaymentRespondDto)
+      const paymentId = createRes?.data?.data?.paymentId;
+
+      if (paymentId) {
+        console.log("Lấy được paymentId thành công:", paymentId);
+
+        // 2️⃣ BỎ QUA BƯỚC "GET /get-by-transaction" không cần thiết
 
         // 3️⃣ Tạo VNPay URL
-        const vnPayRes = await axios.get(`http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`);
+        const vnPayRes = await axios.post(`http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`);
         const paymentUrl = vnPayRes?.data?.data;
         console.log("vnpay link:", paymentUrl);
-        if (!paymentUrl) {
+         if (!paymentUrl) {
           setError("Không tạo được link thanh toán VNPay");
-          setProcessing(false);
+          setProcessing(false); // Dừng lại nếu lỗi ở đây
           return;
         }
 
