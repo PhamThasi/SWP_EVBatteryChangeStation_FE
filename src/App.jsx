@@ -46,6 +46,7 @@ import StaffSupportPage from "./home/page/StaffSupportPage";
 import SuccessPage from "./home/page/Payment-success";
 import Payment from "./home/page/Payment";
 import ToastContainer from "./components/notification/ToastContainer";
+import FailedPage from "./home/page/Pyament-failed";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -161,6 +162,18 @@ function App() {
         { path: "feedback", element: <Feedback/> },        
         { path: "support", element: <StaffSupportPage/> },
       ],
+    },
+    {
+      path: "/payment-success",
+      element: (
+        <SuccessPage/>
+      ),
+    },
+    {
+      path: "/payment-failed",
+      element: (
+        <FailedPage/>
+      ),
     },
   ]);
   return (
