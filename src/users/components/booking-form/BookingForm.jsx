@@ -13,7 +13,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
     vehicleId: "",
     stationId: "",
     dateTime: "",
-    notes: "",
+    notes: "Battery transfer",
   });
   const [cars, setCars] = useState([]);
   const [stations, setStations] = useState([]);
@@ -191,13 +191,13 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Tài khoản</label>
-        <input
+        {/* <label className="block text-sm font-medium mb-1 text-[#001f54]">Tài khoản</label> */}
+        {/* <input
           className="border p-2 rounded-lg w-full bg-gray-100"
           type="text"
           value={bookingForm.accountId}
           disabled
-        />
+        /> */}
       </div>
 
       <div>

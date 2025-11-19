@@ -39,8 +39,8 @@ const Subscriptions = () => {
       }
 
       // If this specific subscription, go back to home
-      if (subscription.subscriptionId === "62851019-e0ef-496f-88af-9499867db183") {
-        navigate("/"); // home page
+      if (subscription?.name?.toLowerCase().includes("cơ bản")) {
+        navigate("/userPage");
         return;
       }
 

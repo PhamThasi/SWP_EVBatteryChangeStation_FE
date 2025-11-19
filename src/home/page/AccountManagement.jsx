@@ -279,7 +279,6 @@ const AccountManagement = () => {
                 <th>Address</th>
                 <th>Phone</th>
                 <th>Role</th>
-                <th>Station</th>
                 <th style={{ textAlign: "center" }}>Actions</th>
               </tr>
             </thead>
@@ -305,7 +304,6 @@ const AccountManagement = () => {
                       <td>{acc.address || "-"}</td>
                       <td>{acc.phoneNumber || "-"}</td>
                       <td>{roleName}</td>
-                      <td>{stationName}</td>
                       <td style={{ textAlign: "center" }}>
                         <button
                           className="update-btn"
