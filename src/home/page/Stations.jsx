@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
 import stationService from "@/api/stationService";
+import batteryService from "@/api/batteryService";
 import { vietmapService } from "@/api/vietmapService";
 import { MapPin, Navigation, Battery } from "lucide-react";
+import {
+  notifyError,
+  notifyWarning,
+} from "@/components/notification/notification";
 
 const Stations = () => {
   const API_KEY = import.meta.env.VITE_APP_VIETMAP_API_KEY;
@@ -10,6 +15,7 @@ const Stations = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [stations, setStations] = useState([]);
   const [stationsWithCoords, setStationsWithCoords] = useState([]);
+  const [batteryCounts, setBatteryCounts] = useState({});
   const [route, setRoute] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
   const [selectedStation, setSelectedStation] = useState(null);
@@ -45,6 +51,19 @@ const Stations = () => {
       try {
         const list = await stationService.getStationList();
         setStations(list);
+        
+        // Tính số pin cho mỗi trạm
+        const counts = {};
+        for (const station of list || []) {
+          try {
+            const count = await batteryService.getBatteryCountByStationId(station.stationId);
+            counts[station.stationId] = count;
+          } catch (err) {
+            console.warn(`Không thể đếm pin cho trạm ${station.stationId}:`, err);
+            counts[station.stationId] = 0;
+          }
+        }
+        setBatteryCounts(counts);
         
         const withCoords = await Promise.all(
           list.map(async (s) => {
@@ -117,14 +136,21 @@ const Stations = () => {
     try {
       const searchRes = await vietmapService.searchPlace(API_KEY, searchTerm, userLocation);
       const refid = searchRes?.[0]?.ref_id;
-      if (!refid) return alert("Không tìm thấy trạm phù hợp!");
+      if (!refid) {
+        notifyWarning("Không tìm thấy trạm phù hợp!");
+        return;
+      }
 
       const dest = await vietmapService.getPlaceByRef(API_KEY, refid);
-      if (!dest?.lat || !dest?.lng) return alert("Không tìm thấy tọa độ!");
+      if (!dest?.lat || !dest?.lng) {
+        notifyWarning("Không tìm thấy tọa độ của trạm này!");
+        return;
+      }
 
       destRef.current = { lat: dest.lat, lng: dest.lng };
       updateRoute(userLocation, destRef.current);
     } catch (err) {
+      notifyError("Không thể tìm trạm. Vui lòng thử lại!");
       console.error("Lỗi khi tìm trạm:", err);
     }
   };
@@ -153,12 +179,6 @@ const Stations = () => {
     } catch (err) {
       console.error("Lỗi khi cập nhật route:", err);
     }
-  };
-
-  // ========== FORM SEARCH ==========
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    findAndDrawRoute();
   };
 
   return (
@@ -279,7 +299,7 @@ const Stations = () => {
                         <div className="flex items-center gap-6 text-xl text-gray-500 mt-4">
                           <div className="flex items-center gap-2">
                             <Battery className="w-5 h-5" />
-                            <span>{station.batteryQuantity} pin</span>
+                            <span>{batteryCounts[station.stationId] ?? 0} pin</span>
                           </div>
                           {station.distance && (
                             <div className="flex items-center gap-2">

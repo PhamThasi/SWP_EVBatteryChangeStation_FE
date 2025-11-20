@@ -4,7 +4,12 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import parseISO from "date-fns/parseISO";
 import "../components/AdminStyle.css";
-import { formatDateTime } from "@/utils/dateFormat"; 
+import { formatDateTime } from "@/utils/dateFormat";
+import { notifySuccess, notifyError } from "@/components/notification/notification";
+import bookingService from "@/api/bookingService";
+import swappingService from "@/api/swappingService";
+import batteryService from "@/api/batteryService";
+import tokenUtils from "@/utils/tokenUtils";
 import axios from "axios";
 
 const locales = { "en-US": undefined };
@@ -46,40 +51,54 @@ const SchedulePage = () => {
   const [gridDate, setGridDate] = useState(null);
   const [gridEvents, setGridEvents] = useState([]);
   
-  const grouped = events.reduce((acc, e) => {
-  const date = e.start.toISOString().split("T")[0];
-    acc[date] = acc[date] || [];
-    acc[date].push(e);
-    return acc;
-  }, {});
   const handleShowMore = (dayEvents, date) => {
     setGridEvents(dayEvents);
     setGridDate(date);
     setShowGrid(true);
   };
   const fetchBookings = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(BASE_URL);
-        if (!res.ok) throw new Error("Failed to load bookings");
-        const result = await res.json();
-        const data = result.data || [];
+    setLoading(true);
+    try {
+      const result = await bookingService.selectAllBookings();
+      const data = result?.data || [];
 
-        const formattedEvents = data.map((b) => ({
+      const formattedEvents = data.map((b) => {
+        // Xác định màu sắc dựa trên isApproved
+        const isApprovedStatus = (b.isApproved || "Pending").toLowerCase();
+        let backgroundColor = "#2d89ef"; // Mặc định: xanh dương (Pending)
+        
+        switch (isApprovedStatus) {
+          case "approved":
+            backgroundColor = "#22c55e"; // Xanh lá
+            break;
+          case "rejected":
+            backgroundColor = "#ef4444"; // Đỏ
+            break;
+          case "canceled":
+            backgroundColor = "#6b7280"; // Xám
+            break;
+          default:
+            backgroundColor = "#2d89ef"; // Xanh dương (Pending)
+        }
+
+        return {
           id: b.bookingId,
           title: b.notes || `Booking #${b.bookingId}`,
           start: parseISO(b.dateTime),
           end: parseISO(b.dateTime),
           allDay: false,
-          resource: b,
-        }));
-        setEvents(formattedEvents);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+          resource: { ...b },
+          backgroundColor: backgroundColor,
+        };
+      });
+      setEvents(formattedEvents);
+    } catch (err) {
+      setError(err.message);
+      notifyError("Không thể tải danh sách booking!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {    
     fetchBookings();
@@ -87,49 +106,197 @@ const SchedulePage = () => {
   const handleCreateBooking = async (e) => {
     e.preventDefault();
     try {
-    //   const payload = {
-    //     ...formData,
-    //     dateTime: new Date(formData.dateTime).toISOString(),
-    //     createdDate: new Date().toISOString(),
-    //   };
-
-    //   console.log("Booking payload:", payload); // log the object
-    //  console.log("JSON body:", JSON.stringify(payload, null, 2)); 
-      const res = await fetch("http://localhost:5204/api/Booking/Create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        ...formData,
+      await bookingService.createBooking({
         dateTime: new Date(formData.dateTime).toISOString(),
-        createdDate: new Date().toISOString(),
+        notes: formData.notes || "Battery transfer",
+        stationId: formData.stationId,
+        vehicleId: formData.vehicleId,
+        accountId: formData.accountId,
         isApproved: formData.isApproved || "Pending",
-      }),
       });
-      if (!res.ok) throw new Error("Failed to create booking");
-      alert("Booking created successfully");
-      fetchBookings();
-      setIsCreating(false);
       
+      notifySuccess("Tạo booking thành công!");
+      await fetchBookings();
+      setIsCreating(false);
+      setFormData({
+        dateTime: "",
+        notes: "Battery transfer",
+        status: true,
+        isApproved: "Pending",
+        createdDate: new Date().toISOString(),
+        stationId: "",
+        vehicleId: "",
+        accountId: "",
+      });
     } catch (err) {
-      alert(err.message);
+      console.error("Error creating booking:", err);
+      notifyError("Tạo booking thất bại!");
     }
   };
+  // Approve booking - chỉ cho phép khi isApproved == "Pending"
+  const handleApproveBooking = async () => {
+    if (selectedBooking.isApproved !== "Pending") {
+      notifyError("Chỉ có thể duyệt booking đang ở trạng thái Pending!");
+      return;
+    }
+
+    try {
+      // Cập nhật booking thành "Approved"
+      const updatedBooking = {
+        ...selectedBooking,
+        isApproved: "Approved",
+        createdDate: selectedBooking.createdDate || new Date().toISOString(),
+      };
+
+      await bookingService.updateBooking(selectedBooking.bookingId, updatedBooking);
+      notifySuccess("Đã duyệt booking!");
+
+      // Tạo swapping transaction sau khi approve - sử dụng helper function
+      try {
+        // Lấy staffId từ token
+        const userData = tokenUtils.getUserData();
+        const staffId = userData?.accountId;
+        
+        if (!staffId) {
+          notifyError("Không thể lấy thông tin nhân viên!");
+          return;
+        }
+
+        // Sử dụng hàm helper để tự động lấy thông tin từ booking và tạo swapping
+        const swapResult = await swappingService.createSwappingFromBooking(
+          selectedBooking,
+          staffId,
+          {
+            notes: `Đổi pin cho booking ${selectedBooking.bookingId}`,
+            status: "Pending",
+            createDate: selectedBooking.dateTime || new Date().toISOString(),
+          }
+        );
+
+        notifySuccess(`Đã tạo giao dịch đổi pin thành công với pin loại ${swapResult.carData.batteryType}!`);
+      } catch (swappingError) {
+        console.error("Error creating swapping:", swappingError);
+        notifyError("Cập nhật booking thành công nhưng không thể tạo giao dịch đổi pin!");
+      }
+
+      setModalOpen(false);
+      await fetchBookings(); // Refresh danh sách để cập nhật màu
+    } catch (err) {
+      console.error("Error approving booking:", err);
+      notifyError("Duyệt booking thất bại!");
+    }
+  };
+
+  // Reject booking - chỉ cho phép khi isApproved == "Pending"
+  const handleRejectBooking = async () => {
+    if (selectedBooking.isApproved !== "Pending") {
+      notifyError("Chỉ có thể từ chối booking đang ở trạng thái Pending!");
+      return;
+    }
+
+    try {
+      const updatedBooking = {
+        ...selectedBooking,
+        isApproved: "Rejected",
+        createdDate: selectedBooking.createdDate || new Date().toISOString(),
+      };
+
+      await bookingService.updateBooking(selectedBooking.bookingId, updatedBooking);
+      notifySuccess("Đã từ chối booking!");
+      setModalOpen(false);
+      await fetchBookings(); // Refresh danh sách để cập nhật màu
+    } catch (err) {
+      console.error("Error rejecting booking:", err);
+      notifyError("Từ chối booking thất bại!");
+    }
+  };
+
+  // Update booking (cho các trường hợp khác)
   const handleUpdateBooking = async () => {
     try {
-      const res = await fetch(`http://localhost:5204/api/Booking/Update/${selectedBooking.bookingId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...selectedBooking,
-          isApproved: selectedBooking.isApproved || "Pending",
-          createdDate: selectedBooking.createdDate || new Date().toISOString(),
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to update booking");
-      alert("Booking updated successfully");
+      const updatedBooking = {
+        ...selectedBooking,
+        isApproved: selectedBooking.isApproved || "Pending",
+        createdDate: selectedBooking.createdDate || new Date().toISOString(),
+      };
+
+      await bookingService.updateBooking(selectedBooking.bookingId, updatedBooking);
+      notifySuccess("Cập nhật booking thành công!");
       setModalOpen(false);
+      await fetchBookings();
     } catch (err) {
-      alert(err.message);
+      console.error("Error updating booking:", err);
+      notifyError("Cập nhật booking thất bại!");
+    }
+  };
+
+  // Handle swap battery - chỉ cho phép khi booking đã được approve
+  const handleSwapBattery = async () => {
+    try {
+      const userData = tokenUtils.getUserData();
+      const staffId = userData?.accountId;
+
+      if (!staffId) {
+        notifyError("Không thể lấy thông tin nhân viên!");
+        return;
+      }
+
+      // Kiểm tra booking phải ở trạng thái "Approved"
+      if (selectedBooking.isApproved !== "Approved") {
+        notifyError("Chỉ có thể đổi pin khi booking đã được xác nhận (Approved)!");
+        return;
+      }
+
+      // 1. Tìm swapping transaction đã tồn tại (được tạo khi approve)
+      const allSwappings = await swappingService.getAllSwapping();
+      const existingSwapping = allSwappings.find(
+        (s) =>
+          s.vehicleId === selectedBooking.vehicleId &&
+          s.createDate === selectedBooking.dateTime
+      );
+
+      if (!existingSwapping) {
+        notifyError("Không tìm thấy giao dịch đổi pin! Vui lòng kiểm tra lại.");
+        return;
+      }
+
+      // 2. Cập nhật swapping status thành "Finish"
+      await swappingService.updateSwapping({
+        ...existingSwapping,
+        status: "Finish",
+        stationId: selectedBooking.stationId,
+      });
+
+      // 3. Cập nhật pin thành used (status = false) để trigger -1 pin
+      if (existingSwapping.newBatteryId) {
+        try {
+          const battery = await batteryService.getBatteryById(existingSwapping.newBatteryId);
+          if (battery) {
+            await batteryService.updateBattery(existingSwapping.newBatteryId, {
+              ...battery,
+              status: false,
+              lastUsed: new Date().toISOString(),
+            });
+          }
+        } catch (batteryError) {
+          console.warn("Could not update battery status:", batteryError);
+          // Không block flow nếu không update được battery
+        }
+      }
+
+      // 4. Cập nhật booking → Swapped
+      await bookingService.updateBooking(selectedBooking.bookingId, {
+        ...selectedBooking,
+        isApproved: "Swapped",
+        createdDate: selectedBooking.createdDate || new Date().toISOString(),
+      });
+
+      notifySuccess("Đổi pin thành công!");
+      setModalOpen(false);
+      fetchBookings();
+    } catch (err) {
+      console.error(err);
+      notifyError("Lỗi đổi pin!");
     }
   };
 
@@ -167,10 +334,10 @@ const SchedulePage = () => {
 
   const handleEventClick = async (event) => {
     try {
-      const bookingRes = await fetch(`${DETAIL_URL}${event.id}`);
-      if (!bookingRes.ok) throw new Error("Failed to fetch booking details");
-      const bookingResult = await bookingRes.json();
-      const bookingData = bookingResult.data;
+      const bookingResult = await bookingService.getBookingById(event.id);
+      const bookingData = bookingResult?.data;
+
+      if (!bookingData) throw new Error("Failed to fetch booking details");
 
       // Fetch car, station, and owner in parallel
       const [carRes, stationRes, ownerRes] = await Promise.all([
@@ -191,13 +358,14 @@ const SchedulePage = () => {
         ...bookingData,
         carModel: carData?.model || "Unknown",
         stationName: stationData?.address || `Station #${bookingData.stationId}`,
+        stationId: bookingData.stationId,
         customerName: ownerData?.fullName || "Unknown Customer",
       });
 
       setModalOpen(true);
     } catch (err) {
       console.error(err);
-      alert("Error loading booking details");
+      notifyError("Không thể tải chi tiết booking!");
     }
   };
 
@@ -233,9 +401,9 @@ const SchedulePage = () => {
         defaultView="month"
         views={["month"]}
         style={{ height: "70vh" }}
-        eventPropGetter={() => ({
+        eventPropGetter={(event) => ({
           style: {
-            backgroundColor: "#2d89ef",
+            backgroundColor: event.backgroundColor || "#2d89ef",
             borderRadius: "5px",
             color: "white",
             border: "none",
@@ -257,6 +425,7 @@ const SchedulePage = () => {
             <p><strong>Vehicle:</strong> {selectedBooking.carModel}</p>
             <p><strong>Time and Date:</strong> {formatDateTime(selectedBooking.dateTime)}</p>
             <p><strong>Notes:</strong> {selectedBooking.notes || "None"}</p>
+            
             <label>Status (isApproved)</label>
             <select
               value={selectedBooking.isApproved || "Pending"}
@@ -264,14 +433,37 @@ const SchedulePage = () => {
                 setSelectedBooking({ ...selectedBooking, isApproved: e.target.value })
               }
               className="modal-select"
+              disabled={selectedBooking.isApproved !== "Pending"}
             >
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
               <option value="Canceled">Canceled</option>
             </select>
-            <div className="modal-actions">              
-              <button className="batupdate-btn" onClick={handleUpdateBooking}>Update</button>
+            <div className="modal-actions">
+              {/* Chỉ hiển thị nút Duyệt/Từ chối khi booking đang ở trạng thái Pending */}
+              {selectedBooking.isApproved === "Pending" && (
+                <>
+                  <button className="save-btn" onClick={handleApproveBooking}>
+                    ✓ Duyệt
+                  </button>
+                  <button className="delete-btn" onClick={handleRejectBooking}>
+                    ✕ Từ chối
+                  </button>
+                </>
+              )}
+              {/* Nút Đổi pin khi booking đã được approve */}
+              {selectedBooking.isApproved === "Approved" && (
+                <button className="save-btn" onClick={handleSwapBattery}>
+                  🔋 Đổi pin
+                </button>
+              )}
+              {/* Nút Update cho các trường hợp khác */}
+              {selectedBooking.isApproved !== "Pending" && selectedBooking.isApproved !== "Approved" && (
+                <button className="batupdate-btn" onClick={handleUpdateBooking}>
+                  Update Booking
+                </button>
+              )}
               <button className="cancel-btn" onClick={() => setModalOpen(false)}>Close</button>
             </div>
           </div>

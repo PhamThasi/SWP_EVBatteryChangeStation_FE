@@ -2,7 +2,6 @@ import axiosClient from "./axiosClient";
 
 const subcriptionService = {
   getSubscriptions: async () => {
-    // eslint-disable-next-line no-useless-catch
     try {
       const response = await axiosClient.get("/Subscription/SelectAll");
       return response.data;
@@ -11,14 +10,50 @@ const subcriptionService = {
       throw error;
     }
   },
+  
+  // Lấy chỉ các subscriptions đang active (dùng cho user)
+  getActiveSubscriptions: async () => {
+    try {
+      const response = await axiosClient.get("/Subscription/SelectAll");
+      const allSubscriptions = response.data?.data || [];
+      // Filter chỉ lấy subscriptions có isActive === true
+      return {
+        ...response.data,
+        data: allSubscriptions.filter((sub) => sub.isActive === true),
+      };
+    } catch (error) {
+      console.error("Error fetching active subscriptions:", error);
+      throw error;
+    }
+  },
+  
   createSubscription: async (subscription) => {
-    // eslint-disable-next-line no-useless-catch
     try {
       const response = await axiosClient.post("/Subscription/Create", subscription);
       return response.data;
     } catch (error) {
       console.error("Error creating subscription:", error);
-      throw error;  
+      throw error;
+    }
+  },
+  
+  updateSubscription: async (subscriptionId, subscription) => {
+    try {
+      const response = await axiosClient.put(`/Subscription/Update/${subscriptionId}`, subscription);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      throw error;
+    }
+  },
+  
+  deleteSubscription: async (subscriptionId) => {
+    try {
+      const response = await axiosClient.delete(`/Subscription/SoftDelete/${subscriptionId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting subscription:", error);
+      throw error;
     }
   },
 };

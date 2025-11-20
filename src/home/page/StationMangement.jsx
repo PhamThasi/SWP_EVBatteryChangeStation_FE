@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useCallback, useEffect, useState } from "react";
+import { notifyError, notifySuccess } from "@/components/notification/notification";
+import stationSevice from "@/api/stationService";
+import batteryService from "@/api/batteryService";
 import "../components/AdminStyle.css";
 
-const   StationManagement = () => {
+const StationManagement = () => {
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,35 +15,71 @@ const   StationManagement = () => {
     phoneNumber: "",
     status: true,
     accountName: "",
-    batteryQuantity: 0,
   });
+  const [batteryCounts, setBatteryCounts] = useState({});
 
-  const BASE_URL = "http://localhost:5204/api/Station";
+  const extractMessage = useCallback(
+    (error, fallback) =>
+      error?.response?.data?.message ||
+      error?.response?.data?.title ||
+      (typeof error?.response?.data === "string" ? error.response.data : "") ||
+      error?.message ||
+      fallback,
+    []
+  );
 
-  // Fetch all stations
-  const fetchStations = async (suppressError = false) => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${BASE_URL}/SelectAll`);
-      setStations(res.data?.data || []);
-    } catch (err) {
-      console.error("Fetch stations failed", {
-        url: `${BASE_URL}/SelectAll`,
-        status: err?.response?.status,
-        data: err?.response?.data,
-        message: err?.message,
-      });
-      if (!suppressError) {
-        setError(err.message);
+  const resolveMessage = useCallback((response, fallback) => {
+    if (!response) return fallback;
+    if (typeof response === "string") return response || fallback;
+    return (
+      response?.message ||
+      response?.Message ||
+      response?.data?.message ||
+      response?.data?.Message ||
+      fallback
+    );
+  }, []);
+
+  // Fetch all stations và tính số pin động
+  const fetchStations = useCallback(
+    async (suppressError = false) => {
+      setLoading(true);
+      try {
+        const data = await stationSevice.getStationList();
+        setStations(data || []);
+
+        // Tính số pin cho mỗi trạm
+        const counts = {};
+        for (const station of data || []) {
+          try {
+            const count = await batteryService.getBatteryCountByStationId(station.stationId);
+            counts[station.stationId] = count;
+          } catch (err) {
+            console.warn(`Không thể đếm pin cho trạm ${station.stationId}:`, err);
+            counts[station.stationId] = 0;
+          }
+        }
+        setBatteryCounts(counts);
+      } catch (err) {
+        console.error("Fetch stations failed", {
+          status: err?.response?.status,
+          data: err?.response?.data,
+          message: err?.message,
+        });
+        if (!suppressError) {
+          setError(err.message);
+          notifyError(extractMessage(err, "Không thể tải danh sách trạm!"));
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [extractMessage]
+  );
 
   useEffect(() => {
     fetchStations();
-  }, []);
+  }, [fetchStations]);
 
   // Open modal (add or update)
   const openModal = (station = null) => {
@@ -53,7 +91,6 @@ const   StationManagement = () => {
         phoneNumber: station.phoneNumber || "",
         status: station.status ?? true,
         accountName: station.accountName || "",
-        batteryQuantity: station.batteryQuantity || 0,
       });
     } else {
       setEditingStation(null);
@@ -62,7 +99,6 @@ const   StationManagement = () => {
         phoneNumber: "",
         status: true,
         accountName: "",
-        batteryQuantity: 0,
       });
     }
   };
@@ -78,46 +114,45 @@ const   StationManagement = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "status"
-          ? value === "true"
-          : name === "batteryQuantity"
-          ? parseInt(value) || 0
-          : value,
+      [name]: name === "status" ? value === "true" : value,
     }));
   };
 
   // Save (Add or Update)
   const handleSave = async () => {
-    const url = editingStation ? `${BASE_URL}/Update` : `${BASE_URL}/Create`;
-
     const payload = editingStation
       ? { stationId: editingStation.stationId, ...formData }
       : { ...formData };
 
+    // Không gửi batteryQuantity vì nó được tính động từ BatteryManagement
+    delete payload.batteryQuantity;
+
     try {
-      const res = await axios.post(url, payload);
-      if (res?.status >= 200 && res?.status < 300) {
-        alert(editingStation ? "Cập nhật trạm thành công" : "Thêm trạm thành công");
-      } else {
-        alert("Yêu cầu đã gửi nhưng phản hồi bất thường: " + res?.status);
-      }
+      const result = editingStation
+        ? await stationSevice.updateStation(editingStation.stationId, payload)
+        : await stationSevice.createStation(payload);
+
+      notifySuccess(
+        resolveMessage(
+          result,
+          editingStation ? "Cập nhật trạm thành công" : "Thêm trạm thành công"
+        )
+      );
     } catch (err) {
       console.error("Save station failed", {
-        url,
         payload,
         status: err?.response?.status,
         data: err?.response?.data,
         message: err?.message,
       });
-        const serverMsg =
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        (typeof err?.response?.data === "string" ? err.response.data : "");
-      alert(
-        "station message: " +
-          (err?.response?.status ? `${err.response.status} ` : "") +
-          (serverMsg || err.message)
+      const message = extractMessage(
+        err,
+        editingStation ? "Cập nhật trạm thất bại!" : "Thêm trạm thất bại!"
+      );
+      notifyError(
+        `${editingStation ? "Update" : "Create"} station: ${
+          err?.response?.status ? `${err.response?.status} ` : ""
+        }${message}`
       );
     } finally {
       // Even if server replied 400 but actually inserted, still refresh list
@@ -128,18 +163,20 @@ const   StationManagement = () => {
   const handleDelete = async (stationId) => {
     if (!window.confirm("Are you sure you want to delete this station?")) return;
     try {
-      // Use hard delete endpoint with path parameter
-      await axios.delete(`${BASE_URL}/HardDelete/${stationId}`);
-      alert("Xóa trạm thành công");
+      const result = await stationSevice.deleteStation(stationId);
+      notifySuccess(resolveMessage(result, "Xóa trạm thành công"));
       await fetchStations();
     } catch (err) {
       console.error("Delete station failed", {
-        url: `${BASE_URL}/HardDelete/${stationId}`,
         status: err?.response?.status,
         data: err?.response?.data,
         message: err?.message,
       });
-      alert("Failed to delete station: " + (err?.response?.status ? `${err.response.status} ` : "") + err.message);
+      notifyError(
+        "Xóa trạm thất bại: " +
+          (err?.response?.status ? `${err.response.status} ` : "") +
+          extractMessage(err, err.message)
+      );
     }
   };
 
@@ -188,7 +225,7 @@ const   StationManagement = () => {
                   <td>{station.phoneNumber}</td>
                   <td>{station.status ? "Active" : "Inactive"}</td>
                   <td>{station.accountName}</td>
-                  <td>{station.batteryQuantity}</td>
+                  <td>{batteryCounts[station.stationId] ?? "Đang tải..."}</td>
                   <td style={{ textAlign: "center" }}>
                     <button
                       className="batupdate-btn"
@@ -236,13 +273,6 @@ const   StationManagement = () => {
                 name="accountName"
                 placeholder="Account Name"
                 value={formData.accountName}
-                onChange={handleChange}
-              />
-              <input
-                type="number"
-                name="batteryQuantity"
-                placeholder="Battery Quantity"
-                value={formData.batteryQuantity}
                 onChange={handleChange}
               />
               <select

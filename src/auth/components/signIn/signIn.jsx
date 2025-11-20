@@ -4,36 +4,26 @@ import Button from "../../../components/button";
 import { notifySuccess, notifyError } from "@/components/notification/notification";
 import authService from "@/api/authService";
 import tokenUtils from "@/utils/tokenUtils";
+import roleService from "@/api/roleService";
 import "./signIn.css";
 
-const ROLE_ID_ROUTE = {
-  "cde0b58d-9e49-4b2b-8ef2-d991d07af541": "/admin",    // admin
-  "5dc92b82-be9e-4614-88f5-cc393bbdae7a": "/staff",    // staff
-  "5109c33d9596ba845b28-74bd-4fe6-b1a3-5109c33d9596": "/userPage", // customer
-};
-
-const getRedirectPath = (user) => {
+const getRedirectPath = async (user) => {
   if (!user) return "/userPage";
 
-  // Ưu tiên theo roleId (UUID)
-  const id = typeof user.roleId === "string" ? user.roleId.toLowerCase() : "";
-  if (id && ROLE_ID_ROUTE[id]) return ROLE_ID_ROUTE[id];
-
-  // Fallback theo tên role (nếu BE trả role/roleName dạng text)
-  const name =
-    typeof user.roleName === "string"
-      ? user.roleName.toLowerCase()
-      : typeof user.role === "string"
-      ? user.role.toLowerCase()
-      : "";
-
-  switch (name) {
-    case "admin":
-      return "/admin";
-    case "staff":
-      return "/staff";
-    default:
-      return "/userPage";
+  try {
+    const roleName = user.roleName || user.role || "";
+    const roleId = user.roleId || "";
+    
+    // Sử dụng roleService để lấy redirect path
+    const redirectPath = await roleService.getRedirectPathByRole(roleName, roleId);
+    return redirectPath;
+  } catch (error) {
+    console.error("Error getting redirect path:", error);
+    // Fallback về default route
+    const roleName = (user.roleName || user.role || "").toLowerCase();
+    if (roleName === "admin") return "/admin";
+    if (roleName === "staff") return "/staff";
+    return "/userPage";
   }
 };
 
@@ -47,7 +37,8 @@ const SignIn = () => {
       if (tokenUtils.isLoggedIn()) {
         const userData = tokenUtils.getUserData();
         if (userData) {
-          navigate(getRedirectPath(userData));
+          const redirectPath = await getRedirectPath(userData);
+          navigate(redirectPath);
         }
       }
     };
@@ -74,7 +65,8 @@ const SignIn = () => {
       }
 
       notifySuccess(`Xin chào ${userProfile.fullName || "User"}!`);
-      navigate(getRedirectPath(userProfile)); // ✅ dùng đúng hàm
+      const redirectPath = await getRedirectPath(userProfile);
+      navigate(redirectPath);
     } catch (err) {
       console.error("Login failed:", err);
       notifyError(err?.response?.data?.message || "Sai tài khoản hoặc mật khẩu!");

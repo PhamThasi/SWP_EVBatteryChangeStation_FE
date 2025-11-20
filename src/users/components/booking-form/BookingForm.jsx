@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
 import axiosClient from "@/api/axiosClient";
-import { useNavigate } from "react-router-dom";
+import { notifyWarning, notifySuccess } from "@/components/notification/notification";
 
 
 
@@ -23,8 +23,6 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   const updateField = (field) => {
     setBookingForm((prev) => ({ ...prev, ...field }));
   };
-
-  const navigate = useNavigate();
 
   const decodeAccountIdFromToken = () => {
     try {
@@ -69,7 +67,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
         const stationList = res?.data?.data || [];
         const mappedStations = stationList.map((s) => ({
           id: s.stationId,
-          label: s.accountName || s.stationName || s.address,
+          label: s.address || s.stationName || s.accountName,
         }));
         setStations(mappedStations);
         // Set station mặc định nếu chưa có
@@ -97,6 +95,8 @@ const BookingForm = ({ onSuccess, onCancel }) => {
     }
     try {
       setSubmitting(true);
+      // Chỉ tạo booking, không tạo swapping ngay
+      // Swapping sẽ được tạo khi staff approve booking
       await bookingService.createBooking({
         dateTime: bookingForm.dateTime,
         notes: bookingForm.notes,
@@ -178,11 +178,13 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       // 7️⃣ Redirect to subscription page with transactionId
       navigate("/userPage/subscriptions", { state: { transactionId } });
 
-      if (onSuccess) onSuccess();
+>>>>>>> c9bfddccae12a545bb7b3f0273d0e6ebe51b7358
 
+      notifySuccess("Đặt lịch thành công! Vui lòng chờ staff xác nhận.");
+      if (onSuccess) onSuccess();
     } catch (e) {
-      console.error("Booking or swapping error:", e);
-      alert("Không thể hoàn tất đặt lịch và swapping.");
+      console.error("Booking error:", e);
+      notifyWarning("Không thể tạo đặt lịch. Vui lòng thử lại!");
     } finally {
       setSubmitting(false);
     }
@@ -190,6 +192,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
+
       <div>
         {/* <label className="block text-sm font-medium mb-1 text-[#001f54]">Tài khoản</label> */}
         {/* <input
@@ -199,6 +202,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
           disabled
         /> */}
       </div>
+
 
       <div>
         <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn xe</label>
@@ -214,7 +218,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn trạm</label>
+        <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn địa chỉ trạm</label>
         <select
           className="border p-2 rounded-lg w-full"
           value={bookingForm.stationId}

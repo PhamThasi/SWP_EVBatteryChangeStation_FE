@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-const API_BASE = "http://localhost:5204/api/Subscription";
+import { notifySuccess, notifyError } from "@/components/notification/notification";
+import subcriptionService from "@/api/subcriptionService";
 
 const AdminSubManage = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -20,11 +18,12 @@ const AdminSubManage = () => {
 
   const fetchSubscriptions = async () => {
     try {
-      const res = await fetch(`${API_BASE}/SelectAll`);
-      const json = await res.json();
-      setSubscriptions(json.data || []);
-    } catch {
-      toast.error("Failed to load subscriptions");
+      const res = await subcriptionService.getSubscriptions();
+      // Admin thấy tất cả subscriptions (cả active và inactive)
+      setSubscriptions(res?.data || []);
+    } catch (error) {
+      notifyError("Không thể tải danh sách gói dịch vụ!");
+      console.error("Error fetching subscriptions:", error);
     }
   };
 
@@ -47,36 +46,31 @@ const AdminSubManage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const method = isEditing ? "PUT" : "POST";
-    const url = isEditing
-      ? `${API_BASE}/Update/${form.subscriptionId}`
-      : `${API_BASE}/Create`;
-
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      if (!res.ok) throw new Error();
+      if (isEditing) {
+        await subcriptionService.updateSubscription(form.subscriptionId, form);
+        notifySuccess("Cập nhật gói dịch vụ thành công!");
+      } else {
+        await subcriptionService.createSubscription(form);
+        notifySuccess("Tạo gói dịch vụ thành công!");
+      }
       await fetchSubscriptions();
-      toast.success(isEditing ? "Subscription updated" : "Subscription created");
       closeModal();
-    } catch {
-      toast.error("Operation failed");
+    } catch (error) {
+      notifyError(isEditing ? "Cập nhật thất bại!" : "Tạo gói dịch vụ thất bại!");
+      console.error("Error saving subscription:", error);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this subscription?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa gói dịch vụ này?")) return;
     try {
-      const res = await fetch(`${API_BASE}/SoftDelete/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      fetchSubscriptions();
-      toast.success("Subscription deleted");
-    } catch {
-      toast.error("Delete failed");
+      await subcriptionService.deleteSubscription(id);
+      notifySuccess("Xóa gói dịch vụ thành công!");
+      await fetchSubscriptions();
+    } catch (error) {
+      notifyError("Xóa gói dịch vụ thất bại!");
+      console.error("Error deleting subscription:", error);
     }
   };
 
@@ -101,7 +95,6 @@ const AdminSubManage = () => {
 
   return (
     <div className="min-h-screen bg-white px-6 md:px-32 pt-32 text-gray-800 font-inter">
-      <ToastContainer position="top-right" autoClose={2500} />
 
       {/* Title */}
       <h1 className="text-3xl font-semibold text-center border-b-2 border-blue-600 pb-2 mb-10">
