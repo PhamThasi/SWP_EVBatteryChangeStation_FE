@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
@@ -10,7 +10,9 @@ import bookingService from "@/api/bookingService";
 import swappingService from "@/api/swappingService";
 import batteryService from "@/api/batteryService";
 import tokenUtils from "@/utils/tokenUtils";
-import axios from "axios";
+import authService from "@/api/authService";
+import carService from "@/api/carService";
+import stationSevice from "@/api/stationService";
 
 const locales = { "en-US": undefined };
 const localizer = dateFnsLocalizer({
@@ -30,9 +32,8 @@ const SchedulePage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [stations, setStations] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [filteredAccounts, setFilteredAccounts] = useState([]);
   const [cars, setCars] = useState([]);
-  const [accountSearch, setAccountSearch] = useState("");
+  const [accountInput, setAccountInput] = useState("");
 
   const BASE_URL = "http://localhost:5204/api/Booking/SelectAll";
   const DETAIL_URL = "http://localhost:5204/api/Booking/Select/";
@@ -106,8 +107,18 @@ const SchedulePage = () => {
   const handleCreateBooking = async (e) => {
     e.preventDefault();
     try {
+      const selectedDate = new Date(formData.dateTime);
+      if (isNaN(selectedDate.getTime()) || selectedDate <= new Date()) {
+        notifyError("Thời gian đặt lịch phải ở tương lai!");
+        return;
+      }
+      if (!formData.accountId) {
+        notifyError("Vui lòng chọn tài khoản khách hàng hợp lệ!");
+        return;
+      }
+
       await bookingService.createBooking({
-        dateTime: new Date(formData.dateTime).toISOString(),
+        dateTime: selectedDate.toISOString(),
         notes: formData.notes || "Battery transfer",
         stationId: formData.stationId,
         vehicleId: formData.vehicleId,
@@ -128,6 +139,7 @@ const SchedulePage = () => {
         vehicleId: "",
         accountId: "",
       });
+      setAccountInput("");
     } catch (err) {
       console.error("Error creating booking:", err);
       notifyError("Tạo booking thất bại!");
@@ -300,34 +312,49 @@ const SchedulePage = () => {
     }
   };
 
-  const handleAccountSearch = (query) => {
-    if (!query) return setFilteredAccounts([]);
-    const filtered = accounts.filter(acc =>
-      acc.fullName.toLowerCase().includes(query.toLowerCase())
+  const accountLabel = useMemo(
+    () => (account) =>
+      `${account.fullName || account.accountName || "Unknown"}${
+        account.email ? ` (${account.email})` : ""
+      }`,
+    []
+  );
+
+  const handleAccountInputChange = (value) => {
+    setAccountInput(value);
+    const matchedAccount = accounts.find(
+      (acc) => accountLabel(acc).toLowerCase() === value.toLowerCase()
     );
-    setFilteredAccounts(filtered);
+    setFormData((prev) => ({
+      ...prev,
+      accountId: matchedAccount?.accountId || "",
+    }));
   };
-  const handleFetchCars = async () => {
-    try {
-      const res = await axios.get("http://localhost:5204/api/Car/GetAllCar");
-      setCars(res.data.data || []);
-    } catch {
-      setCars([]);
-    }
+
+  const normalizeArray = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data?.data)) return payload.data.data;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
   };
 
   const handleOpenCreateModal = async () => {
     setIsCreating(true);
     try {
-      const [stationRes, accountRes] = await Promise.all([
-        axios.get("http://localhost:5204/api/Station/SelectAll"),
-        axios.get("http://localhost:5204/api/Account/GetAll"),
+      const [stationRes, accountRes, carRes] = await Promise.all([
+        stationSevice.getStationList(),
+        authService.getAll(),
+        carService.getAllCars(),
       ]);
-      setStations(stationRes.data.data || []);
-      setAccounts(accountRes.data.data || []);
-    } catch {
+
+      setStations(normalizeArray(stationRes));
+      setAccounts(normalizeArray(accountRes));
+      setCars(normalizeArray(carRes));
+    } catch (err) {
+      console.error("Failed to fetch data for booking form:", err);
       setStations([]);
       setAccounts([]);
+      setCars([]);
     }
   };
 
@@ -370,14 +397,15 @@ const SchedulePage = () => {
   };
 
 
-  if (loading) return <p>Loading bookings...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p>Đang tải danh sách lịch hẹn...</p>;
+  if (error) return <p>Lỗi: {error}</p>;
 
   return (
     <div className="admin-dashboard">
-      <h2 className="dashboard-title">Booking Schedule        
+      <h2 className="dashboard-title">
+        Lịch đặt lịch đổi pin
       </h2>
-      <button className="save-btn" onClick={handleOpenCreateModal}>+ Create Booking</button>
+      <button className="save-btn" onClick={handleOpenCreateModal}>+ Tạo lịch hẹn</button>
       {showGrid ? (
     <div className="event-box-view">
       <button className="cancel-btn" onClick={() => setShowGrid(false)}>← Back to Calendar</button>
@@ -419,14 +447,14 @@ const SchedulePage = () => {
       {modalOpen && selectedBooking && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Booking Details</h2>
-            <p><strong>Customer:</strong> {selectedBooking.customerName}</p>
-            <p><strong>Station:</strong> {selectedBooking.stationName}</p>
-            <p><strong>Vehicle:</strong> {selectedBooking.carModel}</p>
-            <p><strong>Time and Date:</strong> {formatDateTime(selectedBooking.dateTime)}</p>
-            <p><strong>Notes:</strong> {selectedBooking.notes || "None"}</p>
+            <h2>Chi tiết lịch hẹn</h2>
+            <p><strong>Khách hàng:</strong> {selectedBooking.customerName}</p>
+            <p><strong>Trạm:</strong> {selectedBooking.stationName}</p>
+            <p><strong>Xe:</strong> {selectedBooking.carModel}</p>
+            <p><strong>Thời gian:</strong> {formatDateTime(selectedBooking.dateTime)}</p>
+            <p><strong>Ghi chú:</strong> {selectedBooking.notes || "Không có"}</p>
             
-            <label>Status (isApproved)</label>
+            <label>Trạng thái (isApproved)</label>
             <select
               value={selectedBooking.isApproved || "Pending"}
               onChange={(e) =>
@@ -461,10 +489,10 @@ const SchedulePage = () => {
               {/* Nút Update cho các trường hợp khác */}
               {selectedBooking.isApproved !== "Pending" && selectedBooking.isApproved !== "Approved" && (
                 <button className="batupdate-btn" onClick={handleUpdateBooking}>
-                  Update Booking
+                  Cập nhật lịch
                 </button>
               )}
-              <button className="cancel-btn" onClick={() => setModalOpen(false)}>Close</button>
+              <button className="cancel-btn" onClick={() => setModalOpen(false)}>Đóng</button>
             </div>
           </div>
         </div>
@@ -475,51 +503,41 @@ const SchedulePage = () => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Create Booking</h2>
             <form className="modal-form" onSubmit={handleCreateBooking}>
-              <label>Date Time</label>
+              <label>Ngày giờ</label>
               <input
                 type="datetime-local"
                 value={formData.dateTime}
                 onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
+                min={new Date(Date.now() + 60 * 1000).toISOString().slice(0, 16)}
                 required
               />
-              {/* Account search */}
-              <label>Account</label>
+              {/* Account search + select */}
+              <label>Tài khoản khách hàng</label>
               <input
                 type="text"
-                placeholder="Search by full name"
-                value={accountSearch}
-                onChange={(e) => {
-                  setAccountSearch(e.target.value);
-                  handleAccountSearch(e.target.value);
-                }}
+                placeholder="Gõ để tìm khách hàng"
+                list="account-options"
+                value={accountInput}
+                onChange={(e) => handleAccountInputChange(e.target.value)}
                 required
               />
-              {filteredAccounts.length > 0 && (
-                <ul className="dropdown-list">
-                  {filteredAccounts.map((acc) => (
-                    <li
-                      key={acc.accountId}
-                      onClick={() => {
-                        setFormData({ ...formData, accountId: acc.accountId });
-                        setAccountSearch(acc.fullName);
-                        setFilteredAccounts([]);
-                        handleFetchCars(acc.accountId);
-                      }}
-                    >
-                      {acc.fullName}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <datalist id="account-options">
+                {accounts.map((acc) => (
+                  <option key={acc.accountId} value={accountLabel(acc)} />
+                ))}
+              </datalist>
+              <small className="helper-text">
+                Chọn khách hàng từ danh sách hoặc gõ để lọc.
+              </small>
 
               {/* Car selection */}
-              <label>Vehicle</label>
+              <label>Xe</label>
               <select
                 value={formData.vehicleId}
                 onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
                 required
               >
-                <option value="">Select a Car</option>
+                <option value="">Chọn xe</option>
                 {cars.map((car) => (
                   <option key={car.vehicleId} value={car.vehicleId}>
                     {car.model}
@@ -528,13 +546,13 @@ const SchedulePage = () => {
               </select>
               
               {/* Station selection */}
-              <label>Station</label>
+              <label>Trạm</label>
               <select
                 value={formData.stationId}
                 onChange={(e) => setFormData({ ...formData, stationId: e.target.value })}
                 required
               >
-                <option value="">Select a Station</option>
+                <option value="">Chọn trạm</option>
                 {stations.map((station) => (
                   <option key={station.stationId} value={station.stationId}>
                     {station.address}
@@ -543,26 +561,26 @@ const SchedulePage = () => {
               </select>
               
 
-              <label>Notes</label>
+              <label>Ghi chú</label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               />
-              <label>Status (isApproved)</label>
+              <label>Trạng thái (isApproved)</label>
               <select
                 value={formData.isApproved}
                 onChange={(e) => setFormData({ ...formData, isApproved: e.target.value })}
                 required
               >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-                <option value="Canceled">Canceled</option>
+                <option value="Pending">Chờ duyệt</option>
+                <option value="Approved">Đã duyệt</option>
+                <option value="Rejected">Từ chối</option>
+                <option value="Canceled">Hủy</option>
               </select>
 
               <div className="modal-actions">
-                <button type="submit" className="save-btn">Save</button>
-                <button type="button" className="cancel-btn" onClick={() => setIsCreating(false)}>Cancel</button>
+                <button type="submit" className="save-btn">Lưu</button>
+                <button type="button" className="cancel-btn" onClick={() => setIsCreating(false)}>Hủy</button>
               </div>
             </form>
           </div>

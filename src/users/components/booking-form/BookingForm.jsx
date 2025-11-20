@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
 import axiosClient from "@/api/axiosClient";
-import { notifyWarning, notifySuccess } from "@/components/notification/notification";
-
-
+import {
+  notifyWarning,
+  notifySuccess,
+} from "@/components/notification/notification";
 
 const BookingForm = ({ onSuccess, onCancel }) => {
+  const navigate = useNavigate();
   // Form state được gộp thành 1 object
   const [bookingForm, setBookingForm] = useState({
     accountId: "",
@@ -72,7 +75,10 @@ const BookingForm = ({ onSuccess, onCancel }) => {
         setStations(mappedStations);
         // Set station mặc định nếu chưa có
         if (mappedStations.length > 0 && !bookingForm.stationId) {
-          setBookingForm((prev) => ({ ...prev, stationId: mappedStations[0].id }));
+          setBookingForm((prev) => ({
+            ...prev,
+            stationId: mappedStations[0].id,
+          }));
         }
       } catch (e) {
         console.error("Load stations error", e);
@@ -84,7 +90,12 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   }, []);
 
   const canSubmit = useMemo(() => {
-    return bookingForm.accountId && bookingForm.vehicleId && bookingForm.stationId && bookingForm.dateTime;
+    return (
+      bookingForm.accountId &&
+      bookingForm.vehicleId &&
+      bookingForm.stationId &&
+      bookingForm.dateTime
+    );
   }, [bookingForm]);
 
   const handleSubmit = async (e) => {
@@ -104,7 +115,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
         vehicleId: bookingForm.vehicleId,
         accountId: bookingForm.accountId,
       });
-       // Wait briefly in case DB persistence is async
+      // Wait briefly in case DB persistence is async
       await new Promise((r) => setTimeout(r, 500));
 
       // 2. Fetch user's bookings and get the latest one
@@ -115,9 +126,8 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       const latestBooking = bookingData.data?.[bookingData.data.length - 1];
       if (!latestBooking) throw new Error("Không tìm thấy dữ liệu đặt lịch.");
 
-      const { vehicleId, dateTime, notes } = latestBooking;
+      const { vehicleId, dateTime } = latestBooking;
       const createDate = dateTime;
-      
 
       // 3. Get random staff
       const resStaff = await fetch(
@@ -135,50 +145,49 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       );
       const batteryData = await resBattery.json();
       const batteryList = batteryData.data || [];
-    const randomBattery =
-      batteryList[Math.floor(Math.random() * batteryList.length)];
-    const newBatteryId = randomBattery?.batteryId;
+      const randomBattery =
+        batteryList[Math.floor(Math.random() * batteryList.length)];
+      const newBatteryId = randomBattery?.batteryId;
 
-    if (!staffId || !newBatteryId)
-      throw new Error("Không thể chọn staff hoặc battery.");
+      if (!staffId || !newBatteryId)
+        throw new Error("Không thể chọn staff hoặc battery.");
 
-    // 5. Create swapping
-    await fetch("http://localhost:5204/api/Swapping/CreateSwapping", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        notes: "Battery transfer",
-        staffId,
-        oldBatteryId: "", // can leave empty
-        vehicleId,
-        newBatteryId,
-        status: "pending",
-        createDate: createDate,
-      }),
-    });
+      // 5. Create swapping
+      await fetch("http://localhost:5204/api/Swapping/CreateSwapping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          notes: "Battery transfer",
+          staffId,
+          oldBatteryId: "", // can leave empty
+          vehicleId,
+          newBatteryId,
+          status: "pending",
+          createDate: createDate,
+        }),
+      });
 
-    // alert("Đặt lịch và tạo swapping thành công!");
-    if (onSuccess) onSuccess(); // 6️⃣ Fetch the latest swapping to get transactionId
-      const resSwapping = await fetch("http://localhost:5204/api/Swapping/GetAllSwapping");
+      // alert("Đặt lịch và tạo swapping thành công!");
+      if (onSuccess) onSuccess(); // 6️⃣ Fetch the latest swapping to get transactionId
+      const resSwapping = await fetch(
+        "http://localhost:5204/api/Swapping/GetAllSwapping"
+      );
       const swappingData = await resSwapping.json();
       // 3) Find the swapping with the same createDate
-      const found = swappingData.data.find(
-        (s) => s.createDate === createDate
-      );
+      const found = swappingData.data.find((s) => s.createDate === createDate);
 
       if (!found) {
         throw new Error("Không tìm thấy swapping với createDate đã dùng.");
       }
 
       const transactionId = found.transactionId;
-      if (!transactionId) throw new Error("Không lấy được transactionId từ swapping.");
+      if (!transactionId)
+        throw new Error("Không lấy được transactionId từ swapping.");
 
       console.log("Transaction ID from swapping:", transactionId);
 
       // 7️⃣ Redirect to subscription page with transactionId
       navigate("/userPage/subscriptions", { state: { transactionId } });
-
->>>>>>> c9bfddccae12a545bb7b3f0273d0e6ebe51b7358
 
       notifySuccess("Đặt lịch thành công! Vui lòng chờ staff xác nhận.");
       if (onSuccess) onSuccess();
@@ -192,7 +201,6 @@ const BookingForm = ({ onSuccess, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-
       <div>
         {/* <label className="block text-sm font-medium mb-1 text-[#001f54]">Tài khoản</label> */}
         {/* <input
@@ -203,35 +211,44 @@ const BookingForm = ({ onSuccess, onCancel }) => {
         /> */}
       </div>
 
-
       <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn xe</label>
+        <label className="block text-sm font-medium mb-1 text-[#001f54]">
+          Chọn xe
+        </label>
         <select
           className="border p-2 rounded-lg w-full"
           value={bookingForm.vehicleId}
           onChange={(e) => updateField({ vehicleId: e.target.value })}
         >
           {cars.map((c) => (
-            <option key={c.id} value={c.id}>{c.label}</option>
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
           ))}
         </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Chọn địa chỉ trạm</label>
+        <label className="block text-sm font-medium mb-1 text-[#001f54]">
+          Chọn địa chỉ trạm
+        </label>
         <select
           className="border p-2 rounded-lg w-full"
           value={bookingForm.stationId}
           onChange={(e) => updateField({ stationId: e.target.value })}
         >
           {stations.map((s) => (
-            <option key={s.id} value={s.id}>{s.label}</option>
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
           ))}
         </select>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Ngày giờ</label>
+        <label className="block text-sm font-medium mb-1 text-[#001f54]">
+          Ngày giờ
+        </label>
         <input
           className="border p-2 rounded-lg w-full"
           type="datetime-local"
@@ -241,7 +258,9 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 text-[#001f54]">Ghi chú</label>
+        <label className="block text-sm font-medium mb-1 text-[#001f54]">
+          Ghi chú
+        </label>
         <textarea
           className="border p-2 rounded-lg w-full"
           rows={3}
@@ -274,5 +293,3 @@ const BookingForm = ({ onSuccess, onCancel }) => {
 };
 
 export default BookingForm;
-
-

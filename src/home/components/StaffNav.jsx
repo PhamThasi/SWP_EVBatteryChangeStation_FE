@@ -26,22 +26,22 @@ const StaffNav = () => {
     <nav className={`admin-nav ${isSidebar ? "sidebar" : "topbar"} `}>
       <ul className="navbar-links">
         <li>
-          <Link to="/staff">Schedule</Link>
+          <Link to="/staff">Lịch đổi pin</Link>
         </li>
         <li>
-          <Link to="/staff/battery">Battery</Link>
+          <Link to="/staff/battery">Quản lý pin</Link>
         </li>
         <li>
-          <Link to="/staff/feedback">FeedBack</Link>
+          <Link to="/staff/feedback">Phản hồi</Link>
         </li>
         <li>
-          <Link to="/staff/swapping">Swapping</Link>
+          <Link to="/staff/swapping">Giao dịch đổi pin</Link>
         </li>
         <li>
-          <Link to="/staff/support">Support</Link>
+          <Link to="/staff/support">Hỗ trợ</Link>
         </li>
         <li>
-          <Link to="#" onClick={handleLogout}>Logout</Link>
+          <Link to="#" onClick={handleLogout}>Đăng xuất</Link>
         </li>
       </ul>
     </nav>

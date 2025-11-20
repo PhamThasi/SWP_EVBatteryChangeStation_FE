@@ -214,12 +214,12 @@ const AccountManagement = () => {
     .filter((acc) => acc.status === true)
     .filter((acc) => acc.accountName?.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <p>Loading accounts...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p>Đang tải danh sách tài khoản...</p>;
+  if (error) return <p>Lỗi: {error}</p>;
 
   return (
     <div className="admin-dashboard">
-      <h1 className="dashboard-title">Account Management</h1>
+      <h1 className="dashboard-title">Quản lý tài khoản</h1>
 
       {/* Toolbar */}
       <div
@@ -232,7 +232,7 @@ const AccountManagement = () => {
       >
         <input
           type="text"
-          placeholder="Search by full name..."
+          placeholder="Tìm theo tên..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -244,7 +244,7 @@ const AccountManagement = () => {
           }}
         />
         <button className="save-btn" onClick={() => openModal()}>
-          + Add Account
+          + Thêm tài khoản
         </button>
         <select
           value={sortRole}
@@ -257,7 +257,7 @@ const AccountManagement = () => {
             marginLeft: "8px",
           }}
         >
-          <option value="">All</option>
+          <option value="">Tất cả</option>
           {roles.map((role) => (
             <option key={role.roleId} value={role.roleId}>
               {role.roleName}
@@ -269,17 +269,17 @@ const AccountManagement = () => {
       {/* Accounts Table */}
       <div className="dashboard-card">
         {filteredAccounts.length === 0 ? (
-          <p>No accounts found.</p>
+          <p>Không tìm thấy tài khoản phù hợp.</p>
         ) : (
           <table className="inventory-table">
             <thead>
               <tr>
-                <th>Full Name</th>
-                <th>Gender</th>
-                <th>Address</th>
-                <th>Phone</th>
-                <th>Role</th>
-                <th style={{ textAlign: "center" }}>Actions</th>
+                <th>Họ tên</th>
+                <th>Giới tính</th>
+                <th>Địa chỉ</th>
+                <th>Điện thoại</th>
+                <th>Vai trò</th>
+                <th style={{ textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -330,66 +330,66 @@ const AccountManagement = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>{editingAccount ? "Update Account" : "Add Account"}</h2>
+            <h2>{editingAccount ? "Cập nhật tài khoản" : "Thêm tài khoản"}</h2>
             <form className="modal-form">
               {/* Full Name */}
-              <label>Full Name *</label>
+              <label>Họ tên *</label>
               <input
                 type="text"
                 name="fullName"
-                placeholder="Enter full name"
+                placeholder="Nhập họ tên"
                 value={formData.fullName}
                 onChange={handleChange}
               />
               {formErrors.fullName && <span className="field-error">{formErrors.fullName}</span>}
 
               {/* Username */}
-              <label>Username *</label>
+              <label>Tên đăng nhập *</label>
               <input
                 type="text"
                 name="accountName"
-                placeholder="Enter username"
+                placeholder="Nhập tên đăng nhập"
                 value={formData.accountName}
                 onChange={handleChange}
               />
               {formErrors.accountName && <span className="field-error">{formErrors.accountName}</span>}
 
               {/* Gender */}
-              <label>Gender *</label>
+              <label>Giới tính *</label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
               >
-                <option value="">Select gender</option>
-                <option value={"Male"}>Male</option>
-                <option value={"Female"}>Female</option>
+                <option value="">Chọn giới tính</option>
+                <option value={"Male"}>Nam</option>
+                <option value={"Female"}>Nữ</option>
               </select>
               {formErrors.gender && <span className="field-error">{formErrors.gender}</span>}
 
               {/* Address */}
-              <label>Address</label>
+              <label>Địa chỉ</label>
               <input
                 type="text"
                 name="address"
-                placeholder="Enter address"
+                placeholder="Nhập địa chỉ"
                 value={formData.address}
                 onChange={handleChange}
               />
 
               {/* Phone */}
-              <label>Phone Number *</label>
+              <label>Số điện thoại *</label>
               <input
                 type="tel"
                 name="phoneNumber"
-                placeholder="Enter phone number"
+                placeholder="Nhập số điện thoại"
                 value={formData.phoneNumber}
                 onChange={handleChange}
               />
               {formErrors.phoneNumber && <span className="field-error">{formErrors.phoneNumber}</span>}
 
               {/* Date of birth */}
-              <label>Date of Birth</label>
+              <label>Ngày sinh</label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -398,13 +398,13 @@ const AccountManagement = () => {
               />
 
               {/* Role dropdown */}
-              <label>Role *</label>
+              <label>Vai trò *</label>
               <select
                 name="roleId"
                 value={formData.roleId}
                 onChange={handleChange}
               >
-                <option value="">Select role</option>
+                <option value="">Chọn vai trò</option>
                 {roles.map((r) => (
                   <option key={r.roleId} value={r.roleId}>
                     {r.roleName}
@@ -414,13 +414,13 @@ const AccountManagement = () => {
               {formErrors.roleId && <span className="field-error">{formErrors.roleId}</span>}
 
               {/* Station dropdown */}
-              <label>Station *</label>
+              <label>Trạm *</label>
               <select
                 name="stationId"
                 value={formData.stationId}
                 onChange={handleChange}
               >
-                <option value="">Select station</option>
+                <option value="">Chọn trạm</option>
                 {stations.map((s) => (
                   <option key={s.stationId} value={s.stationId}>
                     {s.address}
@@ -432,13 +432,13 @@ const AccountManagement = () => {
               {/* Email (auto) and Password (default) for create; Email/Password editable for update */}
               {!editingAccount ? (
                 <>
-                  <label>Email (auto)</label>
+                  <label>Email (tự động)</label>
                   <input
                     type="email"
                     value={formData.accountName ? `${formData.accountName}@gmail.com` : ""}
                     readOnly
                   />
-                  <label>Password (default)</label>
+                  <label>Mật khẩu mặc định</label>
                   <input type="text" value="default@123" readOnly />
                 </>
               ) : (
@@ -447,18 +447,18 @@ const AccountManagement = () => {
                   <input
                     type="email"
                     name="email"
-                    placeholder="Enter email"
+                    placeholder="Nhập email"
                     value={formData.email}
                     onChange={handleChange}
                   />
                   {formErrors.email && (
                     <span className="field-error">{formErrors.email}</span>
                   )}
-                  <label>New Password (optional)</label>
+                  <label>Mật khẩu mới (không bắt buộc)</label>
                   <input
                     type="password"
                     name="password"
-                    placeholder="Leave blank to keep current password"
+                    placeholder="Để trống nếu giữ nguyên"
                     value={formData.password || ""}
                     onChange={handleChange}
                   />
@@ -470,16 +470,16 @@ const AccountManagement = () => {
                 value={formData.status}
                 onChange={handleChange}
               >
-                <option value={true}>Active</option>
-                <option value={false}>Inactive</option>
+                <option value={true}>Đang hoạt động</option>
+                <option value={false}>Ngừng kích hoạt</option>
               </select>
             </form>
             <div className="modal-actions">
               <button className="save-btn" onClick={handleSave}>
-                Save
+                Lưu
               </button>
               <button className="cancel-btn" onClick={closeModal}>
-                Cancel
+                Hủy
               </button>
             </div>
           </div>
