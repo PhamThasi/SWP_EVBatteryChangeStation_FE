@@ -79,12 +79,12 @@ const RoleManagement = () => {
     }
   };
 
-  if (loading) return <p>Loading roles...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p>Đang tải danh sách vai trò...</p>;
+  if (error) return <p>Lỗi: {error}</p>;
 
   return (
     <div className="admin-dashboard">
-      <h1 className="dashboard-title">Role Management</h1>
+      <h1 className="dashboard-title">Quản lý vai trò</h1>
 
       {/* Toolbar */}
       <div
@@ -92,32 +92,32 @@ const RoleManagement = () => {
         style={{ display: "flex", justifyContent: "flex-end" }}
       >
         <button className="save-btn" onClick={() => openModal()}>
-          + Add Role
+          + Thêm vai trò
         </button>
       </div>
 
       {/* Role Table */}
       <div className="dashboard-card">
-        <h2>Role List</h2>
+        <h2>Danh sách vai trò</h2>
 
         {roles.length === 0 ? (
-          <p>No roles found.</p>
+          <p>Chưa có vai trò nào.</p>
         ) : (
           <table className="inventory-table">
             <thead>
               <tr>
-                <th>Role Name</th>
-                <th>Status</th>
-                <th>Create Date</th>
-                <th>Update Date</th>
-                <th style={{ textAlign: "center" }}>Actions</th>
+                <th>Tên vai trò</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Ngày cập nhật</th>
+                <th style={{ textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {roles.map((role) => (
                 <tr key={role.roleId}>
                   <td>{role.roleName}</td>
-                  <td>{role.status ? "Active" : "Inactive"}</td>
+                  <td>{role.status ? "Đang hoạt động" : "Ngừng kích hoạt"}</td>
                   <td>
                     {role.createDate
                       ? new Date(role.createDate).toLocaleString()
@@ -134,7 +134,7 @@ const RoleManagement = () => {
                       style={{ marginRight: "0.5rem" }}
                       onClick={() => openModal(role)}
                     >
-                      Update
+                      Chỉnh sửa
                     </button>
                   </td>
                 </tr>
@@ -148,12 +148,12 @@ const RoleManagement = () => {
       {editingRole !== null && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>{editingRole ? "Update Role" : "Add Role"}</h2>
+            <h2>{editingRole ? "Cập nhật vai trò" : "Thêm vai trò"}</h2>
             <form className="modal-form">
               <input
                 type="text"
                 name="roleName"
-                placeholder="Role Name"
+                placeholder="Tên vai trò"
                 value={formData.roleName}
                 onChange={handleChange}
               />
@@ -162,16 +162,16 @@ const RoleManagement = () => {
                 value={formData.status}
                 onChange={handleChange}
               >
-                <option value={true}>Active</option>
-                <option value={false}>Inactive</option>
+                <option value={true}>Đang hoạt động</option>
+                <option value={false}>Ngừng kích hoạt</option>
               </select>
             </form>
             <div className="modal-actions">
               <button className="save-btn" onClick={handleSave}>
-                Save
+                Lưu
               </button>
               <button className="cancel-btn" onClick={closeModal}>
-                Cancel
+                Hủy
               </button>
             </div>
           </div>

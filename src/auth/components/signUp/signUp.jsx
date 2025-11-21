@@ -7,7 +7,6 @@ import "./signUp.css";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const navigate = useNavigate();
@@ -21,13 +20,6 @@ const SignUp = () => {
     }
 
     try {
-      if (fullName.trim()) {
-        localStorage.setItem(
-          "pendingProfile",
-          JSON.stringify({ fullName: fullName.trim() })
-        );
-      }
-
       await authService.register(email, password);
       toast.success("Đăng ký thành công! Vui lòng kiểm tra OTP trong email.");
       navigate("/verifyOtp", { state: { email } });
@@ -45,16 +37,6 @@ const SignUp = () => {
       </div>
 
       <form className="auth-form-group" onSubmit={handleSubmit}>
-        <div className="auth-form-block">
-          <label>Full Name</label>
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Enter your full name"
-          />
-        </div>
-
         <div className="auth-form-block">
           <label>Email</label>
           <input

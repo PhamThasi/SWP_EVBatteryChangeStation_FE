@@ -1,8 +1,65 @@
-const SuccessPage = () =>{
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
-    return (
-    <div>good</div>
-    );
-}
+const SuccessPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const transactionId = sessionStorage.getItem("transactionId");
+
+  // const transactionId = location.state?.transactionId;
+  const [message, setMessage] = useState("Processing payment result...");
+
+  useEffect(() => {
+    if (!transactionId) {
+      setMessage("Missing transaction ID. Redirecting...");
+      setTimeout(() => navigate("/"), 2000);
+      return;
+    }
+
+    const processFailure = async () => {
+      try {
+        // 1. Get the record
+        const res = await axios.get(
+          `http://localhost:5204/api/Swapping/GetSwappingById?transactionId=${transactionId}`
+        );
+
+        const tx = res.data.data;
+
+        if (!tx) {
+          setMessage("Transaction not found. Redirecting...");
+          return setTimeout(() => navigate("/"), 2000);
+        }
+
+        // 2. Update status → finish
+        await axios.put("http://localhost:5204/api/Swapping/UpdateSwapping", {
+          transactionId: tx.transactionId,
+          notes: tx.notes,
+          staffId: tx.staffId,
+          oldBatteryId: tx.oldBatteryId,
+          vehicleId: tx.vehicleId,
+          newBatteryId: tx.newBatteryId,
+          status: "Finish",      // changed here
+          createDate: tx.createDate,
+        });
+
+        setMessage("Payment success. Redirecting to home...");
+      } catch (err) {
+        setMessage("Error occurred. Redirecting...");
+      } finally {
+        // small delay to show the message
+        setTimeout(() => navigate("/"), 2000);
+      }
+    };
+
+    processFailure();
+  }, [transactionId, navigate]);
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "40px", fontSize: "20px" }}>
+      {message}
+    </div>
+  );
+};
 
 export default SuccessPage;

@@ -15,9 +15,9 @@ const BatteryManagement = () => {
   const [formData, setFormData] = useState({
     capacity: 0,
     status: true,
-    stateOfHealth: 0,
+    stateOfHealth: 100,
     percentUse: 0,
-    typeBattery: "",
+    typeBattery: "Solid-state",
     insuranceDate: "",
     stationId: "",
     batterySwapDate: "",
@@ -53,11 +53,13 @@ const BatteryManagement = () => {
           }, {})
         : {};
 
-      // Merge address into batteries
-      const merged = batteriesData.map((b) => ({
-        ...b,
-        stationAddress: stationMap[b.stationId] || "Unknown",
-      }));
+      // Merge address into batteries và chỉ giữ pin còn hoạt động
+      const merged = batteriesData
+        .map((b) => ({
+          ...b,
+          stationAddress: stationMap[b.stationId] || "Unknown",
+        }))
+        .filter((b) => b.status === true);
 
       setBatteries(merged);
       setFilteredBatteries(merged);
@@ -121,9 +123,9 @@ const BatteryManagement = () => {
       setFormData({
         capacity: battery.capacity || 0,
         status: battery.status ?? true,
-        stateOfHealth: battery.stateOfHealth || 0,
+        stateOfHealth: battery.stateOfHealth || 100,
         percentUse: battery.percentUse || 0,
-        typeBattery: battery.typeBattery || "",
+        typeBattery: battery.typeBattery || "Solid-state",
         insuranceDate: battery.insuranceDate
           ? battery.insuranceDate.split("T")[0]
           : "",
@@ -138,9 +140,9 @@ const BatteryManagement = () => {
       setFormData({
         capacity: 0,
         status: true,
-        stateOfHealth: 0,
+        stateOfHealth: 100,
         percentUse: 0,
-        typeBattery: "",
+        typeBattery: "Solid-state",
         insuranceDate: "",
         stationId: "",
         batterySwapDate: "",
@@ -210,18 +212,18 @@ const BatteryManagement = () => {
     }
   };
 
-  if (loading) return <p>Loading batteries...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p>Đang tải danh sách pin...</p>;
+  if (error) return <p>Lỗi: {error}</p>;
 
   return (
     <div className="admin-dashboard">
-      <h1 className="dashboard-title">Battery Management</h1>
+      <h1 className="dashboard-title">Quản lý pin</h1>
 
       {/* Toolbar */}
       <div className="dashboard-card" style={{ display: "flex", justifyContent: "space-between" }}>
         <input
           type="text"
-          placeholder="Search by station address..."
+          placeholder="Tìm theo địa chỉ trạm..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{ padding: "6px", width: "250px" }}
@@ -232,14 +234,14 @@ const BatteryManagement = () => {
             onChange={(e) => handleSort(e.target.value)}
             style={{ marginRight: "1rem", padding: "6px" }}
           >
-            <option value="">Sort By</option>
-            <option value="percentUseDesc">Percent Use (High → Low)</option>
-            <option value="percentUseAsc">Percent Use (Low → High)</option>
-            <option value="batterySwapDateDesc">Battery Swap Date (Newest → Oldest)</option>
-            <option value="batterySwapDateAsc">Battery Swap Date (Oldest → Newest)</option>
+            <option value="">Sắp xếp theo</option>
+            <option value="percentUseDesc">% sử dụng (Cao → Thấp)</option>
+            <option value="percentUseAsc">% sử dụng (Thấp → Cao)</option>
+            <option value="batterySwapDateDesc">Ngày đổi pin (Mới → Cũ)</option>
+            <option value="batterySwapDateAsc">Ngày đổi pin (Cũ → Mới)</option>
           </select>
           <button className="save-btn" onClick={() => openModal()}>
-            + Add Battery
+            + Thêm pin
           </button>
         </div>
       </div>
@@ -247,21 +249,21 @@ const BatteryManagement = () => {
       {/* Battery Table */}
       <div className="dashboard-card">        
         {filteredBatteries.length === 0 ? (
-          <p>No batteries found.</p>
+          <p>Không tìm thấy pin phù hợp.</p>
         ) : (
           <table className="inventory-table">
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Capacity</th>
-                <th>Status</th>
-                <th>State of Health</th>
-                <th>Percent Use</th>
-                <th>Last Used</th>
-                <th>Battery Swap Date</th>
-                <th>Insurance Date</th>
-                <th>Station Address</th>
-                <th style={{ textAlign: "center" }}>Actions</th>
+                <th>Loại pin</th>
+                <th>Dung lượng</th>
+                <th>Trạng thái</th>
+                <th>Độ bền</th>
+                <th>% sử dụng</th>
+                <th>Lần dùng cuối</th>
+                <th>Ngày đổi pin</th>
+                <th>Ngày bảo hiểm</th>
+                <th>Địa chỉ trạm</th>
+                <th style={{ textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -269,7 +271,7 @@ const BatteryManagement = () => {
                 <tr key={battery.batteryId}>
                   <td>{battery.typeBattery}</td>
                   <td>{battery.capacity}</td>
-                  <td>{battery.status ? "true" : "false"}</td>
+                  <td>{battery.status ? "Đang dùng" : "Ngưng"}</td>
                   <td>{battery.stateOfHealth}%</td>
                   <td>{battery.percentUse}%</td>
                   <td>
@@ -290,13 +292,13 @@ const BatteryManagement = () => {
                       
                       onClick={() => openModal(battery)}
                     >
-                      Update
+                      Cập nhật
                     </button>
                     <button
                       className="delete-btn"
                       onClick={() => handleDelete(battery.batteryId)}
                     >
-                      Delete
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -310,56 +312,57 @@ const BatteryManagement = () => {
       {isModalOpen  && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>{editingBattery ? "Update Battery" : "Add Battery"}</h2>
+            <h2>{editingBattery ? "Cập nhật pin" : "Thêm pin"}</h2>
             <form className="modal-form">
-              <label>Capacity (kWh)</label>
+              <label>Dung lượng (kWh)</label>
               <input 
                 type="number"
                 name="capacity"
-                placeholder="Capacity"
+                placeholder="Dung lượng"
                 value={formData.capacity}
                 onChange={handleChange}
               />
-              <label>State of Health (%)</label>
+              <label>Độ bền (%)</label>
               <input
                 type="number"
                 name="stateOfHealth"
-                placeholder="State of Health (%)"
+                placeholder="Độ bền (%)"
                 value={formData.stateOfHealth}
                 onChange={handleChange}
               />
-              <label>Percent Use (%)</label>
+              <label>% sử dụng</label>
               <input
                 type="number"
                 name="percentUse"
-                placeholder="Percent Use (%)"
+                placeholder="% sử dụng"
                 value={formData.percentUse}
                 onChange={handleChange}
               />
-              <label>Type Battery</label>              
+              <label>Loại pin</label>
               <select
-              name ="battery type"
-              value={formData.typeBattery}
-              onChange={handleChange}>
+                name="typeBattery"
+                value={formData.typeBattery}
+                onChange={handleChange}
+              >
                 <option value="Solid-state">Solid-state</option>
                 <option value="Lithium-ion">Lithium-ion</option>
               </select>
-              <label>Insurance Date</label>
+              <label>Ngày bảo hiểm</label>
               <input
                 type="date"
                 name="insuranceDate"
-                placeholder="Insurance Date"
+                placeholder="Ngày bảo hiểm"
                 value={formData.insuranceDate}
                 onChange={handleChange}
               />
-              <label>Station ID</label>
+              <label>Trạm</label>
               <select
                 name="stationId"
                 value={formData.stationId}
                 onChange={handleChange}
                 required
               >
-                <option value="">Select a station</option>
+                <option value="">Chọn trạm</option>
                 {stations.map((s) => (
                   <option key={s.stationId} value={s.stationId}>
                     {s.address}
@@ -368,40 +371,40 @@ const BatteryManagement = () => {
               </select>
               {editingBattery && (
                 <>
-                 <label>Last Used</label>
+                 <label>Lần dùng cuối</label>
                   <input
                     type="date"
                     name="lastUsed"
-                    placeholder="Last Used"
+                    placeholder="Lần dùng cuối"
                     value={formData.lastUsed}
                     onChange={handleChange}
                   />
-                  <label>Battery Swap Date</label>
+                  <label>Ngày đổi pin</label>
                   <input
                     type="date"
                     name="batterySwapDate"
-                    placeholder="Battery Swap Date"
+                    placeholder="Ngày đổi pin"
                     value={formData.batterySwapDate}
                     onChange={handleChange}
                   />
                 </>
               )}
-              <label>Status</label>
+              <label>Trạng thái</label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
               >
-                <option value={true}>Active</option>
-                <option value={false}>Inactive</option>
+                <option value={true}>Đang hoạt động</option>
+                <option value={false}>Ngừng hoạt động</option>
               </select>
             </form>
             <div className="modal-actions">
               <button className="save-btn" onClick={handleSave}>
-                Save
+                Lưu
               </button>
               <button className="cancel-btn" onClick={closeModal}>
-                Cancel
+                Hủy
               </button>
             </div>
           </div>

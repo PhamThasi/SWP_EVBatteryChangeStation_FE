@@ -180,7 +180,7 @@ const StationManagement = () => {
     }
   };
 
-  if (loading) return <p>Loading stations...</p>;
+  if (loading) return <p>Đang tải danh sách trạm...</p>;
 
   return (
     <div className="admin-dashboard">
@@ -189,7 +189,7 @@ const StationManagement = () => {
           Error: {error}
         </div>
       )}
-      <h1 className="dashboard-title">Station Management</h1>
+      <h1 className="dashboard-title">Quản lý trạm</h1>
 
       {/* Toolbar */}
       <div
@@ -197,25 +197,25 @@ const StationManagement = () => {
         style={{ display: "flex", justifyContent: "flex-end" }}
       >
         <button className="save-btn" onClick={() => openModal()}>
-          + Add Station
+          + Thêm trạm
         </button>
       </div>
 
       {/* Station Table */}
       <div className="dashboard-card">
-        <h2>Station List</h2>
+        <h2>Danh sách trạm</h2>
         {stations.length === 0 ? (
-          <p>No stations found.</p>
+          <p>Chưa có trạm nào.</p>
         ) : (
           <table className="inventory-table">
             <thead>
               <tr>
-                <th>Address</th>
-                <th>Phone Number</th>
-                <th>Status</th>
-                <th>Account Name</th>
-                <th>Battery Quantity</th>
-                <th style={{ textAlign: "center" }}>Actions</th>
+                <th>Địa chỉ</th>
+                <th>Số điện thoại</th>
+                <th>Trạng thái</th>
+                <th>Tên tài khoản</th>
+                <th>Số lượng pin</th>
+                <th style={{ textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -223,7 +223,7 @@ const StationManagement = () => {
                 <tr key={station.stationId}>
                   <td>{station.address}</td>
                   <td>{station.phoneNumber}</td>
-                  <td>{station.status ? "Active" : "Inactive"}</td>
+                  <td>{station.status ? "Đang hoạt động" : "Ngừng hoạt động"}</td>
                   <td>{station.accountName}</td>
                   <td>{batteryCounts[station.stationId] ?? "Đang tải..."}</td>
                   <td style={{ textAlign: "center" }}>
@@ -232,13 +232,13 @@ const StationManagement = () => {
                       // style={{ marginRight: "0.2rem" }}
                       onClick={() => openModal(station)}
                     >
-                      Update
+                      Cập nhật
                     </button>
                     <button
                       className="delete-btn"
                       onClick={() => handleDelete(station.stationId)}
                     >
-                      Delete
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -252,26 +252,26 @@ const StationManagement = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>{editingStation ? "Update Station" : "Add Station"}</h2>
+            <h2>{editingStation ? "Cập nhật trạm" : "Thêm trạm"}</h2>
             <form className="modal-form">
               <input
                 type="text"
                 name="address"
-                placeholder="Address"
+                placeholder="Địa chỉ"
                 value={formData.address}
                 onChange={handleChange}
               />
               <input
                 type="text"
                 name="phoneNumber"
-                placeholder="Phone Number"
+                placeholder="Số điện thoại"
                 value={formData.phoneNumber}
                 onChange={handleChange}
               />
               <input
                 type="text"
                 name="accountName"
-                placeholder="Account Name"
+                placeholder="Tên tài khoản quản lý"
                 value={formData.accountName}
                 onChange={handleChange}
               />
@@ -280,16 +280,16 @@ const StationManagement = () => {
                 value={formData.status ? "true" : "false"}
                 onChange={handleChange}
               >
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng hoạt động</option>
               </select>
             </form>
             <div className="modal-actions">
               <button className="save-btn" onClick={handleSave}>
-                Save
+                Lưu
               </button>
               <button className="cancel-btn" onClick={closeModal}>
-                Cancel
+                Hủy
               </button>
             </div>
           </div>

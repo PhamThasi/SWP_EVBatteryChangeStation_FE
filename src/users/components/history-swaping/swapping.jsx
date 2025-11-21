@@ -443,7 +443,7 @@ const SwappingHistory = () => {
                             </span>
                           </div>
                           <p className="text-gray-600 text-lg">
-                            <span className="font-medium">Transaction ID:</span>{" "}
+                            <span className="font-medium">Mã giao dịch:</span>{" "}
                             {booking.swappingData.transactionId?.substring(
                               0,
                               8
@@ -483,7 +483,7 @@ const SwappingHistory = () => {
                       disabled={currentPage === 0}
                       className="px-5 py-2.5 border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200 font-medium text-xl"
                     >
-                      ← Trước
+                      ← Trang trước
                     </button>
                     <div className="flex gap-1">
                       {Array.from({ length: totalPages }, (_, i) => (
@@ -505,7 +505,7 @@ const SwappingHistory = () => {
                       disabled={currentPage >= totalPages - 1}
                       className="px-5 py-2.5 border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200 font-medium text-xl"
                     >
-                      Sau →
+                      Trang sau →
                     </button>
                   </div>
                 </div>
