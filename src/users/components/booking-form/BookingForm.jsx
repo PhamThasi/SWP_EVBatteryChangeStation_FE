@@ -115,9 +115,10 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       const latestBooking = bookingData.data?.[bookingData.data.length - 1];
       if (!latestBooking) throw new Error("Không tìm thấy dữ liệu đặt lịch.");
 
-      const { vehicleId, dateTime, notes } = latestBooking;
+      const { vehicleId, dateTime, notes, bookingId } = latestBooking;
       const createDate = dateTime;
-      
+
+      sessionStorage.setItem("latestBooking", JSON.stringify(bookingId));      
 
       // 3. Get random staff
       const resStaff = await fetch(
@@ -173,7 +174,7 @@ const BookingForm = ({ onSuccess, onCancel }) => {
       const transactionId = found.transactionId;
       if (!transactionId) throw new Error("Không lấy được transactionId từ swapping.");
 
-      console.log("Transaction ID from swapping:", transactionId);
+      // console.log("Transaction ID from swapping:", transactionId);
 
       // 7️⃣ Redirect to subscription page with transactionId
       navigate("/userPage/subscriptions", { state: { transactionId } });

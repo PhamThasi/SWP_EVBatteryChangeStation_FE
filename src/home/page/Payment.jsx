@@ -97,25 +97,23 @@ const Payment = () => {
         subscriptionId: subscription.subscriptionId,
         transactionId: transactionId,
       };
-
-      console.log("Create Payment API payload:", paymentData);
+      sessionStorage.setItem("transactionId", transactionId);
+      // console.log("Create Payment API payload:", paymentData);
 
        // 1️⃣ Tạo payment
       const createRes = await axios.post("http://localhost:5204/api/Payment/create", paymentData);
-      console.log("Response từ Backend:", createRes.data);
+      // console.log("Response từ Backend:", createRes.data);
 
       // ⭐️ SỬA LỖI: Đọc 'paymentId' từ 'createRes.data.data' (dựa trên ServiceResult và PaymentRespondDto)
       const paymentId = createRes?.data?.data?.paymentId;
 
       if (paymentId) {
-        console.log("Lấy được paymentId thành công:", paymentId);
-
-        // 2️⃣ BỎ QUA BƯỚC "GET /get-by-transaction" không cần thiết
+        // console.log("Lấy được paymentId thành công:", paymentId);
 
         // 3️⃣ Tạo VNPay URL
         const vnPayRes = await axios.post(`http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`);
         const paymentUrl = vnPayRes?.data?.data;
-        console.log("vnpay link:", paymentUrl);
+        // console.log("vnpay link:", paymentUrl);
          if (!paymentUrl) {
           setError("Không tạo được link thanh toán VNPay");
           setProcessing(false); // Dừng lại nếu lỗi ở đây

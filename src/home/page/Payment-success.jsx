@@ -5,8 +5,9 @@ import axios from "axios";
 const SuccessPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const transactionId = sessionStorage.getItem("transactionId");
 
-  const transactionId = location.state?.transactionId;
+  // const transactionId = location.state?.transactionId;
   const [message, setMessage] = useState("Processing failure result...");
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const SuccessPage = () => {
           return setTimeout(() => navigate("/"), 2000);
         }
 
-        // 2. Update status → Failed
+        // 2. Update status → finish
         await axios.put("http://localhost:5204/api/Swapping/UpdateSwapping", {
           transactionId: tx.transactionId,
           notes: tx.notes,

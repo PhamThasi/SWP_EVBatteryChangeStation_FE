@@ -5,9 +5,10 @@ import axios from "axios";
 const FailedPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
-  const transactionId = location.state?.transactionId;
+  const latestBookingId = JSON.parse(sessionStorage.getItem("latestBooking"));
+  // const transactionId = location.state?.transactionId;
   const [message, setMessage] = useState("Processing failure result...");
+  const transactionId = sessionStorage.getItem("transactionId");
 
   useEffect(() => {
     if (!transactionId) {
@@ -18,35 +19,36 @@ const FailedPage = () => {
 
     const processFailure = async () => {
       try {
-        // 1. Get the record
         const res = await axios.get(
           `http://localhost:5204/api/Swapping/GetSwappingById?transactionId=${transactionId}`
         );
 
         const tx = res.data.data;
-
         if (!tx) {
           setMessage("Transaction not found. Redirecting...");
           return setTimeout(() => navigate("/"), 2000);
         }
+        if (latestBookingId) {
+          await axios.delete(
+            `http://localhost:5204/api/Booking/HardDelete/${latestBookingId}`
+          );
+          console.log("Deleted booking:", latestBookingId);
+        }
 
-        // 2. Update status → Failed
-        await axios.put("http://localhost:5204/api/Swapping/UpdateSwapping", {
-          transactionId: tx.transactionId,
-          notes: tx.notes,
-          staffId: tx.staffId,
-          oldBatteryId: tx.oldBatteryId,
-          vehicleId: tx.vehicleId,
-          newBatteryId: tx.newBatteryId,
-          status: "Failed",      // changed here
-          createDate: tx.createDate,
-        });
+        //
+        // 4️⃣ Delete swapping record
+        //
+        await axios.delete(
+          `http://localhost:5204/api/Swapping/DeleteSwapping?transactionId=${transactionId}`
+        );
+        console.log("Deleted swapping:", transactionId);
 
-        setMessage("Payment failed. Redirecting to home...");
+        setMessage("Payment failed. Data removed. Redirecting...");
       } catch (err) {
+        console.error(err);
         setMessage("Error occurred. Redirecting...");
       } finally {
-        // small delay to show the message
+        // Delay so user sees the message
         setTimeout(() => navigate("/"), 2000);
       }
     };
