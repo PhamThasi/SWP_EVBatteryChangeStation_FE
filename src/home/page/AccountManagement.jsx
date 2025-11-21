@@ -131,10 +131,10 @@ const AccountManagement = () => {
     // Basic validation for create
     if (!isUpdate) {
       const errors = {};
-      if (!formData.accountName?.trim()) errors.accountName = "Username is required";
+      // if (!formData.accountName?.trim()) errors.accountName = "Username is required";
       if (!formData.fullName?.trim()) errors.fullName = "Full name is required";
       if (!formData.roleId) errors.roleId = "Role is required";
-      if (!formData.stationId) errors.stationId = "Station is required";
+      // if (!formData.stationId) errors.stationId = "Station is required";
       if (!formData.gender) errors.gender = "Gender is required";
       if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Phone is required";
       if (Object.keys(errors).length > 0) {
@@ -143,10 +143,10 @@ const AccountManagement = () => {
       }
     } else {
       const errors = {};
-      if (!formData.accountName?.trim()) errors.accountName = "Username is required";
+      // if (!formData.accountName?.trim()) errors.accountName = "Username is required";
       if (!formData.fullName?.trim()) errors.fullName = "Full name is required";
       if (!formData.roleId) errors.roleId = "Role is required";
-      if (!formData.stationId) errors.stationId = "Station is required";
+      // if (!formData.stationId) errors.stationId = "Station is required";
       if (!formData.gender) errors.gender = "Gender is required";
       if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Phone is required";
       if (!formData.email?.trim()) errors.email = "Email is required";
@@ -161,7 +161,7 @@ const AccountManagement = () => {
         await authService.updateProfile({
           accountId: editingAccount?.accountId,
           roleId: formData.roleId,
-          accountName: formData.accountName,
+          accountName: formData.accountName || null,
           fullName: formData.fullName,
           email: formData.email,
           gender: formData.gender,
@@ -179,7 +179,7 @@ const AccountManagement = () => {
           accountName: formData.accountName,
           password: "default@123",
           fullName: formData.fullName,
-          email: `${formData.accountName}@gmail.com`,
+          email: formData.email,
           gender: formData.gender,
           address: formData.address,
           phoneNumber: formData.phoneNumber,
@@ -212,7 +212,7 @@ const AccountManagement = () => {
 
   const filteredAccounts = accounts
     .filter((acc) => acc.status === true)
-    .filter((acc) => acc.accountName?.toLowerCase().includes(search.toLowerCase()));
+    .filter((acc) => acc.fullName?.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) return <p>Loading accounts...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -344,7 +344,7 @@ const AccountManagement = () => {
               {formErrors.fullName && <span className="field-error">{formErrors.fullName}</span>}
 
               {/* Username */}
-              <label>Username *</label>
+              <label>Username </label>
               <input
                 type="text"
                 name="accountName"
@@ -432,14 +432,17 @@ const AccountManagement = () => {
               {/* Email (auto) and Password (default) for create; Email/Password editable for update */}
               {!editingAccount ? (
                 <>
-                  <label>Email (auto)</label>
+                  <label>Email</label>
                   <input
                     type="email"
-                    value={formData.accountName ? `${formData.accountName}@gmail.com` : ""}
-                    readOnly
+                    name="email"
+                    placeholder="Enter email"
+                    value={formData.email}
+                    onChange={handleChange}
                   />
+                  {formErrors.email && <span className="field-error">{formErrors.email}</span>}
                   <label>Password (default)</label>
-                  <input type="text" value="default@123" readOnly />
+                  <input type="text" value="123456" readOnly />
                 </>
               ) : (
                 <>

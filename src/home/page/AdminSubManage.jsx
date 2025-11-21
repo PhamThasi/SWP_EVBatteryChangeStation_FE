@@ -179,6 +179,7 @@ const AdminSubManage = () => {
               {isEditing ? "Edit Subscription" : "Create Subscription"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-3">
+              <lable>Name</lable>
               <input
                 type="text"
                 placeholder="Name"
@@ -187,6 +188,7 @@ const AdminSubManage = () => {
                 required
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <lable>Price</lable>
               <input
                 type="number"
                 placeholder="Price"
@@ -197,6 +199,7 @@ const AdminSubManage = () => {
                 required
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <lable>Extra Fee</lable>
               <input
                 type="number"
                 placeholder="Extra Fee"
@@ -206,6 +209,7 @@ const AdminSubManage = () => {
                 }
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <lable>Duration</lable>
               <input
                 type="number"
                 placeholder="Duration (days)"
@@ -218,6 +222,7 @@ const AdminSubManage = () => {
                 }
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <label>Description</label>
               <textarea
                 placeholder="Description"
                 value={form.description}
