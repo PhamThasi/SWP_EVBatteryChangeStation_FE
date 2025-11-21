@@ -284,8 +284,7 @@ const BookingPage = () => {
         <div className="flex justify-between items-center mb-12">
           <div>
             <h1 className="text-5xl font-bold text-gray-900 flex items-center gap-4">
-              <span className="text-6xl">Battery</span>
-              Lịch Đổi Pin
+              <span className="text-6xl"> Lịch Đổi Pin</span>
             </h1>
             <p className="text-xl text-gray-600 mt-3">
               Quản lý lịch đặt đổi pin xe điện của bạn
