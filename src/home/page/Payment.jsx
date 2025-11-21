@@ -105,8 +105,11 @@ const Payment = () => {
       sessionStorage.setItem("transactionId", transactionId);
       // console.log("Create Payment API payload:", paymentData);
 
-       // 1️⃣ Tạo payment
-      const createRes = await axios.post("http://localhost:5204/api/Payment/create", paymentData);
+      // 1️⃣ Tạo payment
+      const createRes = await axios.post(
+        "http://localhost:5204/api/Payment/create",
+        paymentData
+      );
       // console.log("Response từ Backend:", createRes.data);
 
       // ⭐️ SỬA LỖI: Đọc 'paymentId' từ 'createRes.data.data' (dựa trên ServiceResult và PaymentRespondDto)
@@ -121,7 +124,7 @@ const Payment = () => {
         );
         const paymentUrl = vnPayRes?.data?.data;
         // console.log("vnpay link:", paymentUrl);
-         if (!paymentUrl) {
+        if (!paymentUrl) {
           setError("Không tạo được link thanh toán VNPay");
           setProcessing(false); // Dừng lại nếu lỗi ở đây
           return;
@@ -140,6 +143,11 @@ const Payment = () => {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const formatDescription = (text) => {
+    if (!text) return "";
+    return text.replace(/\\n/g, "\n"); // đổi "\\n" thành xuống dòng thật
   };
 
   if (loading) {
@@ -209,114 +217,116 @@ const Payment = () => {
           {/* Subscription Info */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
                 Thông tin gói dịch vụ
               </h2>
+
               {subscription && (
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* TÊN GÓI */}
                   <div>
-                    <p className="text-sm text-gray-500">Tên gói</p>
-                    <p className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-1">
+                      Tên gói
+                    </h3>
+                    <p className="text-xl font-semibold text-gray-900">
                       {subscription.name}
                     </p>
                   </div>
+
+                  {/* GIÁ */}
                   <div>
-                    <p className="text-sm text-gray-500">Giá</p>
+                    <h3 className="text-3xl font-semibold text-gray-900 mb-1">
+                      Giá
+                    </h3>
                     <p className="text-2xl font-bold text-blue-600">
                       {subscription.price
                         ? `${subscription.price.toLocaleString("vi-VN")} VNĐ`
                         : "Liên hệ"}
                     </p>
                   </div>
+
+                  {/* PHÍ PHỤ THU */}
                   {subscription.extraFee && (
                     <div>
-                      <p className="text-sm text-gray-500">Phí phụ thu</p>
-                      <p className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-2xl font-semibold text-gray-900 mb-1">
+                        Phí phụ thu
+                      </h3>
+                      <p className="text-xl font-semibold text-gray-900">
                         {subscription.extraFee.toLocaleString("vi-VN")} VNĐ
                       </p>
                     </div>
                   )}
+
+                  {/* MÔ TẢ */}
                   {subscription.description && (
                     <div>
-                      <p className="text-sm text-gray-500">Mô tả</p>
-                      <p className="text-gray-700 whitespace-pre-line">
-                        {subscription.description}
-                      </p>
+                      <h3 className="text-2xl font-semibold text-gray-900 mb-1">
+                        Mô tả
+                      </h3>
+                      <div className="text-xl text-gray-700 whitespace-pre-line">
+                        {formatDescription(subscription.description)}
+                      </div>
                     </div>
                   )}
+
+                  {/* THỜI HẠN */}
                   <div>
-                    <p className="text-sm text-gray-500">Thời hạn</p>
-                    <p className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-1">
+                      Thời hạn
+                    </h3>
+                    <p className="text-xl font-semibold text-gray-900">
                       {subscription.durationPackage} ngày
                     </p>
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Payment Method */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Banknote className="w-5 h-5 text-green-600" />
-                Phương thức thanh toán
-              </h2>
-              <div className="space-y-3">
-                <label className="flex items-center p-4 border-2 border-green-200 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="CASH"
-                    checked={paymentMethod === "CASH"}
-                    onChange={(e) => {
-                      setPaymentMethod(e.target.value);
-                      setPaymentGateId(0);
-                    }}
-                    className="mr-3 w-4 h-4 text-green-600"
-                  />
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Tiền mặt</p>
-                    <p className="text-sm text-gray-500">
-                      Thanh toán bằng tiền mặt khi nhận dịch vụ
-                    </p>
-                  </div>
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Banknote className="w-5 h-5 text-green-600" />
-                  </div>
-                </label>
-              </div>
-            </div>
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Tóm tắt đơn hàng
               </h2>
+
               {subscription && (
                 <div className="space-y-4 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Gói dịch vụ</span>
-                    <span className="font-semibold text-gray-900">
+                  {/* GÓI DỊCH VỤ (1 dòng) */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 whitespace-nowrap">
+                      Gói dịch vụ:
+                    </span>
+                    <span className="font-semibold text-gray-900 whitespace-nowrap">
                       {subscription.name}
                     </span>
                   </div>
+
+                  {/* GIÁ */}
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Giá gói</span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="text-gray-600 whitespace-nowrap">
+                      Giá gói:{" "}
+                    </span>
+                    <span className="font-semibold text-gray-900 whitespace-nowrap">
                       {subscription.price
                         ? `${subscription.price.toLocaleString("vi-VN")} VNĐ`
                         : "Liên hệ"}
                     </span>
                   </div>
+
+                  {/* PHÍ PHỤ THU */}
                   {subscription.extraFee && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Phí phụ thu</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="text-gray-600 whitespace-nowrap">
+                        Phí phụ thu:
+                      </span>
+                      <span className="font-semibold text-gray-900 whitespace-nowrap">
                         {subscription.extraFee.toLocaleString("vi-VN")} VNĐ
                       </span>
                     </div>
                   )}
+
+                  {/* TỔNG CỘNG */}
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between">
                       <span className="text-lg font-bold text-gray-900">
@@ -334,17 +344,17 @@ const Payment = () => {
                 </div>
               )}
 
+              {/* ERROR BOX */}
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p className="text-xl text-red-600">{error}</p>
                 </div>
               )}
 
+              {/* BUTTON THANH TOÁN */}
               <button
                 onClick={handlePayment}
-                disabled={
-                  processing || !subscription || subscription.price === null
-                }
+                disabled={processing || !subscription}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {processing ? (
@@ -360,7 +370,7 @@ const Payment = () => {
                 )}
               </button>
 
-              <p className="text-xs text-gray-500 text-center mt-4 flex items-center justify-center gap-1">
+              <p className="text-xl text-gray-500 text-center mt-4 flex items-center justify-center gap-1">
                 <Banknote className="w-3 h-3" />
                 Thanh toán bằng tiền mặt khi nhận dịch vụ tại trạm
               </p>

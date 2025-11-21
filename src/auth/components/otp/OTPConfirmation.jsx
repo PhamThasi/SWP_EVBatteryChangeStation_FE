@@ -36,19 +36,6 @@ const OTPConfirmation = () => {
       await authService.verifyOtp(email, otp);
       toast.success("Xác thực OTP thành công!");
 
-      // ✅ Update fullName nếu có pending
-      const pending = JSON.parse(localStorage.getItem("pendingProfile"));
-      if (pending?.fullName) {
-        try {
-          await authService.updateProfileByEmail(email, { fullName: pending.fullName });
-          toast.success("Cập nhật họ tên thành công!");
-        } catch (err) {
-          console.error("Failed to update fullName:", err);
-        } finally {
-          localStorage.removeItem("pendingProfile");
-        }
-      }
-
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       console.error("OTP verification failed:", err);

@@ -165,7 +165,7 @@ const BookingPage = () => {
   // Auto-refresh bookings mỗi 10 giây để cập nhật khi staff thay đổi
   useEffect(() => {
     if (!accountId) return;
-    
+
     const intervalId = setInterval(() => {
       fetchBookings();
     }, 10000); // Refresh mỗi 10 giây
@@ -278,132 +278,197 @@ const BookingPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 font-['Inter']">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header với nút Thêm */}
-        <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header - Clean & Strong */}
+        <div className="flex justify-between items-center mb-12">
           <div>
-            <h1 className="text-gray-900 text-5xl font-bold mb-2 flex items-center gap-3">
-              <span className="text-6xl">🔋</span>
+            <h1 className="text-5xl font-bold text-gray-900 flex items-center gap-4">
+              <span className="text-6xl">Battery</span>
               Lịch Đổi Pin
             </h1>
-            <p className="text-gray-600 text-xl">
+            <p className="text-xl text-gray-600 mt-3">
               Quản lý lịch đặt đổi pin xe điện của bạn
             </p>
           </div>
 
           <button
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg px-7 py-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3"
           >
-            <span className="text-2xl">+</span>
-            <span className="text-xl">Đặt lịch mới</span>
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Đặt lịch mới
           </button>
         </div>
 
-        {/* Stats Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-2xl p-5 shadow-md border border-gray-100">
+        {/* Stats Cards - Minimal & Clean */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="bg-white rounded-2xl p-7 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-xl font-medium">
+                <p className="text-gray-500 text-lg font-medium">
                   Tổng lịch đặt
                 </p>
-                <p className="text-4xl font-bold text-gray-900 mt-1">
+                <p className="text-4xl font-bold text-gray-900 mt-2">
                   {bookings.length}
                 </p>
               </div>
-              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                <span className="text-4xl">📋</span>
+              <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-md border border-gray-100">
+          <div className="bg-white rounded-2xl p-7 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-xl font-medium">
-                  Đang hoạt động
+                <p className="text-gray-500 text-lg font-medium">
+                  Còn hiệu lực
                 </p>
-                <p className="text-4xl font-bold text-emerald-600 mt-1">
+                <p className="text-4xl font-bold text-emerald-600 mt-2">
                   {
-                    bookings.filter((b) => b.status && !isExpired(b.dateTime))
-                      .length
+                    bookings.filter(
+                      (b) =>
+                        !isExpired(b.dateTime) && b.isApproved !== "Canceled"
+                    ).length
                   }
                 </p>
               </div>
-              <div className="w-16 h-16 bg-emerald-100 rounded-xl flex items-center justify-center">
-                <span className="text-4xl">✓</span>
+              <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-emerald-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-md border border-gray-100">
+          <div className="bg-white rounded-2xl p-7 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-xl font-medium">Đã hết hạn</p>
-                <p className="text-4xl font-bold text-orange-600 mt-1">
+                <p className="text-gray-500 text-lg font-medium">Đã hết hạn</p>
+                <p className="text-4xl font-bold text-orange-600 mt-2">
                   {bookings.filter((b) => isExpired(b.dateTime)).length}
                 </p>
               </div>
-              <div className="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center">
-                <span className="text-4xl">⏰</span>
+              <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-orange-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Booking Cards Grid */}
-        {loading ? (
-          <div className="bg-white rounded-2xl shadow-md p-12 text-center border border-gray-100">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-              <p className="text-gray-600 text-2xl">Đang tải dữ liệu...</p>
-            </div>
+        {/* Loading */}
+        {loading && (
+          <div className="bg-white rounded-2xl border border-gray-200 p-24 text-center">
+            <div className="w-14 h-14 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <p className="text-xl text-gray-600 mt-6">Đang tải dữ liệu...</p>
           </div>
-        ) : bookings.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-md p-12 text-center border border-gray-100">
-            <div className="flex flex-col items-center gap-4">
-              <span className="text-9xl">📭</span>
-              <p className="text-gray-600 text-2xl font-medium mb-2">
-                Chưa có lịch đặt nào
-              </p>
-              <p className="text-gray-500 text-xl mb-6">
-                Tạo lịch đặt đầu tiên để bắt đầu sử dụng dịch vụ
-              </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xl px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+        )}
+
+        {/* Empty State - Rất clean */}
+        {!loading && bookings.length === 0 && (
+          <div className="bg-white rounded-2xl border border-gray-200 p-24 text-center">
+            <div className="w-28 h-28 mx-auto mb-8 bg-gray-100 rounded-3xl flex items-center justify-center">
+              <svg
+                className="w-16 h-16 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                + Tạo đặt lịch mới
-              </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
             </div>
+            <h3 className="text-3xl font-semibold text-gray-800 mb-3">
+              Chưa có lịch đặt nào
+            </h3>
+            <p className="text-xl text-gray-500 mb-10">
+              Tạo lịch đặt đầu tiên để bắt đầu sử dụng dịch vụ
+            </p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-lg px-8 py-4 rounded-xl shadow-sm hover:shadow-md transition"
+            >
+              + Tạo lịch đặt mới
+            </button>
           </div>
-        ) : (
+        )}
+
+        {/* Booking List */}
+        {!loading && bookings.length > 0 && (
           <>
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-12">
               {currentBookings.map((booking) => (
                 <div
                   key={booking.bookingId}
-                  className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group hover:-translate-y-1"
+                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  {/* Card Header với Status */}
-                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <span className="text-3xl">{booking.statusIcon}</span>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xl font-bold border ${booking.statusClass}`}
-                        >
-                          {booking.statusDisplay}
-                        </span>
-                      </div>
-                      {booking.status && !booking.isExpiredStatus && (
+                  {/* Status Header */}
+                  <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{booking.statusIcon}</span>
+                      <span
+                        className={`px-4 py-2 rounded-lg text-lg font-semibold ${booking.statusClass}`}
+                      >
+                        {booking.statusDisplay}
+                      </span>
+                    </div>
+                    {!booking.isExpiredStatus &&
+                      booking.isApproved !== "Canceled" &&
+                      booking.isApproved !== "Swapped" && (
                         <button
                           onClick={() => handleCancelBooking(booking.bookingId)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                          title="Hủy lịch đặt"
+                          className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition"
                         >
                           <svg
                             className="w-6 h-6"
@@ -414,143 +479,89 @@ const BookingPage = () => {
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              strokeWidth="2"
+                              strokeWidth={2}
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                             />
                           </svg>
                         </button>
                       )}
-                    </div>
                   </div>
 
-                  {/* Card Body */}
-                  <div className="p-5 space-y-4">
-                    {/* Date & Time - Prominent */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-3xl">📅</span>
-                        <span className="text-gray-500 text-xl font-medium uppercase tracking-wide">
-                          Thời gian đặt
-                        </span>
-                      </div>
-                      <div className="ml-12">
-                        <p className="text-gray-900 text-2xl font-bold">
-                          {formatDate(booking.dateTime)}
-                        </p>
-                        <p className="text-blue-600 text-3xl font-bold">
-                          {formatTime(booking.dateTime)}
-                        </p>
-                      </div>
+                  {/* Body */}
+                  <div className="p-6 space-y-6">
+                    <div>
+                      <p className="text-lg text-gray-500 font-medium mb-2">
+                        Thời gian đặt
+                      </p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {formatDate(booking.dateTime)}
+                      </p>
+                      <p className="text-4xl font-bold text-blue-600 mt-1">
+                        {formatTime(booking.dateTime)}
+                      </p>
                     </div>
 
-                    {/* Notes */}
-                    <div className="flex items-start gap-3">
-                      <span className="text-3xl mt-0.5">📝</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-gray-500 text-xl font-medium mb-1">
+                    {booking.notes && (
+                      <div>
+                        <p className="text-lg text-gray-500 font-medium mb-1">
                           Ghi chú
                         </p>
-                        <p
-                          className="text-gray-700 text-xl line-clamp-2"
-                          title={booking.notes || "Không có ghi chú"}
-                        >
-                          {booking.notes || "Không có ghi chú"}
-                        </p>
+                        <p className="text-xl text-gray-700">{booking.notes}</p>
                       </div>
+                    )}
+
+                    <div className="text-gray-500 text-lg">
+                      <span className="font-medium">Tạo ngày:</span>{" "}
+                      {formatDateTime(booking.createdDate)}
                     </div>
 
-                    {/* Created Date */}
-                    <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
-                      <span className="text-2xl">🕒</span>
-                      <div className="flex-1">
-                        <p className="text-gray-500 text-xl font-medium">
-                          Ngày tạo
-                        </p>
-                        <p className="text-gray-600 text-xl">
-                          {formatDateTime(booking.createdDate)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Thông tin xác nhận đặt lịch - Bước 1 */}
+                    {/* Confirmed */}
                     {booking.isApproved === "Approved" && (
-                      <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border-2 border-emerald-300 mt-4">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-4xl">✅</span>
-                          <span className="text-emerald-700 text-2xl font-bold">
-                            Đã xác nhận đặt lịch
-                          </span>
-                        </div>
-                        <div className="ml-12 space-y-2">
-                          <p className="text-emerald-700 text-lg font-medium">
-                            Booking của bạn đã được staff xác nhận!
-                          </p>
-                          <p className="text-gray-600 text-base">
-                            Vui lòng đến trạm đúng thời gian đã đặt để thực hiện đổi pin.
-                          </p>
-                        </div>
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
+                        <p className="text-xl font-semibold text-emerald-800">
+                          Đã xác nhận đặt lịch
+                        </p>
+                        <p className="text-gray-700 mt-1">
+                          Vui lòng đến đúng giờ để đổi pin
+                        </p>
                       </div>
                     )}
 
-                    {/* Thông tin hoàn thành đổi pin - Bước 2 */}
+                    {/* Swapped */}
                     {booking.isApproved === "Swapped" && (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-400 mt-4">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-4xl">🔋</span>
-                          <span className="text-green-700 text-2xl font-bold">
-                            Đã hoàn thành đổi pin
-                          </span>
-                        </div>
-                        <div className="ml-12 space-y-2">
-                          <p className="text-green-700 text-lg font-medium">
-                            Đổi pin đã được hoàn thành thành công!
-                          </p>
-                          <p className="text-gray-600 text-base">
-                            Cảm ơn bạn đã sử dụng dịch vụ đổi pin của chúng tôi.
-                          </p>
-                        </div>
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-5">
+                        <p className="text-xl font-semibold text-green-800">
+                          Đã hoàn thành đổi pin
+                        </p>
+                        <p className="text-gray-700 mt-1">
+                          Cảm ơn bạn đã sử dụng dịch vụ!
+                        </p>
                       </div>
                     )}
 
-                    {/* Swapping Status - Hiển thị khi có swapping transaction */}
+                    {/* Swapping Info */}
                     {booking.swappingData && (
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200 mt-4">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-3xl">🔋</span>
-                          <span className="text-gray-700 text-xl font-bold">
-                            Thông tin giao dịch đổi pin
-                          </span>
-                        </div>
-                        <div className="ml-12 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 text-lg font-medium">
-                              Trạng thái:
-                            </span>
-                            <span
-                              className={`px-3 py-1 rounded-full text-lg font-bold ${
-                                booking.swappingData.status === "Finish"
-                                  ? "bg-green-100 text-green-800 border border-green-300"
-                                  : booking.swappingData.status ===
-                                    "In Progress"
-                                  ? "bg-blue-100 text-blue-800 border border-blue-300"
-                                  : "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                              }`}
-                            >
-                              {booking.swappingData.status === "Finish"
-                                ? "✅ Hoàn thành"
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 text-lg">
+                        <p className="font-semibold text-gray-800 mb-3">
+                          Giao dịch đổi pin
+                        </p>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Trạng thái</span>
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              booking.swappingData.status === "Finish"
+                                ? "bg-green-100 text-green-700"
                                 : booking.swappingData.status === "In Progress"
-                                ? "🔄 Đang xử lý"
-                                : "⏳ Chờ xử lý"}
-                            </span>
-                          </div>
-                          <p className="text-gray-600 text-lg">
-                            <span className="font-medium">Transaction ID:</span>{" "}
-                            {booking.swappingData.transactionId?.substring(
-                              0,
-                              8
-                            )}
-                            ...
-                          </p>
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {booking.swappingData.status === "Finish"
+                              ? "Hoàn thành"
+                              : booking.swappingData.status === "In Progress"
+                              ? "Đang xử lý"
+                              : "Chờ xử lý"}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -559,54 +570,42 @@ const BookingPage = () => {
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination - Clean */}
             {totalPages > 1 && (
-              <div className="bg-white rounded-2xl shadow-md px-6 py-5 border border-gray-100">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="text-gray-600 text-xl font-medium">
-                    Hiển thị{" "}
-                    <span className="font-bold text-blue-600">
-                      {startIndex + 1}
-                    </span>{" "}
-                    -{" "}
-                    <span className="font-bold text-blue-600">
-                      {Math.min(endIndex, processedBookings.length)}
-                    </span>{" "}
-                    trong tổng số{" "}
-                    <span className="font-bold text-gray-900">
-                      {processedBookings.length}
-                    </span>{" "}
-                    lịch đặt
-                  </div>
-                  <div className="flex items-center gap-2">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                  <p className="text-lg text-gray-600">
+                    Hiển thị {startIndex + 1}–
+                    {Math.min(endIndex, processedBookings.length)} trong tổng{" "}
+                    {processedBookings.length} lịch
+                  </p>
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={() => goToPage(currentPage - 1)}
                       disabled={currentPage === 0}
-                      className="px-5 py-2.5 border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200 font-medium text-xl"
+                      className="px-5 py-3 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition text-lg"
                     >
-                      ← Trước
+                      Trước
                     </button>
-                    <div className="flex gap-1">
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => goToPage(i)}
-                          className={`px-5 py-2.5 rounded-lg transition-all duration-200 font-medium text-xl ${
-                            currentPage === i
-                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md transform scale-105"
-                              : "bg-white border border-gray-300 hover:bg-gray-50 hover:border-blue-400 text-gray-700"
-                          }`}
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
-                    </div>
+                    {Array.from({ length: totalPages }, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => goToPage(i)}
+                        className={`px-5 py-3 rounded-lg text-lg font-medium transition ${
+                          currentPage === i
+                            ? "bg-blue-600 text-white"
+                            : "border border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
                     <button
                       onClick={() => goToPage(currentPage + 1)}
                       disabled={currentPage >= totalPages - 1}
-                      className="px-5 py-2.5 border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200 font-medium text-xl"
+                      className="px-5 py-3 border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition text-lg"
                     >
-                      Sau →
+                      Sau
                     </button>
                   </div>
                 </div>
@@ -615,27 +614,24 @@ const BookingPage = () => {
           </>
         )}
 
-        {/* Modal Booking Form */}
+        {/* Modal - Clean & Minimal */}
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-8 border-b border-gray-200">
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <span className="text-4xl">🔋</span>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      Đặt lịch đổi pin
-                    </h2>
-                  </div>
+                  <h2 className="text-4xl font-bold text-gray-900 flex items-center gap-4">
+                    <span className="text-5xl">Battery</span> Đặt lịch đổi pin
+                  </h2>
                   <button
                     onClick={() => setShowForm(false)}
-                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-200 w-10 h-10 rounded-full flex items-center justify-center transition-colors text-3xl"
+                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 w-12 h-12 rounded-full flex items-center justify-center transition text-3xl"
                   >
                     ×
                   </button>
                 </div>
               </div>
-              <div className="p-6">
+              <div className="p-8">
                 <BookingForm
                   onSuccess={handleFormSuccess}
                   onCancel={() => setShowForm(false)}
@@ -648,5 +644,4 @@ const BookingPage = () => {
     </div>
   );
 };
-
 export default BookingPage;

@@ -24,6 +24,7 @@ const AccountManagement = () => {
     status: true,
     roleId: "",
     stationId: "",
+    password: "",
   });
 
   const BASE_URL = "http://localhost:5204/api/Account";
@@ -100,6 +101,7 @@ const AccountManagement = () => {
         status: account.status ?? true,
         roleId: account.roleId || "",
         stationId: account.stationId || "",
+        password: "123456",
       });
     } else {
       setEditingAccount(null);
@@ -114,6 +116,7 @@ const AccountManagement = () => {
         status: true,
         roleId: "",
         stationId: "",
+        password: "",
       });
     }
     setShowModal(true);
@@ -212,7 +215,19 @@ const AccountManagement = () => {
 
   const filteredAccounts = accounts
     .filter((acc) => acc.status === true)
-    .filter((acc) => acc.fullName?.toLowerCase().includes(search.toLowerCase()));
+    .filter((acc) => {
+      if (!search.trim()) return true;
+      const searchLower = search.toLowerCase();
+      const fullNameLower = acc.fullName?.toLowerCase() || "";
+      const accountNameLower = acc.accountName?.toLowerCase() || "";
+      const emailLower = acc.email?.toLowerCase() || "";
+      
+      return (
+        fullNameLower.includes(searchLower) ||
+        accountNameLower.includes(searchLower) ||
+        emailLower.includes(searchLower)
+      );
+    });
 
   if (loading) return <p>Đang tải danh sách tài khoản...</p>;
   if (error) return <p>Lỗi: {error}</p>;
@@ -362,8 +377,8 @@ const AccountManagement = () => {
                 onChange={handleChange}
               >
                 <option value="">Chọn giới tính</option>
-                <option value={"Male"}>Nam</option>
-                <option value={"Female"}>Nữ</option>
+                <option value={"Nam"}>Nam</option>
+                <option value={"Nữ"}>Nữ</option>
               </select>
               {formErrors.gender && <span className="field-error">{formErrors.gender}</span>}
 
@@ -457,11 +472,11 @@ const AccountManagement = () => {
                   {formErrors.email && (
                     <span className="field-error">{formErrors.email}</span>
                   )}
-                  <label>Mật khẩu mới (không bắt buộc)</label>
+                  <label>Mật khẩu mới</label>
                   <input
                     type="password"
                     name="password"
-                    placeholder="Để trống nếu giữ nguyên"
+                    placeholder="Mặc định 123456 nếu không thay đổi"
                     value={formData.password || ""}
                     onChange={handleChange}
                   />
