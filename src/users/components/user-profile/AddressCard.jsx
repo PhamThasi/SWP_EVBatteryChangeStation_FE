@@ -30,6 +30,7 @@ const AddressCard = ({
         isEditing={isEditing}
         onChange={onChange}
         name="address"
+        placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
       />
     </Card>
   );

@@ -16,7 +16,9 @@ import tramsac_testla from "./../../assets/tramsac_testla.jpg";
 import tramsac_vinfast from "./../../assets/tramsac_vinfast.jpg";
 import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
 import stationService from "@/api/stationService";
+import batteryService from "@/api/batteryService";
 import { vietmapService } from "@/api/vietmapService";
+import subcriptionService from "@/api/subcriptionService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faLocationDot,
@@ -56,8 +58,12 @@ const HomeFrame = () => {
   // Fetch stations
   const [stations, setStations] = useState([]);
   const [mapStations, setMapStations] = useState([]);
+  const [batteryCounts, setBatteryCounts] = useState({});
   const [stationsLoading, setStationsLoading] = useState(false);
   const [stationsError, setStationsError] = useState(null);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [subscriptionsLoading, setSubscriptionsLoading] = useState(false);
+  const [subscriptionsError, setSubscriptionsError] = useState(null);
 
   const stationImages = {
     "4c95752b-73d7-4320-ac81-5603cb639f40": tramsac_evt,
@@ -71,7 +77,21 @@ const HomeFrame = () => {
         setStationsLoading(true);
         setStationsError(null);
         const data = await stationService.getStationList();
-        setStations(Array.isArray(data) ? data : []);
+        const stationsList = Array.isArray(data) ? data : [];
+        setStations(stationsList);
+
+        // Tính số pin cho mỗi trạm
+        const counts = {};
+        for (const station of stationsList) {
+          try {
+            const count = await batteryService.getBatteryCountByStationId(station.stationId);
+            counts[station.stationId] = count;
+          } catch (err) {
+            console.warn(`Không thể đếm pin cho trạm ${station.stationId}:`, err);
+            counts[station.stationId] = 0;
+          }
+        }
+        setBatteryCounts(counts);
       } catch {
         setStations([]);
         setStationsError("Không tải được danh sách trạm");
@@ -80,6 +100,31 @@ const HomeFrame = () => {
       }
     };
     fetchStations();
+  }, []);
+
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        setSubscriptionsLoading(true);
+        setSubscriptionsError(null);
+        const res = await subcriptionService.getSubscriptions();
+        const raw =
+          res?.data?.data ||
+          res?.data ||
+          res?.Data ||
+          res?.Data?.data ||
+          res;
+        const arr = Array.isArray(raw) ? raw : raw?.data || raw?.Data || [];
+        setSubscriptions(Array.isArray(arr) ? arr : []);
+      } catch (error) {
+        console.error("Không thể tải gói dịch vụ:", error);
+        setSubscriptionsError("Không thể tải danh sách gói dịch vụ");
+        setSubscriptions([]);
+      } finally {
+        setSubscriptionsLoading(false);
+      }
+    };
+    fetchSubscriptions();
   }, []);
 
   // Get user location
@@ -145,6 +190,21 @@ const HomeFrame = () => {
   }, [API_KEY, stations]);
 
   const navigateTo = (path) => () => navigate(path);
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined) return "Liên hệ";
+    const number = Number(value);
+    if (Number.isNaN(number)) return String(value);
+    return `${number.toLocaleString("vi-VN")} đ`;
+  };
+
+  const normalizeDescription = (description) => {
+    if (!description) return [];
+    return description
+      .replace(/\\n/g, "\n")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  };
 
   return (
     <div className="home-frame">
@@ -273,7 +333,7 @@ const HomeFrame = () => {
               const title = station.accountName || station.name || `Station ${id}`;
               const address = station.address || "Địa chỉ đang cập nhật";
               const phone = station.phoneNumber || "Chưa cập nhật";
-              const batteries = station.batteryQuantity ?? "Chưa có dữ liệu";
+              const batteries = batteryCounts[id] ?? 0;
               const isActive = station.status !== false;
               const imageUrl = stationImages[id] || tramsac_vinfast;
 
@@ -309,58 +369,90 @@ const HomeFrame = () => {
         <div className="container">
           <h3>Các Gói Dịch Vụ Swap Pin</h3>
           <div className="package-grid">
-            <ServiceCard title="Gói Cơ Bản">
-              <p className="price">29.000đ <small>/lượt</small></p>
-              <ul>
-                <li>Swap từng lần – trả tiền theo lượt</li>
-                <li>Phù hợp tài xế ít di chuyển</li>
-                <li>Không cam kết tháng</li>
-                <li>Thanh toán qua app</li>
-              </ul>
-              <button
-                type="button"
-                className="btn-select"
-                onClick={navigateTo("/subscriptions")}
-              >
-                Chọn gói
-              </button>
-            </ServiceCard>
+            {subscriptionsLoading && (
+              <ServiceCard title="Đang tải...">
+                <p className="text-gray-600">Đang tải gói dịch vụ...</p>
+              </ServiceCard>
+            )}
 
-            <div className="package-popular">
-              <ServiceCard title="Gói Tiết Kiệm" badge="Phổ biến nhất">
-                <p className="price">299.000đ <small>/tháng</small></p>
-                <ul>
-                  <li>10–15 lượt swap miễn phí/tháng</li>
-                  <li>Ưu tiên giờ cao điểm</li>
-                  <li>Tiết kiệm 25% so với lẻ</li>
-                  <li>Theo dõi qua app</li>
-                </ul>
+            {subscriptionsError && !subscriptionsLoading && (
+              <ServiceCard title="Không thể tải dữ liệu">
+                <p className="text-red-500">{subscriptionsError}</p>
                 <button
                   type="button"
-                  className="btn-select"
+                  className="btn-select mt-4"
                   onClick={navigateTo("/subscriptions")}
                 >
-                  Chọn gói
+                  Xem chi tiết tại trang gói dịch vụ
                 </button>
               </ServiceCard>
-            </div>
+            )}
 
-            <ServiceCard title="Gói Premium">
-              <p className="price">799.000đ <small>/tháng</small></p>
-              <ul>
-                <li>Swap không giới hạn</li>
-                <li>Bảo dưỡng pin miễn phí</li>
-                <li>Ưu tiên tuyệt đối</li>
-                <li>Hỗ trợ 24/7</li>
-              </ul>
-              <button
-                type="button"
-                className="btn-select"
-                onClick={navigateTo("/subscriptions")}
-              >
-                Chọn gói
-              </button>
-            </ServiceCard>
+            {!subscriptionsLoading &&
+              !subscriptionsError &&
+              (subscriptions.length === 0 ? (
+                <ServiceCard title="Chưa có gói dịch vụ">
+                  <p className="text-gray-600">
+                    Hiện chưa có gói dịch vụ nào được công bố. Vui lòng quay lại sau.
+                  </p>
+                </ServiceCard>
+              ) : (
+                subscriptions.slice(0, 3).map((subscription, index) => {
+                  const perks = normalizeDescription(subscription.description);
+                  const isPopular =
+                    subscription.name?.toLowerCase().includes("tiết kiệm") ||
+                    index === 1;
+
+                  return (
+                    <div
+                      key={subscription.subscriptionId || subscription.name || index}
+                      className={isPopular ? "package-popular" : undefined}
+                    >
+                      <ServiceCard
+                        title={subscription.name || `Gói ${index + 1}`}
+                        badge={isPopular ? "Phổ biến nhất" : undefined}
+                      >
+                        <p className="price">
+                          {formatCurrency(subscription.price)}
+                          {subscription.price ? (
+                            <small className="ml-1">
+                              {subscription.durationPackage
+                                ? `/${subscription.durationPackage} ngày`
+                                : "/tháng"}
+                            </small>
+                          ) : null}
+                        </p>
+                        {subscription.extraFee ? (
+                          <p className="text-sm text-orange-500 mb-2">
+                            + Phí phụ thu: {formatCurrency(subscription.extraFee)}
+                          </p>
+                        ) : null}
+                        {perks.length > 0 ? (
+                          <ul>
+                            {perks.slice(0, 4).map((perk, perkIndex) => (
+                              <li key={perkIndex}>{perk}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <ul>
+                            <li>Truy cập vào mạng lưới đổi pin Genki Power</li>
+                            <li>Quản lý gói dịch vụ nhanh chóng trên ứng dụng</li>
+                            <li>Ưu tiên hỗ trợ kỹ thuật 24/7</li>
+                            <li>Chi tiết đầy đủ tại trang gói dịch vụ</li>
+                          </ul>
+                        )}
+                        <button
+                          type="button"
+                          className="btn-select"
+                          onClick={navigateTo("/subscriptions")}
+                        >
+                          Xem chi tiết
+                        </button>
+                      </ServiceCard>
+                    </div>
+                  );
+                })
+              ))}
           </div>
         </div>
       </section>

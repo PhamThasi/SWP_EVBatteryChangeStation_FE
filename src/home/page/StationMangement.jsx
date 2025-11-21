@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useCallback, useEffect, useState } from "react";
+import { notifyError, notifySuccess } from "@/components/notification/notification";
+import stationSevice from "@/api/stationService";
+import batteryService from "@/api/batteryService";
 import "../components/AdminStyle.css";
 
-const   StationManagement = () => {
+const StationManagement = () => {
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,35 +15,71 @@ const   StationManagement = () => {
     phoneNumber: "",
     status: true,
     accountName: "",
-    batteryQuantity: 0,
   });
+  const [batteryCounts, setBatteryCounts] = useState({});
 
-  const BASE_URL = "http://localhost:5204/api/Station";
+  const extractMessage = useCallback(
+    (error, fallback) =>
+      error?.response?.data?.message ||
+      error?.response?.data?.title ||
+      (typeof error?.response?.data === "string" ? error.response.data : "") ||
+      error?.message ||
+      fallback,
+    []
+  );
 
-  // Fetch all stations
-  const fetchStations = async (suppressError = false) => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${BASE_URL}/SelectAll`);
-      setStations(res.data?.data || []);
-    } catch (err) {
-      console.error("Fetch stations failed", {
-        url: `${BASE_URL}/SelectAll`,
-        status: err?.response?.status,
-        data: err?.response?.data,
-        message: err?.message,
-      });
-      if (!suppressError) {
-        setError(err.message);
+  const resolveMessage = useCallback((response, fallback) => {
+    if (!response) return fallback;
+    if (typeof response === "string") return response || fallback;
+    return (
+      response?.message ||
+      response?.Message ||
+      response?.data?.message ||
+      response?.data?.Message ||
+      fallback
+    );
+  }, []);
+
+  // Fetch all stations và tính số pin động
+  const fetchStations = useCallback(
+    async (suppressError = false) => {
+      setLoading(true);
+      try {
+        const data = await stationSevice.getStationList();
+        setStations(data || []);
+
+        // Tính số pin cho mỗi trạm
+        const counts = {};
+        for (const station of data || []) {
+          try {
+            const count = await batteryService.getBatteryCountByStationId(station.stationId);
+            counts[station.stationId] = count;
+          } catch (err) {
+            console.warn(`Không thể đếm pin cho trạm ${station.stationId}:`, err);
+            counts[station.stationId] = 0;
+          }
+        }
+        setBatteryCounts(counts);
+      } catch (err) {
+        console.error("Fetch stations failed", {
+          status: err?.response?.status,
+          data: err?.response?.data,
+          message: err?.message,
+        });
+        if (!suppressError) {
+          setError(err.message);
+          notifyError(extractMessage(err, "Không thể tải danh sách trạm!"));
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [extractMessage]
+  );
 
   useEffect(() => {
     fetchStations();
-  }, []);
+  }, [fetchStations]);
 
   // Open modal (add or update)
   const openModal = (station = null) => {
@@ -53,7 +91,6 @@ const   StationManagement = () => {
         phoneNumber: station.phoneNumber || "",
         status: station.status ?? true,
         accountName: station.accountName || "",
-        batteryQuantity: station.batteryQuantity || 0,
       });
     } else {
       setEditingStation(null);
@@ -62,7 +99,6 @@ const   StationManagement = () => {
         phoneNumber: "",
         status: true,
         accountName: "",
-        batteryQuantity: 0,
       });
     }
   };
@@ -78,46 +114,45 @@ const   StationManagement = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === "status"
-          ? value === "true"
-          : name === "batteryQuantity"
-          ? parseInt(value) || 0
-          : value,
+      [name]: name === "status" ? value === "true" : value,
     }));
   };
 
   // Save (Add or Update)
   const handleSave = async () => {
-    const url = editingStation ? `${BASE_URL}/Update` : `${BASE_URL}/Create`;
-
     const payload = editingStation
       ? { stationId: editingStation.stationId, ...formData }
       : { ...formData };
 
+    // Không gửi batteryQuantity vì nó được tính động từ BatteryManagement
+    delete payload.batteryQuantity;
+
     try {
-      const res = await axios.post(url, payload);
-      if (res?.status >= 200 && res?.status < 300) {
-        alert(editingStation ? "Cập nhật trạm thành công" : "Thêm trạm thành công");
-      } else {
-        alert("Yêu cầu đã gửi nhưng phản hồi bất thường: " + res?.status);
-      }
+      const result = editingStation
+        ? await stationSevice.updateStation(editingStation.stationId, payload)
+        : await stationSevice.createStation(payload);
+
+      notifySuccess(
+        resolveMessage(
+          result,
+          editingStation ? "Cập nhật trạm thành công" : "Thêm trạm thành công"
+        )
+      );
     } catch (err) {
       console.error("Save station failed", {
-        url,
         payload,
         status: err?.response?.status,
         data: err?.response?.data,
         message: err?.message,
       });
-        const serverMsg =
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        (typeof err?.response?.data === "string" ? err.response.data : "");
-      alert(
-        "station message: " +
-          (err?.response?.status ? `${err.response.status} ` : "") +
-          (serverMsg || err.message)
+      const message = extractMessage(
+        err,
+        editingStation ? "Cập nhật trạm thất bại!" : "Thêm trạm thất bại!"
+      );
+      notifyError(
+        `${editingStation ? "Update" : "Create"} station: ${
+          err?.response?.status ? `${err.response?.status} ` : ""
+        }${message}`
       );
     } finally {
       // Even if server replied 400 but actually inserted, still refresh list
@@ -128,22 +163,24 @@ const   StationManagement = () => {
   const handleDelete = async (stationId) => {
     if (!window.confirm("Are you sure you want to delete this station?")) return;
     try {
-      // Use hard delete endpoint with path parameter
-      await axios.delete(`${BASE_URL}/HardDelete/${stationId}`);
-      alert("Xóa trạm thành công");
+      const result = await stationSevice.deleteStation(stationId);
+      notifySuccess(resolveMessage(result, "Xóa trạm thành công"));
       await fetchStations();
     } catch (err) {
       console.error("Delete station failed", {
-        url: `${BASE_URL}/HardDelete/${stationId}`,
         status: err?.response?.status,
         data: err?.response?.data,
         message: err?.message,
       });
-      alert("Failed to delete station: " + (err?.response?.status ? `${err.response.status} ` : "") + err.message);
+      notifyError(
+        "Xóa trạm thất bại: " +
+          (err?.response?.status ? `${err.response.status} ` : "") +
+          extractMessage(err, err.message)
+      );
     }
   };
 
-  if (loading) return <p>Loading stations...</p>;
+  if (loading) return <p>Đang tải danh sách trạm...</p>;
 
   return (
     <div className="admin-dashboard">
@@ -152,7 +189,7 @@ const   StationManagement = () => {
           Error: {error}
         </div>
       )}
-      <h1 className="dashboard-title">Station Management</h1>
+      <h1 className="dashboard-title">Quản lý trạm</h1>
 
       {/* Toolbar */}
       <div
@@ -160,25 +197,25 @@ const   StationManagement = () => {
         style={{ display: "flex", justifyContent: "flex-end" }}
       >
         <button className="save-btn" onClick={() => openModal()}>
-          + Add Station
+          + Thêm trạm
         </button>
       </div>
 
       {/* Station Table */}
       <div className="dashboard-card">
-        <h2>Station List</h2>
+        <h2>Danh sách trạm</h2>
         {stations.length === 0 ? (
-          <p>No stations found.</p>
+          <p>Chưa có trạm nào.</p>
         ) : (
           <table className="inventory-table">
             <thead>
               <tr>
-                <th>Address</th>
-                <th>Phone Number</th>
-                <th>Status</th>
-                <th>Account Name</th>
-                <th>Battery Quantity</th>
-                <th style={{ textAlign: "center" }}>Actions</th>
+                <th>Địa chỉ</th>
+                <th>Số điện thoại</th>
+                <th>Trạng thái</th>
+                <th>Tên tài khoản</th>
+                <th>Số lượng pin</th>
+                <th style={{ textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -186,22 +223,22 @@ const   StationManagement = () => {
                 <tr key={station.stationId}>
                   <td>{station.address}</td>
                   <td>{station.phoneNumber}</td>
-                  <td>{station.status ? "Active" : "Inactive"}</td>
+                  <td>{station.status ? "Đang hoạt động" : "Ngừng hoạt động"}</td>
                   <td>{station.accountName}</td>
-                  <td>{station.batteryQuantity}</td>
+                  <td>{batteryCounts[station.stationId] ?? "Đang tải..."}</td>
                   <td style={{ textAlign: "center" }}>
                     <button
                       className="batupdate-btn"
                       // style={{ marginRight: "0.2rem" }}
                       onClick={() => openModal(station)}
                     >
-                      Update
+                      Cập nhật
                     </button>
                     <button
                       className="delete-btn"
                       onClick={() => handleDelete(station.stationId)}
                     >
-                      Delete
+                      Xóa
                     </button>
                   </td>
                 </tr>
@@ -215,34 +252,27 @@ const   StationManagement = () => {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>{editingStation ? "Update Station" : "Add Station"}</h2>
+            <h2>{editingStation ? "Cập nhật trạm" : "Thêm trạm"}</h2>
             <form className="modal-form">
               <input
                 type="text"
                 name="address"
-                placeholder="Address"
+                placeholder="Địa chỉ"
                 value={formData.address}
                 onChange={handleChange}
               />
               <input
                 type="text"
                 name="phoneNumber"
-                placeholder="Phone Number"
+                placeholder="Số điện thoại"
                 value={formData.phoneNumber}
                 onChange={handleChange}
               />
               <input
                 type="text"
                 name="accountName"
-                placeholder="Account Name"
+                placeholder="Tên tài khoản quản lý"
                 value={formData.accountName}
-                onChange={handleChange}
-              />
-              <input
-                type="number"
-                name="batteryQuantity"
-                placeholder="Battery Quantity"
-                value={formData.batteryQuantity}
                 onChange={handleChange}
               />
               <select
@@ -250,16 +280,16 @@ const   StationManagement = () => {
                 value={formData.status ? "true" : "false"}
                 onChange={handleChange}
               >
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng hoạt động</option>
               </select>
             </form>
             <div className="modal-actions">
               <button className="save-btn" onClick={handleSave}>
-                Save
+                Lưu
               </button>
               <button className="cancel-btn" onClick={closeModal}>
-                Cancel
+                Hủy
               </button>
             </div>
           </div>

@@ -283,11 +283,7 @@ const UserDashboard = () => {
                   </div>
                   
                   {/* Thông tin chi tiết - Dùng màu xám nhạt và bố cục gọn */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1 text-xl text-gray-600 mt-2">
-                    <p className="flex items-center gap-1">
-                      <span className="text-gray-400">ID:</span> 
-                      <span className="font-mono">{String(b.bookingId || "-").slice(0, 6)}...{String(b.bookingId || "-").slice(-4)}</span>
-                    </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1 text-xl text-gray-600 mt-2">
                     <p className="flex items-center gap-1">
                         <span className="text-gray-400">Ngày giờ:</span> {formatDateTime(b.dateTime)}
                     </p>

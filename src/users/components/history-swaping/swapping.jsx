@@ -1,20 +1,14 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import BookingForm from "@/users/components/booking-form/BookingForm";
 import bookingService from "@/api/bookingService";
 import swappingService from "@/api/swappingService";
-import {
-  notifySuccess,
-  notifyError,
-} from "@/components/notification/notification";
 
-const BookingPage = () => {
+const SwappingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [accountId, setAccountId] = useState("");
 
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 10;
 
   // Decode accountId từ JWT token
   const decodeAccountIdFromToken = () => {
@@ -32,94 +26,19 @@ const BookingPage = () => {
     }
   };
 
-  // Check if booking is expired (10 hours after scheduled time)
-  const isExpired = (dateTimeString) => {
-    if (!dateTimeString) return false;
-    try {
-      const bookingDate = new Date(dateTimeString);
-      const now = new Date();
-      const expiryTime = new Date(bookingDate.getTime() + 10 * 60 * 60 * 1000);
-      return now > expiryTime;
-    } catch {
-      return false;
-    }
-  };
-
-  // Dùng useMemo để xử lý và sắp xếp bookings
-  const processedBookings = useMemo(() => {
-    const processed = bookings.map((booking) => ({
-      ...booking,
-      isExpiredStatus: isExpired(booking.dateTime),
-      statusDisplay: (() => {
-        if (isExpired(booking.dateTime) && booking.isApproved !== "Canceled") {
-          return "Hết hạn";
-        }
-        switch ((booking.isApproved || "Pending").toLowerCase()) {
-          case "approved":
-            return "Đã xác nhận đặt lịch";
-          case "swapped":
-            return "Đã hoàn thành đổi pin";
-          case "rejected":
-            return "Bị từ chối";
-          case "canceled":
-            return "Đã hủy";
-          case "pending":
-          default:
-            return "Chờ xác nhận";
-        }
-      })(),
-      statusClass: (() => {
-        if (isExpired(booking.dateTime) && booking.isApproved !== "Canceled") {
-          return "bg-orange-100 text-orange-800 border-orange-200";
-        }
-        switch ((booking.isApproved || "Pending").toLowerCase()) {
-          case "approved":
-            return "bg-emerald-100 text-emerald-800 border-emerald-200";
-          case "swapped":
-            return "bg-green-100 text-green-800 border-green-200";
-          case "rejected":
-          case "canceled":
-            return "bg-red-100 text-red-800 border-red-200";
-          case "pending":
-          default:
-            return "bg-gray-100 text-gray-700 border-gray-200";
-        }
-      })(),
-      statusIcon: (() => {
-        if (isExpired(booking.dateTime) && booking.isApproved !== "Canceled") {
-          return "⏰";
-        }
-        switch ((booking.isApproved || "Pending").toLowerCase()) {
-          case "approved":
-            return "✓";
-          case "swapped":
-            return "✅";
-          case "rejected":
-          case "canceled":
-            return "✕";
-          case "pending":
-          default:
-            return "…";
-        }
-      })(),
-    }));
-
-    processed.sort((a, b) => {
-      const createdA = new Date(a.createdDate);
-      const createdB = new Date(b.createdDate);
-      return createdB - createdA;
-    });
-
-    return processed;
-  }, [bookings]);
-
-  // Fetch bookings với swapping status
+  // Fetch bookings với swapping status - chỉ lấy Approved và Swapped
   const fetchBookings = useCallback(async () => {
     if (!accountId) return;
     try {
       setLoading(true);
       const response = await bookingService.getUserBookings(accountId);
       const bookingsData = response?.data || [];
+
+      // Lọc chỉ lấy các booking đã được xác nhận (Approved) hoặc đã đổi pin thành công (Swapped)
+      const confirmedBookings = bookingsData.filter(
+        (booking) =>
+          booking.isApproved === "Approved" || booking.isApproved === "Swapped"
+      );
 
       // Lấy danh sách swapping để map với bookings
       let swappings = [];
@@ -130,7 +49,7 @@ const BookingPage = () => {
       }
 
       // Map swapping với booking dựa trên vehicleId và dateTime
-      const bookingsWithSwapping = bookingsData.map((booking) => {
+      const bookingsWithSwapping = confirmedBookings.map((booking) => {
         const relatedSwapping = swappings.find(
           (s) =>
             s.vehicleId === booking.vehicleId &&
@@ -170,7 +89,6 @@ const BookingPage = () => {
       fetchBookings();
     }, 10000); // Refresh mỗi 10 giây
 
-    // Cleanup interval khi component unmount
     return () => clearInterval(intervalId);
   }, [accountId, fetchBookings]);
 
@@ -232,10 +150,51 @@ const BookingPage = () => {
     }
   };
 
-  const handleFormSuccess = () => {
-    setShowForm(false);
-    fetchBookings();
-  };
+  // Dùng useMemo để xử lý và sắp xếp bookings
+  const processedBookings = useMemo(() => {
+    const processed = bookings.map((booking) => ({
+      ...booking,
+      statusDisplay: (() => {
+        switch ((booking.isApproved || "").toLowerCase()) {
+          case "approved":
+            return "Đã xác nhận đặt lịch";
+          case "swapped":
+            return "Đã hoàn thành đổi pin";
+          default:
+            return "Đã xác nhận";
+        }
+      })(),
+      statusClass: (() => {
+        switch ((booking.isApproved || "").toLowerCase()) {
+          case "approved":
+            return "bg-emerald-100 text-emerald-800 border-emerald-200";
+          case "swapped":
+            return "bg-green-100 text-green-800 border-green-200";
+          default:
+            return "bg-gray-100 text-gray-700 border-gray-200";
+        }
+      })(),
+      statusIcon: (() => {
+        switch ((booking.isApproved || "").toLowerCase()) {
+          case "approved":
+            return "✓";
+          case "swapped":
+            return "✅";
+          default:
+            return "…";
+        }
+      })(),
+    }));
+
+    // Sắp xếp theo ngày tạo mới nhất
+    processed.sort((a, b) => {
+      const createdA = new Date(a.createdDate || a.dateTime);
+      const createdB = new Date(b.createdDate || b.dateTime);
+      return createdB - createdA;
+    });
+
+    return processed;
+  }, [bookings]);
 
   // Pagination logic
   const totalPages = Math.ceil(processedBookings.length / ITEMS_PER_PAGE);
@@ -251,54 +210,18 @@ const BookingPage = () => {
     setCurrentPage(page);
   };
 
-  // Hàm xử lý khi nhấn nút Hủy
-  const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn hủy lịch đặt này?")) {
-      return;
-    }
-
-    try {
-      const b = bookings.find((x) => x.bookingId === bookingId);
-      if (!b) throw new Error("Không tìm thấy booking");
-      await bookingService.updateBooking(bookingId, {
-        dateTime: b.dateTime,
-        notes: b.notes,
-        isApproved: "Canceled",
-        createdDate: b.createdDate || new Date().toISOString(),
-        stationId: b.stationId,
-        vehicleId: b.vehicleId,
-        accountId: b.accountId,
-      });
-      notifySuccess("Hủy lịch thành công!");
-      fetchBookings();
-    } catch (error) {
-      console.error("Lỗi khi hủy booking:", error);
-      notifyError("Hủy lịch thất bại, vui lòng thử lại.");
-    }
-  };
-
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 font-['Inter']">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Header với nút Thêm */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-gray-900 text-5xl font-bold mb-2 flex items-center gap-3">
-              <span className="text-6xl">🔋</span>
-              Lịch Đổi Pin
-            </h1>
-            <p className="text-gray-600 text-xl">
-              Quản lý lịch đặt đổi pin xe điện của bạn
-            </p>
-          </div>
-
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            <span className="text-2xl">+</span>
-            <span className="text-xl">Đặt lịch mới</span>
-          </button>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-gray-900 text-5xl font-bold mb-2 flex items-center gap-3">
+            <span className="text-6xl">📋</span>
+            Lịch sử giao dịch đổi pin
+          </h1>
+          <p className="text-gray-600 text-xl">
+            Xem lại các giao dịch đổi pin đã được xác nhận và hoàn thành
+          </p>
         </div>
 
         {/* Stats Summary */}
@@ -307,7 +230,7 @@ const BookingPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-xl font-medium">
-                  Tổng lịch đặt
+                  Tổng giao dịch
                 </p>
                 <p className="text-4xl font-bold text-gray-900 mt-1">
                   {bookings.length}
@@ -323,11 +246,11 @@ const BookingPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-xl font-medium">
-                  Đang hoạt động
+                  Đã xác nhận
                 </p>
                 <p className="text-4xl font-bold text-emerald-600 mt-1">
                   {
-                    bookings.filter((b) => b.status && !isExpired(b.dateTime))
+                    bookings.filter((b) => b.isApproved === "Approved")
                       .length
                   }
                 </p>
@@ -341,13 +264,18 @@ const BookingPage = () => {
           <div className="bg-white rounded-2xl p-5 shadow-md border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-xl font-medium">Đã hết hạn</p>
-                <p className="text-4xl font-bold text-orange-600 mt-1">
-                  {bookings.filter((b) => isExpired(b.dateTime)).length}
+                <p className="text-gray-500 text-xl font-medium">
+                  Đã hoàn thành
+                </p>
+                <p className="text-4xl font-bold text-green-600 mt-1">
+                  {
+                    bookings.filter((b) => b.isApproved === "Swapped")
+                      .length
+                  }
                 </p>
               </div>
-              <div className="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center">
-                <span className="text-4xl">⏰</span>
+              <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center">
+                <span className="text-4xl">✅</span>
               </div>
             </div>
           </div>
@@ -366,17 +294,11 @@ const BookingPage = () => {
             <div className="flex flex-col items-center gap-4">
               <span className="text-9xl">📭</span>
               <p className="text-gray-600 text-2xl font-medium mb-2">
-                Chưa có lịch đặt nào
+                Chưa có giao dịch nào
               </p>
               <p className="text-gray-500 text-xl mb-6">
-                Tạo lịch đặt đầu tiên để bắt đầu sử dụng dịch vụ
+                Các giao dịch đã được xác nhận và hoàn thành sẽ hiển thị tại đây
               </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xl px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
-              >
-                + Tạo đặt lịch mới
-              </button>
             </div>
           </div>
         ) : (
@@ -390,36 +312,13 @@ const BookingPage = () => {
                 >
                   {/* Card Header với Status */}
                   <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        <span className="text-3xl">{booking.statusIcon}</span>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xl font-bold border ${booking.statusClass}`}
-                        >
-                          {booking.statusDisplay}
-                        </span>
-                      </div>
-                      {booking.status && !booking.isExpiredStatus && (
-                        <button
-                          onClick={() => handleCancelBooking(booking.bookingId)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                          title="Hủy lịch đặt"
-                        >
-                          <svg
-                            className="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-3xl">{booking.statusIcon}</span>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xl font-bold border ${booking.statusClass}`}
+                      >
+                        {booking.statusDisplay}
+                      </span>
                     </div>
                   </div>
 
@@ -544,7 +443,7 @@ const BookingPage = () => {
                             </span>
                           </div>
                           <p className="text-gray-600 text-lg">
-                            <span className="font-medium">Transaction ID:</span>{" "}
+                            <span className="font-medium">Mã giao dịch:</span>{" "}
                             {booking.swappingData.transactionId?.substring(
                               0,
                               8
@@ -576,7 +475,7 @@ const BookingPage = () => {
                     <span className="font-bold text-gray-900">
                       {processedBookings.length}
                     </span>{" "}
-                    lịch đặt
+                    giao dịch
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -584,7 +483,7 @@ const BookingPage = () => {
                       disabled={currentPage === 0}
                       className="px-5 py-2.5 border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200 font-medium text-xl"
                     >
-                      ← Trước
+                      ← Trang trước
                     </button>
                     <div className="flex gap-1">
                       {Array.from({ length: totalPages }, (_, i) => (
@@ -606,7 +505,7 @@ const BookingPage = () => {
                       disabled={currentPage >= totalPages - 1}
                       className="px-5 py-2.5 border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-all duration-200 font-medium text-xl"
                     >
-                      Sau →
+                      Trang sau →
                     </button>
                   </div>
                 </div>
@@ -614,39 +513,11 @@ const BookingPage = () => {
             )}
           </>
         )}
-
-        {/* Modal Booking Form */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <span className="text-4xl">🔋</span>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      Đặt lịch đổi pin
-                    </h2>
-                  </div>
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-200 w-10 h-10 rounded-full flex items-center justify-center transition-colors text-3xl"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-              <div className="p-6">
-                <BookingForm
-                  onSuccess={handleFormSuccess}
-                  onCancel={() => setShowForm(false)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
-export default BookingPage;
+export default SwappingHistory;
+
+

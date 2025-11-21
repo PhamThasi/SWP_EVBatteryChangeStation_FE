@@ -19,6 +19,12 @@ const AdminCarManagement = () => {
     status: "Available",
   });
 
+  const extractMessage = (error, fallback) =>
+    error?.response?.data?.message || error?.message || fallback;
+
+  const resolveMessage = (result, fallback) =>
+    result?.message || result?.data?.message || fallback;
+
   // Fetch all cars
   const fetchCars = async () => {
     try {
@@ -27,7 +33,7 @@ const AdminCarManagement = () => {
       setCars(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching cars:", error);
-      notifyError("Không thể tải danh sách xe!");
+      notifyError(extractMessage(error, "Không thể tải danh sách xe!"));
     } finally {
       setLoading(false);
     }
@@ -97,8 +103,8 @@ const AdminCarManagement = () => {
             : new Date().toISOString(),
           status: form.status,
         };
-        await carService.updateCar(form.vehicleId, updateData);
-        notifySuccess("Cập nhật thông tin xe thành công!");
+        const result = await carService.updateCar(form.vehicleId, updateData);
+        notifySuccess(resolveMessage(result, "Cập nhật thông tin xe thành công!"));
       } else {
         const createData = {
           model: form.model,
@@ -110,15 +116,20 @@ const AdminCarManagement = () => {
             : new Date().toISOString(),
           status: form.status,
         };
-        await carService.createCar(createData);
-        notifySuccess("Tạo xe mới thành công!");
+        const result = await carService.createCar(createData);
+        notifySuccess(resolveMessage(result, "Tạo xe mới thành công!"));
       }
 
       await fetchCars();
       closeModal();
     } catch (error) {
       console.error("Error saving car:", error);
-      notifyError(isEditing ? "Cập nhật thất bại!" : "Tạo xe thất bại!");
+      notifyError(
+        extractMessage(
+          error,
+          isEditing ? "Cập nhật thất bại!" : "Tạo xe thất bại!"
+        )
+      );
     }
   };
 
@@ -127,12 +138,12 @@ const AdminCarManagement = () => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa xe này?")) return;
 
     try {
-      await carService.deleteCar(vehicleId);
-      notifySuccess("Xóa xe thành công!");
+      const result = await carService.deleteCar(vehicleId);
+      notifySuccess(resolveMessage(result, "Xóa xe thành công!"));
       await fetchCars();
     } catch (error) {
       console.error("Error deleting car:", error);
-      notifyError("Xóa xe thất bại!");
+      notifyError(extractMessage(error, "Xóa xe thất bại!"));
     }
   };
 

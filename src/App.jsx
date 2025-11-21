@@ -39,6 +39,7 @@ import AdminCarManagement from "./home/page/AdminCarManagement";
 import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
 import StaffLayout from "./home/components/StaffLayout";
+import SwappingHistory from "./users/components/history-swaping/swapping";
 import Feedback from "./home/page/FeedBack";
 import SwappingManagement from "./home/page/SwappingTransaction";
 import ForgotPassword from "./auth/components/otp/ForgotPassword";
@@ -120,7 +121,8 @@ function App() {
         { path: "userfeedback", element: <UserFeedback /> },
         { path: "stations", element: <Stations /> },
         { path: "payment", element: <Payment /> },
-        // sau này thêm: history, maintenance, support...
+        { path: "swapping-history", element: <SwappingHistory /> },
+        // sau này thêm: maintenance, support...
       ],
     },
     {

@@ -29,6 +29,7 @@ const ProfileHeader = ({ profile, tempProfile, isEditing, onChange }) => {
             type="text"
             value={tempProfile.fullName}
             onChange={(e) => onChange("fullName", e.target.value)}
+            placeholder="Nhập họ và tên đầy đủ"
             className="text-purple-700 text-3xl font-bold mb-2 border-b-2 border-purple-300 focus:outline-none focus:border-purple-500 w-full"
           />
         ) : (
@@ -39,6 +40,7 @@ const ProfileHeader = ({ profile, tempProfile, isEditing, onChange }) => {
             type="text"
             value={tempProfile.role}
             onChange={(e) => onChange("role", e.target.value)}
+            placeholder="Nhập vai trò (ví dụ: User, Admin)"
             className="text-gray-600 mb-2 border-b border-gray-300 focus:outline-none focus:border-gray-500 w-full"
           />
         ) : (
@@ -49,7 +51,7 @@ const ProfileHeader = ({ profile, tempProfile, isEditing, onChange }) => {
             type="text"
             value={tempProfile.gender}
             onChange={(e) => onChange("gender", e.target.value)}
-            placeholder="Gender"
+            placeholder="Nhập giới tính (Nam/Nữ/Khác)"
             className="mt-2 text-gray-600 border-b border-gray-300 focus:outline-none focus:border-gray-500 w-full"
           />
         ) : (
@@ -60,6 +62,7 @@ const ProfileHeader = ({ profile, tempProfile, isEditing, onChange }) => {
             type="text"
             value={tempProfile.address}
             onChange={(e) => onChange("address", e.target.value)}
+            placeholder="Nhập địa chỉ đầy đủ"
             className="text-gray-500 border-b border-gray-300 focus:outline-none focus:border-gray-500 w-full"
           />
         ) : (

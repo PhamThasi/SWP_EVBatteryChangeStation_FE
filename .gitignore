@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Cypress artifacts
+cypress/screenshots
+cypress/videos
+cypress/downloads

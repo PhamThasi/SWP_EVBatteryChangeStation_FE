@@ -1,33 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CreditCard, Lock, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
-import paymentService from "@/api/paymentService";
+import {
+  CreditCard,
+  Lock,
+  ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+  Banknote,
+} from "lucide-react";
 import subcriptionService from "@/api/subcriptionService";
 import tokenUtils from "@/utils/tokenUtils";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
-
 
 const Payment = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const subscriptionId = searchParams.get("subscriptionId");
   const transactionId = searchParams.get("transactionId");
-  
+
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("VNPAY");
-  const [paymentGateId, setPaymentGateId] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [paymentGateId, setPaymentGateId] = useState(0);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     // Kiểm tra đăng nhập
     if (!tokenUtils.isLoggedIn()) {
       navigate("/login");
-      return;  }   
+      return;
+    }
 
     // Lấy thông tin subscription
     const fetchSubscription = async () => {
@@ -87,7 +91,8 @@ const Payment = () => {
         return;
       }
 
-      const totalPrice = (subscription.price || 0) + (subscription.extraFee || 0);
+      const totalPrice =
+        (subscription.price || 0) + (subscription.extraFee || 0);
 
       const paymentData = {
         price: totalPrice,
@@ -111,7 +116,9 @@ const Payment = () => {
         // console.log("Lấy được paymentId thành công:", paymentId);
 
         // 3️⃣ Tạo VNPay URL
-        const vnPayRes = await axios.post(`http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`);
+        const vnPayRes = await axios.post(
+          `http://localhost:5204/api/VNPay/create-payment?paymentId=${paymentId}`
+        );
         const paymentUrl = vnPayRes?.data?.data;
         // console.log("vnpay link:", paymentUrl);
          if (!paymentUrl) {
@@ -127,7 +134,9 @@ const Payment = () => {
       }
     } catch (error) {
       console.error("Error processing payment:", error);
-      setError(error.response?.data?.message || "Có lỗi xảy ra khi xử lý thanh toán");
+      setError(
+        error.response?.data?.message || "Có lỗi xảy ra khi xử lý thanh toán"
+      );
     } finally {
       setProcessing(false);
     }
@@ -167,8 +176,12 @@ const Payment = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Thanh toán thành công!</h2>
-          <p className="text-gray-600 mb-6">Gói dịch vụ của bạn đang được xử lý.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Thanh toán thành công!
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Gói dịch vụ của bạn đang được xử lý.
+          </p>
           <p className="text-sm text-gray-500">Đang chuyển hướng...</p>
         </div>
       </div>
@@ -196,17 +209,23 @@ const Payment = () => {
           {/* Subscription Info */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Thông tin gói dịch vụ</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Thông tin gói dịch vụ
+              </h2>
               {subscription && (
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Tên gói</p>
-                    <p className="text-lg font-semibold text-gray-900">{subscription.name}</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {subscription.name}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Giá</p>
                     <p className="text-2xl font-bold text-blue-600">
-                      {subscription.price ? `${subscription.price.toLocaleString("vi-VN")} VNĐ` : "Liên hệ"}
+                      {subscription.price
+                        ? `${subscription.price.toLocaleString("vi-VN")} VNĐ`
+                        : "Liên hệ"}
                     </p>
                   </div>
                   {subscription.extraFee && (
@@ -220,7 +239,9 @@ const Payment = () => {
                   {subscription.description && (
                     <div>
                       <p className="text-sm text-gray-500">Mô tả</p>
-                      <p className="text-gray-700 whitespace-pre-line">{subscription.description}</p>
+                      <p className="text-gray-700 whitespace-pre-line">
+                        {subscription.description}
+                      </p>
                     </div>
                   )}
                   <div>
@@ -236,25 +257,30 @@ const Payment = () => {
             {/* Payment Method */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
+                <Banknote className="w-5 h-5 text-green-600" />
                 Phương thức thanh toán
               </h2>
               <div className="space-y-3">
-                <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                <label className="flex items-center p-4 border-2 border-green-200 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="VNPAY"
-                    checked={paymentMethod === "VNPAY"}
+                    value="CASH"
+                    checked={paymentMethod === "CASH"}
                     onChange={(e) => {
                       setPaymentMethod(e.target.value);
-                      setPaymentGateId(1);
+                      setPaymentGateId(0);
                     }}
-                    className="mr-3 w-4 h-4 text-blue-600"
+                    className="mr-3 w-4 h-4 text-green-600"
                   />
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">VNPay</p>
-                    <p className="text-sm text-gray-500">Thanh toán qua VNPay</p>
+                    <p className="font-semibold text-gray-900">Tiền mặt</p>
+                    <p className="text-sm text-gray-500">
+                      Thanh toán bằng tiền mặt khi nhận dịch vụ
+                    </p>
+                  </div>
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Banknote className="w-5 h-5 text-green-600" />
                   </div>
                 </label>
               </div>
@@ -264,17 +290,23 @@ const Payment = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Tóm tắt đơn hàng</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Tóm tắt đơn hàng
+              </h2>
               {subscription && (
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Gói dịch vụ</span>
-                    <span className="font-semibold text-gray-900">{subscription.name}</span>
+                    <span className="font-semibold text-gray-900">
+                      {subscription.name}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Giá gói</span>
                     <span className="font-semibold text-gray-900">
-                      {subscription.price ? `${subscription.price.toLocaleString("vi-VN")} VNĐ` : "Liên hệ"}
+                      {subscription.price
+                        ? `${subscription.price.toLocaleString("vi-VN")} VNĐ`
+                        : "Liên hệ"}
                     </span>
                   </div>
                   {subscription.extraFee && (
@@ -287,10 +319,14 @@ const Payment = () => {
                   )}
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between">
-                      <span className="text-lg font-bold text-gray-900">Tổng cộng</span>
+                      <span className="text-lg font-bold text-gray-900">
+                        Tổng cộng
+                      </span>
                       <span className="text-lg font-bold text-blue-600">
                         {subscription.price
-                          ? `${(subscription.price + (subscription.extraFee || 0)).toLocaleString("vi-VN")} VNĐ`
+                          ? `${(
+                              subscription.price + (subscription.extraFee || 0)
+                            ).toLocaleString("vi-VN")} VNĐ`
                           : "Liên hệ"}
                       </span>
                     </div>
@@ -306,7 +342,9 @@ const Payment = () => {
 
               <button
                 onClick={handlePayment}
-                disabled={processing || !subscription || subscription.price === null}
+                disabled={
+                  processing || !subscription || subscription.price === null
+                }
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {processing ? (
@@ -323,8 +361,8 @@ const Payment = () => {
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-4 flex items-center justify-center gap-1">
-                <Lock className="w-3 h-3" />
-                Thanh toán an toàn và bảo mật
+                <Banknote className="w-3 h-3" />
+                Thanh toán bằng tiền mặt khi nhận dịch vụ tại trạm
               </p>
             </div>
           </div>
@@ -335,4 +373,3 @@ const Payment = () => {
 };
 
 export default Payment;
-
