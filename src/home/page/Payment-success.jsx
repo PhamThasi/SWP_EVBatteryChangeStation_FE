@@ -8,7 +8,7 @@ const SuccessPage = () => {
   const transactionId = sessionStorage.getItem("transactionId");
 
   // const transactionId = location.state?.transactionId;
-  const [message, setMessage] = useState("Processing failure result...");
+  const [message, setMessage] = useState("Processing payment result...");
 
   useEffect(() => {
     if (!transactionId) {
@@ -43,7 +43,7 @@ const SuccessPage = () => {
           createDate: tx.createDate,
         });
 
-        setMessage("Payment failed. Redirecting to home...");
+        setMessage("Payment success. Redirecting to home...");
       } catch (err) {
         setMessage("Error occurred. Redirecting...");
       } finally {
