@@ -156,8 +156,9 @@ const SwappingManagement = () => {
                 onChange={(e) => handleStatusChange(tx.transactionId, e.target.value)}
                 style={{ padding: "0.5rem", borderRadius: "6px" }}
               >
-                <option value="">Active</option>
+                <option value="Active">Active</option>
                 <option value="Finish">Finish</option>
+                <option value="Cancel">Cancel</option>
               </select>
 
               <div style={{ display: "flex", gap: "0.5rem" }}>
