@@ -5,6 +5,7 @@ import StaffNav from "./StaffNav";
 const StaffLayout = () => {
   return (
     <div className="admin-layout">
+
       <StaffNav />
       <div className="admin-content">
         <Outlet />

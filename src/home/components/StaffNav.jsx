@@ -25,6 +25,7 @@ const StaffNav = () => {
   return (
     <nav className={`admin-nav ${isSidebar ? "sidebar" : "topbar"} `}>
       <ul className="navbar-links">
+        <h1 style={{ fontSize: "20px", fontWeight: "bold" }}>Xin chào staff</h1>
         <li>
           <Link to="/staff">Lịch đổi pin</Link>
         </li>
@@ -41,7 +42,9 @@ const StaffNav = () => {
           <Link to="/staff/support">Hỗ trợ</Link>
         </li>
         <li>
-          <Link to="#" onClick={handleLogout}>Đăng xuất</Link>
+          <Link to="#" onClick={handleLogout}>
+            Đăng xuất
+          </Link>
         </li>
       </ul>
     </nav>

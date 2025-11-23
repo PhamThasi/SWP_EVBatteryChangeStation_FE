@@ -26,6 +26,7 @@ const AdminNav = () => {
       
 
       <ul className="navbar-links">
+        <h1 style={{fontSize: "20px", fontWeight: "bold"}}>Xin chào Admin</h1>
         <li><Link to="/admin">Lịch đổi pin</Link></li>
         <li><Link to="/admin/accounts">Tài khoản</Link></li>
         <li><Link to="/admin/roles">Vai trò</Link></li>

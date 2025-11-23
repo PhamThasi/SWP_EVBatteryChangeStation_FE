@@ -7,6 +7,7 @@ const AdminLayout = () => {
     <div className="admin-layout">
       <AdminNav />
       <div className="admin-content">
+        <h1>Xin chào Admin</h1>
         <Outlet />
       </div>
     </div>
