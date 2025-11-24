@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import VietMapPlaces from "@/components/MapAPI/VietMapPlaces";
+import StationSearch from "@/components/MapAPI/StationSearch";
 import stationService from "@/api/stationService";
 import batteryService from "@/api/batteryService";
 import { vietmapService } from "@/api/vietmapService";
 import { MapPin, Navigation, Battery } from "lucide-react";
-import {
-  notifyError,
-  notifyWarning,
-} from "@/components/notification/notification";
+import { notifyWarning } from "@/components/notification/notification";
 
 const Stations = () => {
   const API_KEY = import.meta.env.VITE_APP_VIETMAP_API_KEY;
-  const [searchTerm, setSearchTerm] = useState("");
   const [userLocation, setUserLocation] = useState(null);
   const [stations, setStations] = useState([]);
   const [stationsWithCoords, setStationsWithCoords] = useState([]);
@@ -130,28 +127,14 @@ const Stations = () => {
     }
   };
 
-  // ========== TÌM TRẠM & VẼ ROUTE ==========
-  const findAndDrawRoute = async () => {
-    if (!userLocation || !searchTerm) return;
-    try {
-      const searchRes = await vietmapService.searchPlace(API_KEY, searchTerm, userLocation);
-      const refid = searchRes?.[0]?.ref_id;
-      if (!refid) {
-        notifyWarning("Không tìm thấy trạm phù hợp!");
-        return;
-      }
-
-      const dest = await vietmapService.getPlaceByRef(API_KEY, refid);
-      if (!dest?.lat || !dest?.lng) {
-        notifyWarning("Không tìm thấy tọa độ của trạm này!");
-        return;
-      }
-
-      destRef.current = { lat: dest.lat, lng: dest.lng };
+  // ========== XỬ LÝ KHI CHỌN TRẠM TỪ SEARCH ==========
+  const handleStationSelectFromSearch = (station) => {
+    setSelectedStation(station);
+    if (userLocation && station.lat && station.lng) {
+      destRef.current = { lat: station.lat, lng: station.lng };
       updateRoute(userLocation, destRef.current);
-    } catch (err) {
-      notifyError("Không thể tìm trạm. Vui lòng thử lại!");
-      console.error("Lỗi khi tìm trạm:", err);
+    } else {
+      notifyWarning("Trạm này không có tọa độ để chỉ đường!");
     }
   };
 
@@ -197,21 +180,12 @@ const Stations = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="flex w-full max-w-4xl mx-auto">
-            <input
-              type="text"
-              placeholder="Tìm kiếm trạm đổi pin (vd: Cần Thơ, Đà Nẵng...)"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && findAndDrawRoute()}
-              className="flex-grow px-8 py-5 text-2xl outline-none text-gray-700 border border-gray-300 rounded-l-full focus:ring-2 focus:ring-blue-400"
+          <div className="w-full max-w-4xl mx-auto">
+            <StationSearch
+              onStationSelect={handleStationSelectFromSearch}
+              API_KEY={API_KEY}
+              userLocation={userLocation}
             />
-            <button
-              onClick={findAndDrawRoute}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 text-2xl font-medium transition rounded-r-full"
-            >
-              Tìm kiếm
-            </button>
           </div>
         </div>
       </div>
