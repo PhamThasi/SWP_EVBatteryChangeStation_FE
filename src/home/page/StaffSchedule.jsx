@@ -35,9 +35,7 @@ const SchedulePage = () => {
   const [cars, setCars] = useState([]);
   const [accountInput, setAccountInput] = useState("");
 
-  const BASE_URL = "http://localhost:5204/api/Booking/SelectAll";
-  const DETAIL_URL = "http://localhost:5204/api/Booking/Select/";
-  const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({
     dateTime: "",
     notes: "Battery transfer",
     status: true,
@@ -60,7 +58,7 @@ const SchedulePage = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const result = await bookingService.selectAllBookings();
+      const result = await bookingService.staffBookingsSchedule();
       const data = result?.data || [];
 
       const formattedEvents = data.map((b) => {
@@ -338,7 +336,7 @@ const SchedulePage = () => {
     return [];
   };
 
-  const handleOpenCreateModal = async () => {
+  const _handleOpenCreateModal = async () => {
     setIsCreating(true);
     try {
       const [stationRes, accountRes, carRes] = await Promise.all([
@@ -405,7 +403,7 @@ const SchedulePage = () => {
       <h2 className="dashboard-title">
         Lịch đặt lịch đổi pin
       </h2>
-      <button className="save-btn" onClick={handleOpenCreateModal}>+ Tạo lịch hẹn</button>
+      {/* <button className="save-btn" onClick={handleOpenCreateModal}>+ Tạo lịch hẹn</button> */}
       {showGrid ? (
     <div className="event-box-view">
       <button className="cancel-btn" onClick={() => setShowGrid(false)}>← Back to Calendar</button>

@@ -113,16 +113,23 @@ export const StaffSupportProvider = ({ children }) => {
     }
   }, []);
 
-  // Lọc requests theo tab hiện tại
+  // Lọc requests theo tab hiện tại và sắp xếp mới nhất lên đầu
   // pending: responseText rỗng VÀ không có staffId
   // resolved: có responseText HOẶC có staffId
   const filteredRequests = useMemo(() => {
-    return requests.filter(req => {
+    const filtered = requests.filter(req => {
       const hasResponseText = req.responseText && req.responseText.trim() !== '';
       const hasStaffId = req.staffId && req.staffId.trim() !== '';
       const isResolved = hasResponseText || hasStaffId;
       
       return activeTab === 'pending' ? !isResolved : isResolved;
+    });
+    
+    // Sắp xếp mới nhất lên đầu (theo createdAt)
+    return filtered.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA; // Mới nhất lên đầu (giảm dần)
     });
   }, [requests, activeTab]);
 

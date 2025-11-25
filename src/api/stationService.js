@@ -45,6 +45,16 @@ const stationSevice = {
       throw error;
     }
   },
+  
+  getStationsByName: async (keyword) => {
+    try {
+      const response = await axiosClient.get(`/Station/${keyword}`);
+      return response.data;
+    } catch (error) {
+      notifyError("Không thể tải danh sách trạm. Vui lòng thử lại!");
+      console.error("Error getting stations by name:", error);
+      throw error;
+    }
+  },
 };
-
 export default stationSevice;

@@ -47,6 +47,7 @@ const bookingService = {
       const res = await axiosClient.get(`/Booking/User/${accountId}`);
       return res.data;
     } catch (error) {
+      console.error("Error getting user bookings:", error);
       throw error;
     }
   },
@@ -55,6 +56,7 @@ const bookingService = {
       const res = await axiosClient.get(`/Booking/Select/${bookingId}`);
       return res.data;
     } catch (error) {
+      console.error("Error getting booking by id:", error);
       throw error;
     }
   },
@@ -63,6 +65,16 @@ const bookingService = {
       const res = await axiosClient.delete(`/Booking/Delete/${id}`);
       return res.data;
     } catch (error) {
+      console.error("Error deleting booking:", error);
+      throw error;
+    }
+  },
+  staffBookingsSchedule: async () => {
+    try {
+      const res = await axiosClient.get("/Booking/staff/my-bookings");
+      return res.data;
+    } catch (error) {
+      console.error("Error getting staff bookings schedule:", error);
       throw error;
     }
   },
