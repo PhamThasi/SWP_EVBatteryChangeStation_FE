@@ -48,6 +48,7 @@ import SuccessPage from "./home/page/Payment-success";
 import Payment from "./home/page/Payment";
 import ToastContainer from "./components/notification/ToastContainer";
 import FailedPage from "./home/page/Pyament-failed";
+import RevenueReport from "./home/page/Report";
 
 // debug
 // import tramsac_evt from "./assets/tramsac_evt.jpg"
@@ -145,7 +146,7 @@ function App() {
       path: "/admin",
       element: <AdminLayout />,
       children: [
-        {path: "", element: <StaffSchedule/>},
+        {path: "", element: <RevenueReport/>},
         { path: "accounts", element: <AccountManagement /> },
         { path: "roles", element: <RoleManagement /> },
         { path: "stations", element: <StationManagement /> },
