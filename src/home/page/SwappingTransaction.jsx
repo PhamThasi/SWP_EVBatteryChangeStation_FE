@@ -99,7 +99,7 @@ const SwappingManagement = () => {
       const updated = {
         paymentId: selectedPayment.paymentId,
         accountId: relatedTx.accountId, // use from the transaction
-        status: "Success",
+        status: "Successful",
       };
 
       // console.log(updated); // log all 3 fields
