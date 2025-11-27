@@ -35,6 +35,7 @@ import StationManagement from "./home/page/StationMangement";
 import AdminSubManage from "./home/page/AdminSubManage";
 import UserFeedback from "./home/page/UserFeedback";
 import BatteryManagement from "./home/page/BatteryManagement";
+import StaffBatteryManagement from "./home/page/StaffBatteryManagement";
 import AdminCarManagement from "./home/page/AdminCarManagement";
 import BookingForm from "./users/components/booking-form/BookingForm";
 import BookingPage from "./users/components/booking-page/BookingPage";
@@ -152,6 +153,7 @@ function App() {
         { path: "stations", element: <StationManagement /> },
         { path: "subscriptions", element: <AdminSubManage /> },
         { path: "cars", element: <AdminCarManagement /> },
+        { path: "battery", element: <BatteryManagement /> },
       ],
     },
     {
@@ -160,7 +162,7 @@ function App() {
       children: [
         { path: "/staff", element: <StaffSchedule/> },
         { path: "accounts", element: <AccountManagement /> },
-        { path: "battery", element: <BatteryManagement/> },
+        { path: "battery", element: <StaffBatteryManagement/> },
         { path: "Swapping", element: <SwappingManagement/> },
         { path: "feedback", element: <Feedback/> },        
         { path: "support", element: <StaffSupportPage/> },

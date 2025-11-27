@@ -13,6 +13,20 @@ const batteryService = {
     }
   },
 
+  // Lấy danh sách pin của station mà staff đang làm việc (yêu cầu đăng nhập)
+  getMyStationBatteries: async () => {
+    try {
+      const response = await axiosClient.get("/Battery/staff/my-station-batteries");
+      // Cấu trúc: response.data.data.batteries
+      const batteries = response.data?.data?.batteries || [];
+      return Array.isArray(batteries) ? batteries : [];
+    } catch (error) {
+      console.error("Error fetching my station batteries:", error);
+      notifyError("Không thể tải danh sách pin của trạm!");
+      throw error;
+    }
+  },
+
   getBatteryById: async (batteryId) => {
     try {
       const response = await axiosClient.get(`/Battery/GetBatteryById/${batteryId}`);

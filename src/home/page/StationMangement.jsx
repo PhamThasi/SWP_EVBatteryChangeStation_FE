@@ -224,7 +224,7 @@ const StationManagement = () => {
                   <td>{station.address}</td>
                   <td>{station.phoneNumber}</td>
                   <td>{station.status ? "Đang hoạt động" : "Ngừng hoạt động"}</td>
-                  <td>{station.accountName}</td>
+                  <td>{station.stationName}</td>
                   <td>{batteryCounts[station.stationId] ?? "Đang tải..."}</td>
                   <td style={{ textAlign: "center" }}>
                     <button

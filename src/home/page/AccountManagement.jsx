@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../components/AccountMng.css";
 import authService from "../../api/authService";
+import { notifySuccess } from "../../components/notification/notification";
 
 const AccountManagement = () => {
   const [search, setSearch] = useState("");
@@ -134,25 +135,24 @@ const AccountManagement = () => {
     // Basic validation for create
     if (!isUpdate) {
       const errors = {};
-      // if (!formData.accountName?.trim()) errors.accountName = "Username is required";
-      if (!formData.fullName?.trim()) errors.fullName = "Full name is required";
-      if (!formData.roleId) errors.roleId = "Role is required";
-      // if (!formData.stationId) errors.stationId = "Station is required";
-      if (!formData.gender) errors.gender = "Gender is required";
-      if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Phone is required";
+      if (!formData.accountName?.trim()) errors.accountName = "Tên đăng nhập là bắt buộc";
+      if (!formData.fullName?.trim()) errors.fullName = "Họ tên là bắt buộc";
+      if (!formData.roleId) errors.roleId = "Vai trò là bắt buộc";
+      if (!formData.gender) errors.gender = "Giới tính là bắt buộc";
+      if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Số điện thoại là bắt buộc";
+      if (!formData.email?.trim()) errors.email = "Email là bắt buộc";
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         return;
       }
     } else {
       const errors = {};
-      // if (!formData.accountName?.trim()) errors.accountName = "Username is required";
-      if (!formData.fullName?.trim()) errors.fullName = "Full name is required";
-      if (!formData.roleId) errors.roleId = "Role is required";
-      // if (!formData.stationId) errors.stationId = "Station is required";
-      if (!formData.gender) errors.gender = "Gender is required";
-      if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Phone is required";
-      if (!formData.email?.trim()) errors.email = "Email is required";
+      if (!formData.accountName?.trim()) errors.accountName = "Tên đăng nhập là bắt buộc";
+      if (!formData.fullName?.trim()) errors.fullName = "Họ tên là bắt buộc";
+      if (!formData.roleId) errors.roleId = "Vai trò là bắt buộc";
+      if (!formData.gender) errors.gender = "Giới tính là bắt buộc";
+      if (!formData.phoneNumber?.trim()) errors.phoneNumber = "Số điện thoại là bắt buộc";
+      if (!formData.email?.trim()) errors.email = "Email là bắt buộc";
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         return;
@@ -160,43 +160,45 @@ const AccountManagement = () => {
     }
     try {
       if (isUpdate) {
-        // Centralized update via service; password included only if provided
+        // Update account - theo cấu trúc: accountId, roleId, stationId, accountName, password, fullName, email, gender, address, phoneNumber, dateOfBirth, updateDate
         await authService.updateProfile({
           accountId: editingAccount?.accountId,
           roleId: formData.roleId,
-          accountName: formData.accountName || null,
-          fullName: formData.fullName,
-          email: formData.email,
-          gender: formData.gender,
-          address: formData.address,
-          phoneNumber: formData.phoneNumber,
-          dateOfBirth: formData.dateOfBirth || null,
           stationId: formData.stationId || null,
+          accountName: formData.accountName.trim(),
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim(),
+          gender: formData.gender,
+          address: formData.address?.trim() || "",
+          phoneNumber: formData.phoneNumber.trim(),
+          dateOfBirth: formData.dateOfBirth || null,
           status: formData.status,
-          password: formData.password || undefined,
+          password: formData.password?.trim() || undefined,
         });
+        notifySuccess("Cập nhật tài khoản thành công!");
       } else {
-        // Use service for create; it handles date formatting
+        // Create account - theo cấu trúc tương tự nhưng không có accountId và updateDate
         await authService.createAccount({
           roleId: formData.roleId,
-          accountName: formData.accountName,
-          password: "default@123",
-          fullName: formData.fullName,
-          email: formData.email,
-          gender: formData.gender,
-          address: formData.address,
-          phoneNumber: formData.phoneNumber,
-          createDate: new Date().toISOString(),
-          dateOfBirth: formData.dateOfBirth || null,
           stationId: formData.stationId || null,
-          status: formData.status,
+          accountName: formData.accountName.trim(),
+          password: formData.password?.trim() || "default@123",
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim(),
+          gender: formData.gender,
+          address: formData.address?.trim() || "",
+          phoneNumber: formData.phoneNumber.trim(),
+          dateOfBirth: formData.dateOfBirth || null,
+          status: formData.status ?? true,
+          createDate: new Date().toISOString(),
         });
+        notifySuccess("Tạo tài khoản thành công!");
       }
 
       await fetchAccounts();
       closeModal();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.message || err.message || "Có lỗi xảy ra");
     }
   };
 
@@ -207,7 +209,7 @@ const AccountManagement = () => {
       // Backend expects /Account/SoftDelete?encode=...
       await authService.softDeleteAccounts(accountId);
       await fetchAccounts();
-      alert("Account deleted successfully");
+      notifySuccess("Xoá tài khoản thành công!");
     } catch (err) {
       alert(err.message);
     }
@@ -303,12 +305,6 @@ const AccountManagement = () => {
                 .map((acc) => {
                   const roleName =
                     roles.find((r) => r.roleId === acc.roleId)?.roleName || "-";
-                  const stationName =
-                    stations.find((s) => s.stationId === acc.stationId)
-                      ?.stationName ||
-                    stations.find((s) => s.stationId === acc.stationId)
-                      ?.address ||
-                    "-";
                   // Display fullName, fallback to accountName if fullName is empty or null
                   const displayName = acc.fullName?.trim() || acc.accountName || "-";
                   
@@ -366,6 +362,7 @@ const AccountManagement = () => {
                 placeholder="Nhập tên đăng nhập"
                 value={formData.accountName}
                 onChange={handleChange}
+                disabled={!!editingAccount}
               />
               {formErrors.accountName && <span className="field-error">{formErrors.accountName}</span>}
 
@@ -429,13 +426,13 @@ const AccountManagement = () => {
               {formErrors.roleId && <span className="field-error">{formErrors.roleId}</span>}
 
               {/* Station dropdown */}
-              <label>Trạm *</label>
+              <label>Trạm</label>
               <select
                 name="stationId"
                 value={formData.stationId}
                 onChange={handleChange}
               >
-                <option value="">Chọn trạm</option>
+                <option value="">Chọn trạm (tùy chọn)</option>
                 {stations.map((s) => (
                   <option key={s.stationId} value={s.stationId}>
                     {s.stationName || s.address}
@@ -444,45 +441,44 @@ const AccountManagement = () => {
               </select>
               {formErrors.stationId && <span className="field-error">{formErrors.stationId}</span>}
 
-              {/* Email (auto) and Password (default) for create; Email/Password editable for update */}
+              {/* Email */}
+              <label>Email *</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Nhập email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              {formErrors.email && <span className="field-error">{formErrors.email}</span>}
+
+              {/* Password */}
               {!editingAccount ? (
                 <>
-                  <label>Email</label>
+                  <label>Mật khẩu (mặc định)</label>
                   <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter email"
-                    value={formData.email}
+                    type="text"
+                    name="password"
+                    placeholder="Mặc định: default@123"
+                    value={formData.password || "default@123"}
                     onChange={handleChange}
                   />
-                  {formErrors.email && <span className="field-error">{formErrors.email}</span>}
-                  <label>Password (default)</label>
-                  <input type="text" value="123456" readOnly />
                 </>
               ) : (
                 <>
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Nhập email"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                  {formErrors.email && (
-                    <span className="field-error">{formErrors.email}</span>
-                  )}
-                  <label>Mật khẩu mới</label>
+                  <label>Mật khẩu mới (để trống nếu không đổi)</label>
                   <input
                     type="password"
                     name="password"
-                    placeholder="Mặc định 123456 nếu không thay đổi"
+                    placeholder="Để trống nếu không muốn thay đổi mật khẩu"
                     value={formData.password || ""}
                     onChange={handleChange}
                   />
                 </>
               )}
 
+              {/* Status */}
+              <label>Trạng thái</label>
               <select
                 name="status"
                 value={formData.status}
