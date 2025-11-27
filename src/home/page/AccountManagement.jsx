@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../components/AccountMng.css";
 import authService from "../../api/authService";
-import { notifySuccess } from "../../components/notification/notification";
+import { notifySuccess, notifyError } from "../../components/notification/notification";
 
 const AccountManagement = () => {
   const [search, setSearch] = useState("");
@@ -42,8 +42,18 @@ const AccountManagement = () => {
       const result = await res.json();
 
       console.log(result);
-      setAccounts(result.data || []);
-      console.log(result);
+      const accountsData = result.data || [];
+      // Sắp xếp mới nhất lên đầu (ưu tiên updateDate, nếu không có thì dùng createDate)
+      const sortedAccounts = accountsData.sort((a, b) => {
+        const dateA = a.updateDate 
+          ? new Date(a.updateDate).getTime() 
+          : (a.createDate ? new Date(a.createDate).getTime() : 0);
+        const dateB = b.updateDate 
+          ? new Date(b.updateDate).getTime() 
+          : (b.createDate ? new Date(b.createDate).getTime() : 0);
+        return dateB - dateA; // Mới nhất lên đầu (giảm dần)
+      });
+      setAccounts(sortedAccounts);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -198,20 +208,22 @@ const AccountManagement = () => {
       await fetchAccounts();
       closeModal();
     } catch (err) {
-      alert(err.response?.data?.message || err.message || "Có lỗi xảy ra");
+      const errorMessage = err.response?.data?.message || err.message || "Có lỗi xảy ra";
+      notifyError(isUpdate ? "Cập nhật tài khoản thất bại: " + errorMessage : "Tạo tài khoản thất bại: " + errorMessage);
     }
   };
 
   // Delete
   const handleDelete = async (accountId) => {
-    if (!window.confirm("Confirm delete this account?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa tài khoản này?")) return;
     try {
       // Backend expects /Account/SoftDelete?encode=...
       await authService.softDeleteAccounts(accountId);
       await fetchAccounts();
-      notifySuccess("Xoá tài khoản thành công!");
+      notifySuccess("Xóa tài khoản thành công!");
     } catch (err) {
-      alert(err.message);
+      const errorMessage = err.response?.data?.message || err.message || "Có lỗi xảy ra";
+      notifyError("Xóa tài khoản thất bại: " + errorMessage);
     }
   };
 

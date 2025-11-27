@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../components/AccountMng.css";
+import { notifySuccess, notifyError } from "../../components/notification/notification";
 
 const BatteryManagement = () => {
   const [batteries, setBatteries] = useState([]);
@@ -77,8 +78,19 @@ const BatteryManagement = () => {
           return newMap;
         });
 
-      setBatteries(merged);
-      setFilteredBatteries(merged);
+      // Sắp xếp mới nhất lên đầu (ưu tiên batterySwapDate, nếu không có thì dùng createDate)
+      const sortedBatteries = merged.sort((a, b) => {
+        const dateA = a.batterySwapDate 
+          ? new Date(a.batterySwapDate).getTime() 
+          : (a.createDate ? new Date(a.createDate).getTime() : 0);
+        const dateB = b.batterySwapDate 
+          ? new Date(b.batterySwapDate).getTime() 
+          : (b.createDate ? new Date(b.createDate).getTime() : 0);
+        return dateB - dateA; // Mới nhất lên đầu (giảm dần)
+      });
+
+      setBatteries(sortedBatteries);
+      setFilteredBatteries(sortedBatteries);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -90,46 +102,54 @@ const BatteryManagement = () => {
     fetchBatteries();
   }, []);
 
-  // Filter batteries by address
+  // Filter batteries by address và áp dụng sort
   useEffect(() => {
-    const result = batteries.filter((b) =>
+    let result = batteries.filter((b) =>
       b.stationAddress.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    
+    // Áp dụng sort dựa trên sortOption
+    if (sortOption) {
+      switch (sortOption) {
+        case "percentUseDesc":
+          result.sort((a, b) => b.percentUse - a.percentUse);
+          break;
+        case "percentUseAsc":
+          result.sort((a, b) => a.percentUse - b.percentUse);
+          break;
+        case "batterySwapDateDesc":
+          result.sort(
+            (a, b) => new Date(b.batterySwapDate || 0) - new Date(a.batterySwapDate || 0)
+          );
+          break;
+        case "batterySwapDateAsc":
+          result.sort(
+            (a, b) => new Date(a.batterySwapDate || 0) - new Date(b.batterySwapDate || 0)
+          );
+          break;
+        default:
+          break;
+      }
+    } else {
+      // Mặc định: sắp xếp mới nhất lên đầu
+      result.sort((a, b) => {
+        const dateA = a.batterySwapDate 
+          ? new Date(a.batterySwapDate).getTime() 
+          : (a.createDate ? new Date(a.createDate).getTime() : 0);
+        const dateB = b.batterySwapDate 
+          ? new Date(b.batterySwapDate).getTime() 
+          : (b.createDate ? new Date(b.createDate).getTime() : 0);
+        return dateB - dateA; // Mới nhất lên đầu
+      });
+    }
+    
     setFilteredBatteries(result);
-  }, [searchTerm, batteries]);
+  }, [searchTerm, batteries, sortOption]);
 
-  // Sort batteries
+  // Sort batteries - chỉ cập nhật sortOption, useEffect sẽ xử lý sort
   const handleSort = (option) => {
-  setSortOption(option);
-  let sorted = [...filteredBatteries];
-
-  switch (option) {
-    case "percentUseDesc":
-      sorted.sort((a, b) => b.percentUse - a.percentUse);
-      break;
-
-    case "percentUseAsc":
-      sorted.sort((a, b) => a.percentUse - b.percentUse);
-      break;
-
-    case "batterySwapDateDesc":
-      sorted.sort(
-        (a, b) => new Date(b.batterySwapDate || 0) - new Date(a.batterySwapDate || 0)
-      );
-      break;
-
-    case "batterySwapDateAsc":
-      sorted.sort(
-        (a, b) => new Date(a.batterySwapDate || 0) - new Date(b.batterySwapDate || 0)
-      );
-      break;
-
-    default:
-      break;
-  }
-
-  setFilteredBatteries(sorted);
-};
+    setSortOption(option);
+  };
 
 
   // Open modal for add/update
@@ -199,6 +219,7 @@ const BatteryManagement = () => {
           insuranceDate: formData.insuranceDate,
           stationId: formData.stationId,
         });
+        notifySuccess("Cập nhật pin thành công!");
       } else {
         await axios.post(`${BASE_URL}/CreateBattery`, {
           capacity: formData.capacity,
@@ -209,22 +230,26 @@ const BatteryManagement = () => {
           insuranceDate: formData.insuranceDate,
           stationId: formData.stationId,
         });
+        notifySuccess("Tạo pin thành công!");
       }
 
       closeModal();
       await fetchBatteries();
     } catch (err) {
-      alert("Failed to save battery: " + err.message);
+      const errorMessage = err.response?.data?.message || err.message || "Có lỗi xảy ra";
+      notifyError(editingBattery ? "Cập nhật pin thất bại: " + errorMessage : "Tạo pin thất bại: " + errorMessage);
     }
   };
 
   const handleDelete = async (batteryId) => {
-    if (!window.confirm("Are you sure you want to delete this battery?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa pin này?")) return;
     try {
       await axios.delete(`${BASE_URL}/SoftDelete?batteryId=${batteryId}`);
       await fetchBatteries();
+      notifySuccess("Xóa pin thành công!");
     } catch (err) {
-      alert("Failed to delete battery: " + err.message);
+      const errorMessage = err.response?.data?.message || err.message || "Có lỗi xảy ra";
+      notifyError("Xóa pin thất bại: " + errorMessage);
     }
   };
 
