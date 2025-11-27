@@ -39,7 +39,7 @@ const Subscriptions = () => {
       }
 
       // If this specific subscription, go back to home
-      if (subscription?.name?.toLowerCase().includes("cơ bản")) {
+      if (subscription?.name?.toLowerCase().includes("thanh toán trực tiếp")) {
         navigate("/userPage");
         return;
       }

@@ -12,6 +12,7 @@ const BatteryManagement = () => {
   const [editingBattery, setEditingBattery] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("");
+  const [idMap, setIdMap] = useState({});
   const [formData, setFormData] = useState({
     capacity: 0,
     status: true,
@@ -59,7 +60,22 @@ const BatteryManagement = () => {
           ...b,
           stationAddress: stationMap[b.stationId] || "Unknown",
         }))
-        .filter((b) => b.status === true);
+        // .filter((b) => b.status === true)
+        ;
+
+        // ---------- ADD ID ASSIGNMENT HERE ----------
+        setIdMap((prevMap) => {
+          const newMap = { ...prevMap };
+          let nextId = Object.keys(newMap).length + 1;
+
+          merged.forEach((b) => {
+            if (!newMap[b.batteryId]) {
+              newMap[b.batteryId] = nextId++;
+            }
+          });
+
+          return newMap;
+        });
 
       setBatteries(merged);
       setFilteredBatteries(merged);
@@ -122,7 +138,7 @@ const BatteryManagement = () => {
       setEditingBattery(battery);
       setFormData({
         capacity: battery.capacity || 0,
-        status: battery.status ?? true,
+        status: battery.status,
         stateOfHealth: battery.stateOfHealth || 100,
         percentUse: battery.percentUse || 0,
         typeBattery: battery.typeBattery || "Solid-state",
@@ -212,6 +228,7 @@ const BatteryManagement = () => {
     }
   };
 
+
   if (loading) return <p>Đang tải danh sách pin...</p>;
   if (error) return <p>Lỗi: {error}</p>;
 
@@ -254,6 +271,7 @@ const BatteryManagement = () => {
           <table className="inventory-table">
             <thead>
               <tr>
+                <th>Mã Pin</th>
                 <th>Loại pin</th>
                 <th>Dung lượng</th>
                 <th>Trạng thái</th>
@@ -269,6 +287,7 @@ const BatteryManagement = () => {
             <tbody>
               {filteredBatteries.map((battery) => (
                 <tr key={battery.batteryId}>
+                  <td>{idMap[battery.batteryId]}</td>
                   <td>{battery.typeBattery}</td>
                   <td>{battery.capacity}</td>
                   <td>{battery.status ? "Đang dùng" : "Ngưng"}</td>
@@ -395,8 +414,8 @@ const BatteryManagement = () => {
                 value={formData.status}
                 onChange={handleChange}
               >
-                <option value={true}>Đang hoạt động</option>
-                <option value={false}>Ngừng hoạt động</option>
+                <option value="true">Đang dùng</option>
+                <option value="false">Ngưng</option>
               </select>
             </form>
             <div className="modal-actions">
