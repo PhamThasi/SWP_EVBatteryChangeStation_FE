@@ -66,7 +66,10 @@ const SchedulePage = () => {
         
         switch (isApprovedStatus) {
           case "approved":
-            backgroundColor = "#22c55e"; // Xanh lá
+            backgroundColor = "#3b82f6"; // Xanh dương (Approved)
+            break;
+          case "completed":
+            backgroundColor = "#10b981"; // Xanh lá cây sáng (Completed - đã đổi pin thành công)
             break;
           case "rejected":
             backgroundColor = "#ef4444"; // Đỏ
@@ -149,19 +152,14 @@ const SchedulePage = () => {
     }
 
     try {
-      // Cập nhật booking thành "Approved"
-      const updatedBooking = {
-        ...selectedBooking,
-        isApproved: "Approved",
-        createdDate: selectedBooking.createdDate || new Date().toISOString(),
-      };
-
-      await bookingService.updateBooking(selectedBooking.bookingId, updatedBooking);
-      notifySuccess("Đã duyệt booking!");
-
-      // Lưu ý: Không tự tạo swapping ở đây nữa
-      // Swapping sẽ được tạo tự động bởi BE khi staff gọi ConfirmAndSwap
-      // (hoặc có thể tạo khi approve nếu BE hỗ trợ, nhưng theo flow mới thì nên để ConfirmAndSwap xử lý)
+      // Dùng API UpdateStatus mới để cập nhật status thành "Approved"
+      await bookingService.updateBookingStatus({
+        bookingId: selectedBooking.bookingId,
+        status: "Approved",
+        notes: `Đã duyệt booking ${selectedBooking.bookingId}`,
+      });
+      
+      notifySuccess("Đã duyệt booking! Bây giờ có thể xác nhận đổi pin.");
 
       setModalOpen(false);
       await fetchBookings(); // Refresh danh sách để cập nhật màu
@@ -179,13 +177,13 @@ const SchedulePage = () => {
     }
 
     try {
-      const updatedBooking = {
-        ...selectedBooking,
-        isApproved: "Rejected",
-        createdDate: selectedBooking.createdDate || new Date().toISOString(),
-      };
-
-      await bookingService.updateBooking(selectedBooking.bookingId, updatedBooking);
+      // Dùng API UpdateStatus mới để cập nhật status thành "Rejected"
+      await bookingService.updateBookingStatus({
+        bookingId: selectedBooking.bookingId,
+        status: "Rejected",
+        notes: `Đã từ chối booking ${selectedBooking.bookingId}`,
+      });
+      
       notifySuccess("Đã từ chối booking!");
       setModalOpen(false);
       await fetchBookings(); // Refresh danh sách để cập nhật màu
@@ -215,15 +213,13 @@ const SchedulePage = () => {
   };
 
   // Handle swap battery - sử dụng API ConfirmAndSwap của BE
+  // Chỉ cho phép khi booking đã được approve (status = "Approved")
   const handleSwapBattery = async () => {
     try {
-      // Kiểm tra booking phải ở trạng thái "Approved" hoặc "Pending"
-      if (
-        selectedBooking.isApproved !== "Approved" &&
-        selectedBooking.isApproved !== "Pending"
-      ) {
+      // Kiểm tra booking phải ở trạng thái "Approved" (bắt buộc phải approve trước)
+      if (selectedBooking.isApproved !== "Approved") {
         notifyError(
-          "Chỉ có thể đổi pin khi booking đang ở trạng thái Pending hoặc Approved!"
+          "Vui lòng duyệt booking trước khi xác nhận đổi pin! Booking phải ở trạng thái Approved."
         );
         return;
       }
@@ -234,23 +230,14 @@ const SchedulePage = () => {
       // - Set battery.Status = false
       // - Giảm Station.BatteryQuantity
       // - Trừ RemainingSwaps
-      // - Set booking isApproved = "Completed" (BE có thể set thành Completed)
+      // - Set booking isApproved = "Completed" (BE tự động set thành Completed)
       await swappingService.confirmAndSwap({
         bookingId: selectedBooking.bookingId,
         notes: `Đổi pin cho booking ${selectedBooking.bookingId}`,
       });
 
-      // Sau khi đổi pin thành công, giữ status là "Approved" thay vì "Completed"
-      try {
-        await bookingService.updateBooking(selectedBooking.bookingId, {
-          ...selectedBooking,
-          isApproved: "Approved", // Giữ status là Approved
-          createdDate: selectedBooking.createdDate || new Date().toISOString(),
-        });
-      } catch (updateError) {
-        console.warn("Could not update booking status back to Approved:", updateError);
-        // Không block flow nếu không update được status
-      }
+      // BE đã tự động set status thành "Completed" sau khi swap thành công
+      // Không cần update lại status
 
       setModalOpen(false);
       await fetchBookings(); // Refresh danh sách booking
@@ -403,6 +390,23 @@ const SchedulePage = () => {
             <p><strong>Ghi chú:</strong> {selectedBooking.notes || "Không có"}</p>
             
             <label>Trạng thái (isApproved)</label>
+            {/* Hiển thị badge màu sắc cho status Completed */}
+            {selectedBooking.isApproved === "Completed" && (
+              <div style={{
+                backgroundColor: "#10b981",
+                color: "white",
+                padding: "8px 12px",
+                borderRadius: "6px",
+                marginBottom: "8px",
+                fontWeight: "bold",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}>
+                <span>✅</span>
+                <span>Đã hoàn thành đổi pin</span>
+              </div>
+            )}
             <select
               value={selectedBooking.isApproved || "Pending"}
               onChange={(e) =>
@@ -410,9 +414,27 @@ const SchedulePage = () => {
               }
               className="modal-select"
               disabled={selectedBooking.isApproved !== "Pending"}
+              style={{
+                backgroundColor: selectedBooking.isApproved === "Completed" 
+                  ? "#d1fae5" // Nền xanh lá nhạt cho Completed
+                  : selectedBooking.isApproved === "Approved"
+                  ? "#dbeafe" // Nền xanh dương nhạt cho Approved
+                  : selectedBooking.isApproved === "Rejected"
+                  ? "#fee2e2" // Nền đỏ nhạt cho Rejected
+                  : "white",
+                color: selectedBooking.isApproved === "Completed"
+                  ? "#065f46" // Chữ xanh lá đậm cho Completed
+                  : selectedBooking.isApproved === "Approved"
+                  ? "#1e40af" // Chữ xanh dương đậm cho Approved
+                  : selectedBooking.isApproved === "Rejected"
+                  ? "#991b1b" // Chữ đỏ đậm cho Rejected
+                  : "black",
+                fontWeight: selectedBooking.isApproved === "Completed" ? "bold" : "normal",
+              }}
             >
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
+              <option value="Completed">Completed</option>
               <option value="Rejected">Rejected</option>
               <option value="Canceled">Canceled</option>
             </select>
@@ -428,9 +450,8 @@ const SchedulePage = () => {
                   </button>
                 </>
               )}
-              {/* Nút Đổi pin khi booking đã được approve hoặc pending */}
-              {(selectedBooking.isApproved === "Approved" ||
-                selectedBooking.isApproved === "Pending") && (
+              {/* Nút Đổi pin chỉ hiển thị khi booking đã được approve (bắt buộc) */}
+              {selectedBooking.isApproved === "Approved" && (
                 <button className="save-btn" onClick={handleSwapBattery}>
                   🔋 Xác nhận đổi pin
                 </button>

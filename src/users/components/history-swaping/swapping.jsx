@@ -46,7 +46,8 @@ const SwappingHistory = () => {
       // Lấy danh sách swapping để map với bookings
       let swappings = [];
       try {
-        swappings = await swappingService.getAllSwapping();
+        // Sử dụng silent: true để không hiển thị thông báo lỗi khi auto-refresh
+        swappings = await swappingService.getAllSwapping({ silent: true });
       } catch (swappingErr) {
         console.warn("Could not fetch swappings:", swappingErr);
       }

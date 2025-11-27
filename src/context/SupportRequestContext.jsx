@@ -34,6 +34,7 @@ export const SupportRequestProvider = ({ children }) => {
           details: item.description,
           status: status,
           createdAt: item.createDate,
+          createDate: item.createDate,
           responseText: responseText,
           responseDate: item.responseDate,
           accountId: item.accountId,
@@ -49,7 +50,14 @@ export const SupportRequestProvider = ({ children }) => {
         };
       });
       
-      setRequests(mappedRequests);
+      // Sắp xếp mới nhất lên đầu ngay sau khi map data
+      const sortedRequests = mappedRequests.sort((a, b) => {
+        const dateA = a.createDate ? new Date(a.createDate).getTime() : 0;
+        const dateB = b.createDate ? new Date(b.createDate).getTime() : 0;
+        return dateB - dateA; // Mới nhất lên đầu (giảm dần)
+      });
+      
+      setRequests(sortedRequests);
     } catch (error) {
       console.error('Error fetching support requests:', error);
       setRequests([]);
@@ -78,6 +86,7 @@ export const SupportRequestProvider = ({ children }) => {
       details: requestData.description,
       status: status, // Tính từ responseText
       createdAt: requestData.createDate || new Date().toISOString(),
+      createDate: requestData.createDate || new Date().toISOString(),
       responseText: '', // Luôn rỗng cho request mới tạo
       responseDate: requestData.responseDate,
       accountId: requestData.accountId,
@@ -94,16 +103,38 @@ export const SupportRequestProvider = ({ children }) => {
     console.log('Adding new request:', request);
     setRequests(prevRequests => {
       const newRequests = [request, ...prevRequests];
-      console.log('Updated requests array:', newRequests);
-      return newRequests;
+      // Sắp xếp lại sau khi thêm request mới để đảm bảo mới nhất lên đầu
+      const sorted = newRequests.sort((a, b) => {
+        const dateA = a.createDate 
+          ? new Date(a.createDate).getTime() 
+          : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const dateB = b.createDate 
+          ? new Date(b.createDate).getTime() 
+          : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return dateB - dateA; // Mới nhất lên đầu
+      });
+      console.log('Updated requests array:', sorted);
+      return sorted;
     });
   }, []);
 
   // Cập nhật trạng thái request
   const updateRequestStatus = useCallback((id, status) => {
-    setRequests(prevRequests => prevRequests.map(req => 
-      req.id === id ? { ...req, status } : req
-    ));
+    setRequests(prevRequests => {
+      const updated = prevRequests.map(req => 
+        req.id === id ? { ...req, status } : req
+      );
+      // Sắp xếp lại sau khi update để đảm bảo mới nhất lên đầu
+      return updated.sort((a, b) => {
+        const dateA = a.createDate 
+          ? new Date(a.createDate).getTime() 
+          : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const dateB = b.createDate 
+          ? new Date(b.createDate).getTime() 
+          : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return dateB - dateA; // Mới nhất lên đầu
+      });
+    });
   }, []);
 
   // Xóa request (hard delete)
@@ -122,15 +153,29 @@ export const SupportRequestProvider = ({ children }) => {
     }
   }, []);
 
-  // Lọc requests theo tab hiện tại - dựa vào responseText HOẶC staffId
+  // Lọc requests theo tab hiện tại và sắp xếp mới nhất lên đầu
   // pending: responseText rỗng VÀ không có staffId
   // resolved: có responseText HOẶC có staffId
   const filteredRequests = useMemo(() => {
-    return requests.filter(req => {
+    const filtered = requests.filter(req => {
       const hasResponseText = req.responseText && req.responseText.trim() !== '';
       const hasStaffId = req.staffId && req.staffId.trim() !== '';
       const isResolved = hasResponseText || hasStaffId;
       return activeTab === 'pending' ? !isResolved : isResolved;
+    });
+    
+    // Sắp xếp mới nhất lên đầu (theo createDate - ưu tiên, nếu không có thì dùng createdAt)
+    return filtered.sort((a, b) => {
+      // Ưu tiên dùng createDate, nếu không có thì dùng createdAt
+      const dateA = a.createDate 
+        ? new Date(a.createDate).getTime() 
+        : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const dateB = b.createDate 
+        ? new Date(b.createDate).getTime() 
+        : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      
+      // Mới nhất lên đầu (giảm dần)
+      return dateB - dateA;
     });
   }, [requests, activeTab]);
 

@@ -68,34 +68,47 @@ const swappingService = {
     }
   },
 
-  getAllSwapping: async () => {
+  getAllSwapping: async (options = {}) => {
     try {
       const response = await axiosClient.get("/Swapping/GetAllSwapping");
       return response.data?.data || [];
     } catch (error) {
       console.error("Error fetching swappings:", error);
-      notifyError("Không thể tải danh sách giao dịch đổi pin!");
+      // Chỉ hiển thị thông báo lỗi nếu không có flag silent
+      if (!options.silent) {
+        notifyError("Không thể tải danh sách giao dịch đổi pin!");
+      }
       throw error;
     }
   },
 
-  getSwappingByTransactionId: async (transactionId) => {
+  getSwappingByTransactionId: async (transactionId, options = {}) => {
     try {
-      const allSwappings = await swappingService.getAllSwapping();
+      // Sử dụng silent: true để tránh duplicate error messages khi gọi từ bên trong service
+      const allSwappings = await swappingService.getAllSwapping({ silent: true });
       return allSwappings.find((s) => s.transactionId === transactionId);
     } catch (error) {
       console.error("Error fetching swapping by transactionId:", error);
+      // Chỉ hiển thị thông báo lỗi nếu không có flag silent và được gọi từ bên ngoài
+      if (!options.silent) {
+        notifyError("Không thể tải thông tin giao dịch đổi pin!");
+      }
       throw error;
     }
   },
 
-  getSwappingByBookingId: async (bookingId) => {
+  getSwappingByBookingId: async (bookingId, options = {}) => {
     try {
-      const allSwappings = await swappingService.getAllSwapping();
+      // Sử dụng silent: true để tránh duplicate error messages khi gọi từ bên trong service
+      const allSwappings = await swappingService.getAllSwapping({ silent: true });
       // Tìm swapping có vehicleId trùng với booking
       return allSwappings.find((s) => s.vehicleId === bookingId);
     } catch (error) {
       console.error("Error fetching swapping by bookingId:", error);
+      // Chỉ hiển thị thông báo lỗi nếu không có flag silent và được gọi từ bên ngoài
+      if (!options.silent) {
+        notifyError("Không thể tải thông tin giao dịch đổi pin!");
+      }
       throw error;
     }
   },

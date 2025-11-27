@@ -43,7 +43,14 @@ export const StaffSupportProvider = ({ children }) => {
         };
       });
       
-      setRequests(mappedRequests);
+      // Sắp xếp mới nhất lên đầu ngay sau khi map data
+      const sortedRequests = mappedRequests.sort((a, b) => {
+        const dateA = a.createDate ? new Date(a.createDate).getTime() : 0;
+        const dateB = b.createDate ? new Date(b.createDate).getTime() : 0;
+        return dateB - dateA; // Mới nhất lên đầu (giảm dần)
+      });
+      
+      setRequests(sortedRequests);
     } catch (error) {
       console.error('Error fetching all support requests:', error);
       setRequests([]);
@@ -82,9 +89,9 @@ export const StaffSupportProvider = ({ children }) => {
         responseText: updateData.responseText,
       });
 
-      // Cập nhật request trong state
-      setRequests(prevRequests => 
-        prevRequests.map(req => {
+      // Cập nhật request trong state và đảm bảo sắp xếp mới nhất lên đầu
+      setRequests(prevRequests => {
+        const updated = prevRequests.map(req => {
           if (req.requestId === requestId) {
             const updatedResponseText = updateData.responseText || '';
             const hasStaffId = staffId ? true : (req.staffId && req.staffId.trim() !== '');
@@ -103,8 +110,19 @@ export const StaffSupportProvider = ({ children }) => {
             };
           }
           return req;
-        })
-      );
+        });
+        
+        // Sắp xếp lại sau khi update để đảm bảo mới nhất lên đầu
+        return updated.sort((a, b) => {
+          const dateA = a.createDate 
+            ? new Date(a.createDate).getTime() 
+            : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+          const dateB = b.createDate 
+            ? new Date(b.createDate).getTime() 
+            : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+          return dateB - dateA; // Mới nhất lên đầu
+        });
+      });
 
       return response;
     } catch (error) {
@@ -125,11 +143,18 @@ export const StaffSupportProvider = ({ children }) => {
       return activeTab === 'pending' ? !isResolved : isResolved;
     });
     
-    // Sắp xếp mới nhất lên đầu (theo createdAt)
+    // Sắp xếp mới nhất lên đầu (theo createDate - ưu tiên, nếu không có thì dùng createdAt)
     return filtered.sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA; // Mới nhất lên đầu (giảm dần)
+      // Ưu tiên dùng createDate, nếu không có thì dùng createdAt
+      const dateA = a.createDate 
+        ? new Date(a.createDate).getTime() 
+        : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const dateB = b.createDate 
+        ? new Date(b.createDate).getTime() 
+        : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      
+      // Mới nhất lên đầu (giảm dần)
+      return dateB - dateA;
     });
   }, [requests, activeTab]);
 

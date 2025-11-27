@@ -56,9 +56,11 @@ const BookingPage = () => {
         }
         switch ((booking.isApproved || "Pending").toLowerCase()) {
           case "approved":
-            return "Đã xác nhận đặt lịch";
+            return "Chờ đổi pin";
+          case "completed":
+            return "Đổi pin thành công";
           case "swapped":
-            return "Đã hoàn thành đổi pin";
+            return "Đổi pin thành công";
           case "rejected":
             return "Bị từ chối";
           case "canceled":
@@ -74,7 +76,9 @@ const BookingPage = () => {
         }
         switch ((booking.isApproved || "Pending").toLowerCase()) {
           case "approved":
-            return "bg-emerald-100 text-emerald-800 border-emerald-200";
+            return "bg-blue-100 text-blue-800 border-blue-200"; // Xanh dương cho "Chờ đổi pin"
+          case "completed":
+            return "bg-green-100 text-green-800 border-green-200"; // Xanh lá cho "Đổi pin thành công"
           case "swapped":
             return "bg-green-100 text-green-800 border-green-200";
           case "rejected":
@@ -91,7 +95,9 @@ const BookingPage = () => {
         }
         switch ((booking.isApproved || "Pending").toLowerCase()) {
           case "approved":
-            return "✓";
+            return "⏳"; // Icon đồng hồ cát cho "Chờ đổi pin"
+          case "completed":
+            return "✅"; // Icon checkmark xanh cho "Đổi pin thành công"
           case "swapped":
             return "✅";
           case "rejected":
@@ -124,7 +130,8 @@ const BookingPage = () => {
       // Lấy danh sách swapping để map với bookings
       let swappings = [];
       try {
-        swappings = await swappingService.getAllSwapping();
+        // Sử dụng silent: true để không hiển thị thông báo lỗi khi auto-refresh
+        swappings = await swappingService.getAllSwapping({ silent: true });
       } catch (swappingErr) {
         console.warn("Could not fetch swappings:", swappingErr);
       }
@@ -464,7 +471,8 @@ const BookingPage = () => {
                     </div>
                     {!booking.isExpiredStatus &&
                       booking.isApproved !== "Canceled" &&
-                      booking.isApproved !== "Swapped" && (
+                      booking.isApproved !== "Swapped" &&
+                      booking.isApproved !== "Completed" && (
                         <button
                           onClick={() => handleCancelBooking(booking.bookingId)}
                           className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition"
@@ -514,26 +522,28 @@ const BookingPage = () => {
                       {formatDateTime(booking.createdDate)}
                     </div>
 
-                    {/* Confirmed */}
+                    {/* Approved - Chờ đổi pin */}
                     {booking.isApproved === "Approved" && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
-                        <p className="text-xl font-semibold text-emerald-800">
-                          Đã xác nhận đặt lịch
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+                        <p className="text-xl font-semibold text-blue-800 flex items-center gap-2">
+                          <span>⏳</span>
+                          <span>Chờ đổi pin</span>
                         </p>
                         <p className="text-gray-700 mt-1">
-                          Vui lòng đến đúng giờ để đổi pin
+                          Booking đã được xác nhận. Vui lòng đến đúng giờ để đổi pin.
                         </p>
                       </div>
                     )}
 
-                    {/* Swapped */}
-                    {booking.isApproved === "Swapped" && (
+                    {/* Completed - Đổi pin thành công */}
+                    {(booking.isApproved === "Completed" || booking.isApproved === "Swapped") && (
                       <div className="bg-green-50 border border-green-200 rounded-xl p-5">
-                        <p className="text-xl font-semibold text-green-800">
-                          Đã hoàn thành đổi pin
+                        <p className="text-xl font-semibold text-green-800 flex items-center gap-2">
+                          <span>✅</span>
+                          <span>Đổi pin thành công</span>
                         </p>
                         <p className="text-gray-700 mt-1">
-                          Cảm ơn bạn đã sử dụng dịch vụ!
+                          Cảm ơn bạn đã sử dụng dịch vụ! Pin đã được đổi thành công.
                         </p>
                       </div>
                     )}

@@ -78,5 +78,20 @@ const bookingService = {
       throw error;
     }
   },
+
+  // Cập nhật status (isApproved) của booking
+  updateBookingStatus: async ({ bookingId, status, notes }) => {
+    try {
+      const res = await axiosClient.put("/Booking/UpdateStatus", {
+        bookingId,
+        status,
+        notes: notes || "",
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      throw error;
+    }
+  },
 };
 export default bookingService;
