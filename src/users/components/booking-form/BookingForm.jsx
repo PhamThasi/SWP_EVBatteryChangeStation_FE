@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import bookingService from "@/api/bookingService";
 import carService from "@/api/carService";
+import batteryService from "@/api/batteryService";
+import paymentService from "@/api/paymentService";
 import axiosClient from "@/api/axiosClient";
 import {
   notifyWarning,
   notifySuccess,
+  notifyError,
 } from "@/components/notification/notification";
 
 const BookingForm = ({ onSuccess, onCancel }) => {
@@ -21,6 +24,8 @@ const BookingForm = ({ onSuccess, onCancel }) => {
   const [cars, setCars] = useState([]);
   const [stations, setStations] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [batteryPreview, setBatteryPreview] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   // Hàm update field riêng lẻ
   const updateField = (field) => {
@@ -89,6 +94,47 @@ const BookingForm = ({ onSuccess, onCancel }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Preview pin khi user chọn xe + trạm
+  useEffect(() => {
+    const previewBattery = async () => {
+      if (!bookingForm.vehicleId || !bookingForm.stationId) {
+        setBatteryPreview(null);
+        return;
+      }
+
+      setLoadingPreview(true);
+      try {
+        const response = await batteryService.previewForBooking(
+          bookingForm.stationId,
+          bookingForm.vehicleId
+        );
+        
+        if (response?.status === 200 && response?.data?.isAvailable === true) {
+          setBatteryPreview(response.data);
+        } else {
+          setBatteryPreview(null);
+        }
+      } catch (error) {
+        // Nếu 404 → không có pin phù hợp
+        if (error?.response?.status === 404) {
+          setBatteryPreview(null);
+        } else {
+          console.error("Error previewing battery:", error);
+          setBatteryPreview(null);
+        }
+      } finally {
+        setLoadingPreview(false);
+      }
+    };
+
+    // Debounce để tránh gọi API quá nhiều khi user đang chọn
+    const timer = setTimeout(() => {
+      previewBattery();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [bookingForm.vehicleId, bookingForm.stationId]);
+
   const canSubmit = useMemo(() => {
     return (
       bookingForm.accountId &&
@@ -98,104 +144,96 @@ const BookingForm = ({ onSuccess, onCancel }) => {
     );
   }, [bookingForm]);
 
+  // Kiểm tra subscription trước khi tạo booking - dùng API mới
+  const checkSubscription = async () => {
+    try {
+      const accountId = bookingForm.accountId || decodeAccountIdFromToken();
+      
+      if (!accountId) {
+        return { hasActive: false, reason: "Không lấy được accountId", needsRedirect: true };
+      }
+
+      // Gọi API check-subscription-status
+      const response = await paymentService.checkSubscriptionStatus(accountId);
+      const statusData = response?.data;
+
+      if (statusData?.hasActiveSubscription === true && statusData?.needsRedirect === false) {
+        return { 
+          hasActive: true, 
+          subscription: statusData.payment,
+          needsRedirect: false 
+        };
+      } else {
+        return {
+          hasActive: false,
+          reason: "Chưa có gói subscription active",
+          needsRedirect: statusData?.needsRedirect === true,
+        };
+      }
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+      return { 
+        hasActive: false, 
+        reason: "Lỗi kiểm tra subscription",
+        needsRedirect: true 
+      };
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) {
       notifyWarning("Vui lòng điền đầy đủ thông tin bắt buộc.");
       return;
     }
+
+    // Kiểm tra preview pin
+    if (!batteryPreview || batteryPreview.isAvailable !== true) {
+      notifyWarning(
+        "Trạm này không có pin phù hợp với xe, hãy chọn trạm/xe khác!"
+      );
+      return;
+    }
+
     try {
       setSubmitting(true);
-      // Chỉ tạo booking, không tạo swapping ngay
-      // Swapping sẽ được tạo khi staff approve booking
+
+      // 1. Kiểm tra subscription
+      const subscriptionCheck = await checkSubscription();
+      if (!subscriptionCheck.hasActive) {
+        notifyWarning(
+          `Bạn ${subscriptionCheck.reason}. Vui lòng đăng ký gói trước khi đặt lịch!`
+        );
+        // Navigate đến trang subscriptions nếu needsRedirect = true
+        if (subscriptionCheck.needsRedirect) {
+          navigate("/userPage/subscriptions", {
+            state: { fromBooking: true, bookingData: bookingForm },
+          });
+        }
+        return;
+      }
+
+      // 2. Tạo booking (BE sẽ tự gán batteryId trong TryAssignBatteryAsync)
       await bookingService.createBooking({
         dateTime: bookingForm.dateTime,
         notes: bookingForm.notes,
         stationId: bookingForm.stationId,
         vehicleId: bookingForm.vehicleId,
         accountId: bookingForm.accountId,
+        // batteryId: để trống, BE sẽ tự chọn
       });
-      // Wait briefly in case DB persistence is async
-      await new Promise((r) => setTimeout(r, 500));
-
-      // 2. Fetch user's bookings and get the latest one
-      const resBooking = await fetch(
-        `http://localhost:5204/api/Booking/User/${bookingForm.accountId}`
-      );
-      const bookingData = await resBooking.json();
-      const latestBooking = bookingData.data?.[bookingData.data.length - 1];
-      if (!latestBooking) throw new Error("Không tìm thấy dữ liệu đặt lịch.");
-
-      const { vehicleId, dateTime, notes, bookingId } = latestBooking;
-      const createDate = dateTime;
-
-      sessionStorage.setItem("latestBooking", JSON.stringify(bookingId));      
-
-      // 3. Get random staff
-      const resStaff = await fetch(
-        "http://localhost:5204/api/Account/GetAllStaffAccount"
-      );
-      const staffData = await resStaff.json();
-      const staffList = staffData.data || [];
-      const randomStaff =
-        staffList[Math.floor(Math.random() * staffList.length)];
-      const staffId = randomStaff?.accountId;
-
-      // 4. Get random battery
-      const resBattery = await fetch(
-        "http://localhost:5204/api/Battery/GetAllBattery"
-      );
-      const batteryData = await resBattery.json();
-      const batteryList = batteryData.data || [];
-      const randomBattery =
-        batteryList[Math.floor(Math.random() * batteryList.length)];
-      const newBatteryId = randomBattery?.batteryId;
-
-      if (!staffId || !newBatteryId)
-        throw new Error("Không thể chọn staff hoặc battery.");
-
-      // 5. Create swapping
-      await fetch("http://localhost:5204/api/Swapping/CreateSwapping", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          notes: "Battery transfer",
-          staffId,
-          oldBatteryId: "", // can leave empty
-          vehicleId,
-          newBatteryId,
-          status: "pending",
-          createDate: createDate,
-        }),
-      });
-
-      // alert("Đặt lịch và tạo swapping thành công!");
-      if (onSuccess) onSuccess(); // 6️⃣ Fetch the latest swapping to get transactionId
-      const resSwapping = await fetch(
-        "http://localhost:5204/api/Swapping/GetAllSwapping"
-      );
-      const swappingData = await resSwapping.json();
-      // 3) Find the swapping with the same createDate
-      const found = swappingData.data.find((s) => s.createDate === createDate);
-
-      if (!found) {
-        throw new Error("Không tìm thấy swapping với createDate đã dùng.");
-      }
-
-      const transactionId = found.transactionId;
-      if (!transactionId)
-        throw new Error("Không lấy được transactionId từ swapping.");
-
-      // console.log("Transaction ID from swapping:", transactionId);
-
-      // 7️⃣ Redirect to subscription page with transactionId
-      navigate("/userPage/subscriptions", { state: { transactionId } });
 
       notifySuccess("Đặt lịch thành công! Vui lòng chờ staff xác nhận.");
       if (onSuccess) onSuccess();
+      
+      // Có thể navigate đến trang lịch sử booking
+      // navigate("/userPage/history-swaping");
     } catch (e) {
       console.error("Booking error:", e);
-      notifyWarning("Không thể tạo đặt lịch. Vui lòng thử lại!");
+      const errorMsg =
+        e?.response?.data?.message ||
+        "Không thể tạo đặt lịch. Vui lòng thử lại!";
+      notifyError(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -271,6 +309,38 @@ const BookingForm = ({ onSuccess, onCancel }) => {
           placeholder="Ghi chú thêm..."
         />
       </div>
+
+      {/* Preview Pin Section */}
+      {bookingForm.vehicleId && bookingForm.stationId && (
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <h3 className="text-sm font-semibold mb-2 text-[#001f54]">
+            Thông tin pin sẽ được gán
+          </h3>
+          {loadingPreview ? (
+            <p className="text-sm text-gray-500">Đang kiểm tra...</p>
+          ) : batteryPreview && batteryPreview.isAvailable ? (
+            <div className="space-y-1 text-sm">
+              <p>
+                <span className="font-medium">Loại pin:</span>{" "}
+                {batteryPreview.batteryType || "N/A"}
+              </p>
+              <p>
+                <span className="font-medium">Trạng thái:</span>{" "}
+                <span className="text-green-600">Có sẵn</span>
+              </p>
+              {batteryPreview.batteryId && (
+                <p className="text-xs text-gray-500">
+                  Pin ID: {batteryPreview.batteryId}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-red-600">
+              ⚠️ Trạm này không có pin phù hợp với xe, hãy chọn trạm/xe khác!
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="flex justify-end gap-3 pt-2">
         {onCancel && (

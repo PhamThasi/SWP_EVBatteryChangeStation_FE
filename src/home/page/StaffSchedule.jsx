@@ -8,8 +8,6 @@ import { formatDateTime } from "@/utils/dateFormat";
 import { notifySuccess, notifyError } from "@/components/notification/notification";
 import bookingService from "@/api/bookingService";
 import swappingService from "@/api/swappingService";
-import batteryService from "@/api/batteryService";
-import tokenUtils from "@/utils/tokenUtils";
 import authService from "@/api/authService";
 import carService from "@/api/carService";
 import stationSevice from "@/api/stationService";
@@ -161,33 +159,9 @@ const SchedulePage = () => {
       await bookingService.updateBooking(selectedBooking.bookingId, updatedBooking);
       notifySuccess("Đã duyệt booking!");
 
-      // Tạo swapping transaction sau khi approve - sử dụng helper function
-      try {
-        // Lấy staffId từ token
-        const userData = tokenUtils.getUserData();
-        const staffId = userData?.accountId;
-        
-        if (!staffId) {
-          notifyError("Không thể lấy thông tin nhân viên!");
-          return;
-        }
-
-        // Sử dụng hàm helper để tự động lấy thông tin từ booking và tạo swapping
-        const swapResult = await swappingService.createSwappingFromBooking(
-          selectedBooking,
-          staffId,
-          {
-            notes: `Đổi pin cho booking ${selectedBooking.bookingId}`,
-            status: "Pending",
-            createDate: selectedBooking.dateTime || new Date().toISOString(),
-          }
-        );
-
-        notifySuccess(`Đã tạo giao dịch đổi pin thành công với pin loại ${swapResult.carData.batteryType}!`);
-      } catch (swappingError) {
-        console.error("Error creating swapping:", swappingError);
-        notifyError("Cập nhật booking thành công nhưng không thể tạo giao dịch đổi pin!");
-      }
+      // Lưu ý: Không tự tạo swapping ở đây nữa
+      // Swapping sẽ được tạo tự động bởi BE khi staff gọi ConfirmAndSwap
+      // (hoặc có thể tạo khi approve nếu BE hỗ trợ, nhưng theo flow mới thì nên để ConfirmAndSwap xử lý)
 
       setModalOpen(false);
       await fetchBookings(); // Refresh danh sách để cập nhật màu
@@ -240,73 +214,49 @@ const SchedulePage = () => {
     }
   };
 
-  // Handle swap battery - chỉ cho phép khi booking đã được approve
+  // Handle swap battery - sử dụng API ConfirmAndSwap của BE
   const handleSwapBattery = async () => {
     try {
-      const userData = tokenUtils.getUserData();
-      const staffId = userData?.accountId;
-
-      if (!staffId) {
-        notifyError("Không thể lấy thông tin nhân viên!");
+      // Kiểm tra booking phải ở trạng thái "Approved" hoặc "Pending"
+      if (
+        selectedBooking.isApproved !== "Approved" &&
+        selectedBooking.isApproved !== "Pending"
+      ) {
+        notifyError(
+          "Chỉ có thể đổi pin khi booking đang ở trạng thái Pending hoặc Approved!"
+        );
         return;
       }
 
-      // Kiểm tra booking phải ở trạng thái "Approved"
-      if (selectedBooking.isApproved !== "Approved") {
-        notifyError("Chỉ có thể đổi pin khi booking đã được xác nhận (Approved)!");
-        return;
-      }
-
-      // 1. Tìm swapping transaction đã tồn tại (được tạo khi approve)
-      const allSwappings = await swappingService.getAllSwapping();
-      const existingSwapping = allSwappings.find(
-        (s) =>
-          s.vehicleId === selectedBooking.vehicleId &&
-          s.createDate === selectedBooking.dateTime
-      );
-
-      if (!existingSwapping) {
-        notifyError("Không tìm thấy giao dịch đổi pin! Vui lòng kiểm tra lại.");
-        return;
-      }
-
-      // 2. Cập nhật swapping status thành "Finish"
-      await swappingService.updateSwapping({
-        ...existingSwapping,
-        status: "Finish",
-        stationId: selectedBooking.stationId,
+      // Gọi API ConfirmAndSwap - BE sẽ tự:
+      // - Validate staff, booking, battery, subscription
+      // - Tạo SwappingTransaction
+      // - Set battery.Status = false
+      // - Giảm Station.BatteryQuantity
+      // - Trừ RemainingSwaps
+      // - Set booking isApproved = "Completed" (BE có thể set thành Completed)
+      await swappingService.confirmAndSwap({
+        bookingId: selectedBooking.bookingId,
+        notes: `Đổi pin cho booking ${selectedBooking.bookingId}`,
       });
 
-      // 3. Cập nhật pin thành used (status = false) để trigger -1 pin
-      if (existingSwapping.newBatteryId) {
-        try {
-          const battery = await batteryService.getBatteryById(existingSwapping.newBatteryId);
-          if (battery) {
-            await batteryService.updateBattery(existingSwapping.newBatteryId, {
-              ...battery,
-              status: false,
-              lastUsed: new Date().toISOString(),
-            });
-          }
-        } catch (batteryError) {
-          console.warn("Could not update battery status:", batteryError);
-          // Không block flow nếu không update được battery
-        }
+      // Sau khi đổi pin thành công, giữ status là "Approved" thay vì "Completed"
+      try {
+        await bookingService.updateBooking(selectedBooking.bookingId, {
+          ...selectedBooking,
+          isApproved: "Approved", // Giữ status là Approved
+          createdDate: selectedBooking.createdDate || new Date().toISOString(),
+        });
+      } catch (updateError) {
+        console.warn("Could not update booking status back to Approved:", updateError);
+        // Không block flow nếu không update được status
       }
 
-      // 4. Cập nhật booking → Swapped
-      await bookingService.updateBooking(selectedBooking.bookingId, {
-        ...selectedBooking,
-        isApproved: "Swapped",
-        createdDate: selectedBooking.createdDate || new Date().toISOString(),
-      });
-
-      notifySuccess("Đổi pin thành công!");
       setModalOpen(false);
-      fetchBookings();
+      await fetchBookings(); // Refresh danh sách booking
     } catch (err) {
-      console.error(err);
-      notifyError("Lỗi đổi pin!");
+      console.error("Error confirming swap:", err);
+      // notifyError đã được xử lý trong swappingService.confirmAndSwap
     }
   };
 
@@ -478,10 +428,11 @@ const SchedulePage = () => {
                   </button>
                 </>
               )}
-              {/* Nút Đổi pin khi booking đã được approve */}
-              {selectedBooking.isApproved === "Approved" && (
+              {/* Nút Đổi pin khi booking đã được approve hoặc pending */}
+              {(selectedBooking.isApproved === "Approved" ||
+                selectedBooking.isApproved === "Pending") && (
                 <button className="save-btn" onClick={handleSwapBattery}>
-                  🔋 Đổi pin
+                  🔋 Xác nhận đổi pin
                 </button>
               )}
               {/* Nút Update cho các trường hợp khác */}

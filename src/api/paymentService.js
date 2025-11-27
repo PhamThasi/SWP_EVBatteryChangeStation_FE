@@ -37,7 +37,7 @@ const paymentService = {
   // Lấy payments theo accountId
   getPaymentsByAccountId: async (accountId) => {
     try {
-      const response = await axiosClient.get(`/Payment/GetByAccount/${accountId}`);
+      const response = await axiosClient.get(`/Payment/get-by-account/${accountId}`);
       return response.data;
     } catch (error) {
       console.error("Error getting payments by account ID:", error);
@@ -63,6 +63,19 @@ const paymentService = {
       return response.data;
     } catch (error) {
       console.error("Error deleting payment:", error);
+      throw error;
+    }
+  },
+
+  // Kiểm tra trạng thái subscription của user
+  checkSubscriptionStatus: async (accountId) => {
+    try {
+      const response = await axiosClient.get("/Payment/check-subscription-status", {
+        params: { accountId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error checking subscription status:", error);
       throw error;
     }
   },

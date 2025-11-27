@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import bookingService from "@/api/bookingService";
 import swappingService from "@/api/swappingService";
+import paymentService from "@/api/paymentService";
+import subcriptionService from "@/api/subcriptionService";
 
 const SwappingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [accountId, setAccountId] = useState("");
+  const [mySubscription, setMySubscription] = useState(null);
 
   const ITEMS_PER_PAGE = 10;
 
@@ -70,10 +73,56 @@ const SwappingHistory = () => {
     }
   }, [accountId]);
 
+  // Fetch subscription đã mua từ payments
+  const fetchMySubscription = useCallback(async () => {
+    if (!accountId) return;
+    try {
+      // Lấy payments của account
+      const paymentsRes = await paymentService.getPaymentsByAccountId(accountId);
+      const payments = paymentsRes?.data || [];
+      
+      // Tìm payment thành công mới nhất
+      const successfulPayments = payments
+        .filter(
+          (payment) => 
+            payment.status === "Successful" && 
+            payment.subscriptionId !== null &&
+            payment.subscriptionId !== undefined
+        )
+        .sort((a, b) => new Date(b.createDate) - new Date(a.createDate));
+      
+      const successfulPayment = successfulPayments[0];
+      
+      if (successfulPayment && successfulPayment.subscriptionId) {
+        // Lấy thông tin subscription template
+        const allSubsRes = await subcriptionService.getSubscriptions();
+        const subscriptionTemplate = allSubsRes?.data?.find(
+          (sub) => sub.subscriptionId === successfulPayment.subscriptionId
+        );
+        
+        if (subscriptionTemplate) {
+          setMySubscription({
+            ...subscriptionTemplate,
+            purchaseDate: successfulPayment.createDate,
+            paymentId: successfulPayment.paymentId,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
+    }
+  }, [accountId]);
+
   useEffect(() => {
     const accId = decodeAccountIdFromToken();
     setAccountId(accId);
   }, []);
+
+  useEffect(() => {
+    if (accountId) {
+      fetchMySubscription();
+    }
+  }, [accountId, fetchMySubscription]);
 
   useEffect(() => {
     if (accountId) {
@@ -223,6 +272,41 @@ const SwappingHistory = () => {
             Xem lại các giao dịch đổi pin đã được xác nhận và hoàn thành
           </p>
         </div>
+
+        {/* Subscription Info Card */}
+        {mySubscription && (
+          <div className="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-4xl">🎁</span>
+                  <h2 className="text-3xl font-bold">Gói Subscription Của Bạn</h2>
+                </div>
+                <div className="ml-14 space-y-2">
+                  <p className="text-2xl font-semibold">{mySubscription.name}</p>
+                  <p className="text-blue-100 text-xl">
+                    Đã mua: {formatDate(mySubscription.purchaseDate)}
+                  </p>
+                  {mySubscription.description && (
+                    <p className="text-blue-100 text-lg mt-2">
+                      {mySubscription.description.split('\n')[0]}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-4">
+                  <p className="text-blue-100 text-xl mb-1">Giá</p>
+                  <p className="text-3xl font-bold">
+                    {mySubscription.price
+                      ? `${(mySubscription.price / 1000).toFixed(0)}K`
+                      : "Theo lượt"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

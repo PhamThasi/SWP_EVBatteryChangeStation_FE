@@ -56,6 +56,21 @@ const subcriptionService = {
       throw error;
     }
   },
+
+  // Lấy gói subscription đang active của user hiện tại (từ JWT token)
+  getMySubscription: async () => {
+    try {
+      const response = await axiosClient.get("/Subscription/my");
+      return response.data; // { data: { subscriptionId, endDate, remainingSwaps, isActive, ... } } hoặc null
+    } catch (error) {
+      // Nếu 404 hoặc không có gói, trả về null thay vì throw
+      if (error?.response?.status === 404) {
+        return { data: null };
+      }
+      console.error("Error fetching my subscription:", error);
+      throw error;
+    }
+  },
 };
 
 export default subcriptionService;

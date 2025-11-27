@@ -21,10 +21,7 @@ const Payment = () => {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("CASH");
-  const [paymentGateId, setPaymentGateId] = useState(0);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     // Kiểm tra đăng nhập
@@ -63,14 +60,8 @@ const Payment = () => {
     }
   }, [subscriptionId, navigate]);
 
-  useEffect(() => {
-    if (!transactionId) {
-      setError("Thiếu transaction ID");
-    } else {
-      console.log("Transaction ID:", transactionId);
-      // you can now use it in your payment creation request
-    }
-  }, [transactionId]);
+  // transactionId là optional (chỉ có khi mua gói từ booking flow)
+  // Nếu mua gói độc lập thì không cần transactionId
 
   const handlePayment = async () => {
     if (!subscription) return;
@@ -85,24 +76,25 @@ const Payment = () => {
         setProcessing(false);
         return;
       }
-      if (!transactionId) {
-        setError("Thiếu transaction ID từ đặt lịch");
-        setProcessing(false);
-        return;
-      }
+      // transactionId là optional - chỉ có khi mua gói từ booking flow
 
       const totalPrice =
         (subscription.price || 0) + (subscription.extraFee || 0);
 
       const paymentData = {
         price: totalPrice,
-        method: paymentMethod,
-        paymentGateId: paymentGateId,
+        method: "VNPAY", // Mặc định thanh toán qua VNPay
+        paymentGateId: 0,
         createDate: new Date().toISOString(),
         subscriptionId: subscription.subscriptionId,
-        transactionId: transactionId,
+        accountId: userData.accountId, // Thêm accountId để BE gắn subscription
+        // transactionId là optional (chỉ có khi mua gói từ booking flow)
+        ...(transactionId && { transactionId: transactionId }),
       };
-      sessionStorage.setItem("transactionId", transactionId);
+      // Lưu transactionId vào sessionStorage nếu có (cho booking flow)
+      if (transactionId) {
+        sessionStorage.setItem("transactionId", transactionId);
+      }
       // console.log("Create Payment API payload:", paymentData);
 
       // 1️⃣ Tạo payment
@@ -179,22 +171,6 @@ const Payment = () => {
     );
   }
 
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Thanh toán thành công!
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Gói dịch vụ của bạn đang được xử lý.
-          </p>
-          <p className="text-sm text-gray-500">Đang chuyển hướng...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">

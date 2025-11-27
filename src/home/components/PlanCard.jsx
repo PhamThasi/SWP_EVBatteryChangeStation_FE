@@ -9,6 +9,8 @@ export default function PlanCard({
   onAction = () => {},
   gradient,
   icon: Icon,
+  disabled = false,
+  isOwned = false,
 }) {
   return (
     <div
@@ -109,18 +111,27 @@ export default function PlanCard({
 
         {/* CTA Button */}
         <div className="px-8 pb-8">
-          <button
-            onClick={onAction}
-            className={[
-              "w-full rounded-xl px-6 py-4 font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 group/btn",
-              highlight
-                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 hover:scale-105"
-                : "bg-gray-900 text-white hover:bg-gray-800 hover:scale-105 shadow-md",
-            ].join(" ")}
-          >
-            <span>Chọn gói này</span>
-            <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-          </button>
+          {isOwned ? (
+            <div className="w-full rounded-xl px-6 py-4 font-bold text-base bg-green-100 text-green-700 text-center">
+              <span>✓ Đang sử dụng</span>
+            </div>
+          ) : (
+            <button
+              onClick={onAction}
+              disabled={disabled}
+              className={[
+                "w-full rounded-xl px-6 py-4 font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 group/btn",
+                disabled
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : highlight
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/50 hover:scale-105"
+                  : "bg-gray-900 text-white hover:bg-gray-800 hover:scale-105 shadow-md",
+              ].join(" ")}
+            >
+              <span>Chọn gói này</span>
+              <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
+          )}
         </div>
       </div>
     </div>

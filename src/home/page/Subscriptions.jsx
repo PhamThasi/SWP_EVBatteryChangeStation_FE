@@ -1,30 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuthCheck from "./../../hooks/useAuthCheck";
 import ConfirmModal from "./../components/ConfirmModal";
 import PlanCard from "./../components/PlanCard";
-import { Battery, Sparkles, TrendingUp, Shield, Zap } from "lucide-react";
+import { Battery, Sparkles, TrendingUp, Shield, Zap, CheckCircle } from "lucide-react";
 import subcriptionService from "@/api/subcriptionService";
-
-import { useLocation } from "react-router-dom";
+import paymentService from "@/api/paymentService";
 
 const Subscriptions = () => {
   const { requireLogin, isModalOpen, confirmLogin, cancelLogin } =
     useAuthCheck();
   const [plans, setPlans] = useState([]);
   const [subscriptionsData, setSubscriptionsData] = useState([]);
+  const [mySubscription, setMySubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const transactionId = location.state?.transactionId;
 
-  useEffect(() => {
-    if (!transactionId) {
-      console.error("Missing transactionId in subscription page!");
-    } else {
-      console.log("Transaction ID received in subscription page:", transactionId);
+  // Decode accountId từ token
+  const getAccountId = () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return null;
+      const payload = token.split(".")[1];
+      const json = JSON.parse(
+        atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
+      );
+      return json?.accountId || json?.AccountId || json?.sub || null;
+    } catch (e) {
+      console.error("Decode token error", e);
+      return null;
     }
-  }, [transactionId]);
+  };
 
   const handleBuy = (planTitle) => {
     requireLogin(() => {
@@ -44,53 +52,88 @@ const Subscriptions = () => {
         return;
       }
 
-      // Otherwise, navigate to payment with subscriptionId and transactionId
-      navigate(
-        `/userPage/payment?subscriptionId=${subscription.subscriptionId}&transactionId=${transactionId}`
-      );
+      // Navigate to payment with subscriptionId
+      // transactionId là optional (chỉ có khi mua gói từ booking flow)
+      const paymentUrl = transactionId
+        ? `/userPage/payment?subscriptionId=${subscription.subscriptionId}&transactionId=${transactionId}`
+        : `/userPage/payment?subscriptionId=${subscription.subscriptionId}`;
+      navigate(paymentUrl);
     });
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Chỉ lấy các subscriptions đang active cho user
-        const res = await subcriptionService.getActiveSubscriptions();
-        if (res?.data) {
-          // Lưu data gốc để sử dụng khi navigate (chỉ active subscriptions)
-          setSubscriptionsData(res.data);
+        const accountId = getAccountId();
+        
+        // 1. Lấy payments của account để tìm gói đã mua
+        let hasActiveSubscription = false;
+        let purchasedSubscriptionId = null;
+        
+        if (accountId) {
+          try {
+            // Gọi API get-by-account để lấy payments
+            const paymentsRes = await paymentService.getPaymentsByAccountId(accountId);
+            const payments = paymentsRes?.data || [];
+            
+            console.log("Payments của user:", payments);
+            
+            // Tìm payment có status = "Successful" và có subscriptionId
+            // Lấy payment mới nhất (sắp xếp theo createDate giảm dần)
+            const successfulPayments = payments
+              .filter(
+                (payment) => 
+                  payment.status === "Successful" && 
+                  payment.subscriptionId !== null &&
+                  payment.subscriptionId !== undefined
+              )
+              .sort((a, b) => new Date(b.createDate) - new Date(a.createDate));
+            
+            const successfulPayment = successfulPayments[0];
+            
+            console.log("Payment thành công tìm được:", successfulPayment);
+            
+            if (successfulPayment && successfulPayment.subscriptionId) {
+              purchasedSubscriptionId = successfulPayment.subscriptionId;
+              
+              // Lấy thông tin subscription template từ danh sách subscriptions
+              const allSubsRes = await subcriptionService.getSubscriptions();
+              const subscriptionTemplate = allSubsRes?.data?.find(
+                (sub) => sub.subscriptionId === purchasedSubscriptionId
+              );
+              
+              console.log("Subscription template tìm được:", subscriptionTemplate);
+              
+              if (subscriptionTemplate) {
+                // Hiển thị gói đã mua (từ payment thành công)
+                hasActiveSubscription = true;
+                setMySubscription({
+                  ...subscriptionTemplate,
+                  purchaseDate: successfulPayment.createDate,
+                  paymentId: successfulPayment.paymentId,
+                });
+              }
+            }
+          } catch (error) {
+            // Nếu không có payment hoặc lỗi, tiếp tục hiển thị gói để mua
+            console.error("Lỗi khi lấy payments:", error);
+            console.log("User chưa có payment thành công");
+          }
+        }
 
-          // Convert API data -> frontend-friendly structure
-          const formatted = res.data.map((item) => ({
-            title: item.name,
-            price: item.name.toLowerCase().includes("cơ bản")
-              ? "Theo lượt"
-              : item.price
-              ? `${(item.price / 1000).toFixed(0)}K/tháng`
-              : "Liên hệ",
-            icon: item.name.toLowerCase().includes("nâng cao")
-              ? Sparkles
-              : item.name.toLowerCase().includes("tiết kiệm")
-              ? TrendingUp
-              : Battery,
-            gradient: item.name.toLowerCase().includes("nâng cao")
-              ? "from-purple-500 to-pink-600"
-              : item.name.toLowerCase().includes("tiết kiệm")
-              ? "from-blue-500 to-indigo-600"
-              : "from-gray-500 to-gray-600",
-            highlight: item.name.toLowerCase().includes("tiết kiệm"),
-            badge: item.name.toLowerCase().includes("tiết kiệm")
-              ? "Best Value"
-              : null,
-            perks: item.description
-              ? item.description
-                  .replace(/\\n/g, "\n") // Quan trọng: fix \\n → \n
-                  .split("\n")
-                  .filter((line) => line.trim())
-                  .map((text) => ({ text: text.trim() }))
-              : [],
-          }));
+        // 2. Nếu user đã có gói → chỉ hiển thị gói đã mua
+        if (hasActiveSubscription && mySubscription) {
+          setSubscriptionsData([mySubscription]);
+          const formatted = [formatSubscriptionToPlan(mySubscription, true)];
           setPlans(formatted);
+        } else {
+          // 3. Nếu user chưa có gói → hiển thị tất cả gói có thể mua
+          const res = await subcriptionService.getActiveSubscriptions();
+          if (res?.data) {
+            setSubscriptionsData(res.data);
+            const formatted = res.data.map((item) => formatSubscriptionToPlan(item, false));
+            setPlans(formatted);
+          }
         }
       } catch (error) {
         console.error("Error fetching subscriptions:", error);
@@ -99,7 +142,44 @@ const Subscriptions = () => {
       }
     };
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Helper function để format subscription thành plan card
+  const formatSubscriptionToPlan = (item, isOwned) => {
+    return {
+      title: item.name,
+      price: item.name.toLowerCase().includes("cơ bản")
+        ? "Theo lượt"
+        : item.price
+        ? `${(item.price / 1000).toFixed(0)}K/tháng`
+        : "Liên hệ",
+      icon: item.name.toLowerCase().includes("nâng cao")
+        ? Sparkles
+        : item.name.toLowerCase().includes("tiết kiệm")
+        ? TrendingUp
+        : Battery,
+      gradient: item.name.toLowerCase().includes("nâng cao")
+        ? "from-purple-500 to-pink-600"
+        : item.name.toLowerCase().includes("tiết kiệm")
+        ? "from-blue-500 to-indigo-600"
+        : "from-gray-500 to-gray-600",
+      highlight: item.name.toLowerCase().includes("tiết kiệm"),
+      badge: isOwned
+        ? "Đang sử dụng"
+        : item.name.toLowerCase().includes("tiết kiệm")
+        ? "Best Value"
+        : null,
+      isOwned: isOwned,
+      perks: item.description
+        ? item.description
+            .replace(/\\n/g, "\n")
+            .split("\n")
+            .filter((line) => line.trim())
+            .map((text) => ({ text: text.trim() }))
+        : [],
+    };
+  };
 
   if (loading)
     return (
@@ -120,11 +200,22 @@ const Subscriptions = () => {
             <Zap className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">
-            Chọn Gói Dịch Vụ Swap Pin
+            {mySubscription ? "Gói Dịch Vụ Của Bạn" : "Chọn Gói Dịch Vụ Swap Pin"}
           </h1>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed">
-            Tối ưu chi phí – Linh hoạt – Ưu tiên trạm
+            {mySubscription
+              ? "Xem thông tin gói subscription đang sử dụng"
+              : "Tối ưu chi phí – Linh hoạt – Ưu tiên trạm"}
           </p>
+          {mySubscription && (
+            <div className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-500/20 backdrop-blur-sm text-white">
+              <CheckCircle className="w-5 h-5" />
+              <span>
+                Còn {mySubscription.remainingSwaps ?? "∞"} lượt đổi pin • Hết hạn:{" "}
+                {new Date(mySubscription.endDate).toLocaleDateString("vi-VN")}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -142,7 +233,8 @@ const Subscriptions = () => {
                 perks={plan.perks}
                 gradient={plan.gradient}
                 icon={plan.icon}
-                onAction={() => handleBuy(plan.title)}
+                onAction={plan.isOwned ? undefined : () => handleBuy(plan.title)}
+                disabled={plan.isOwned}
               />
             ))}
           </div>

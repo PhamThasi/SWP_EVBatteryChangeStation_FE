@@ -157,6 +157,23 @@ const swappingService = {
       throw error;
     }
   },
+
+  // Staff xác nhận đổi pin: BE tự validate + tạo transaction + trừ pin + trừ lượt gói
+  confirmAndSwap: async ({ bookingId, notes }) => {
+    try {
+      const response = await axiosClient.post("/Swapping/ConfirmAndSwap", {
+        bookingId,
+        notes: notes || `Đổi pin cho booking ${bookingId}`,
+      });
+      notifySuccess("Đổi pin thành công!");
+      return response.data;
+    } catch (error) {
+      console.error("Error confirming swap:", error);
+      const msg = error?.response?.data?.message || error?.message || "Không thể xác nhận đổi pin!";
+      notifyError(msg);
+      throw error;
+    }
+  },
 };
 
 export default swappingService;

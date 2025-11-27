@@ -91,6 +91,18 @@ const batteryService = {
       throw error;
     }
   },
+  // Preview pin sẽ được gán cho booking (BE tự chọn pin phù hợp)
+  previewForBooking: async (stationId, vehicleId) => {
+    try {
+      const response = await axiosClient.get("/Battery/PreviewForBooking", {
+        params: { stationId, vehicleId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error previewing booking:", error);
+      throw error;
+    }
+  },
 };
 
 export default batteryService;
