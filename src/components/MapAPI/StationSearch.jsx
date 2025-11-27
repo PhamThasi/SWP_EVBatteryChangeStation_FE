@@ -204,7 +204,7 @@ export default function StationSearch({
                     {station.name || station.address?.split(",").pop()?.trim() || `Trạm ${station.stationId}`}
                   </h3>
                   <span
-                    className={`px-2 py-1 rounded-full text-sm font-medium ml-2 ${
+                    className={`px-2 py-1 rounded-full text-xl font-medium ml-2 ${
                       station.status
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-700"
@@ -224,13 +224,13 @@ export default function StationSearch({
 
                 {/* Distance */}
                 {station.distance && (
-                  <div className="text-sm text-blue-600 font-medium mt-2">
+                  <div className="text-xl text-blue-600 font-medium mt-2">
                     📍 Cách {station.distance} km
                   </div>
                 )}
 
                 {(!station.lat || !station.lng) && (
-                  <div className="text-xs text-yellow-600 mt-1">
+                  <div className="text-xl text-yellow-600 mt-1">
                     ⚠️ Không có tọa độ
                   </div>
                 )}
