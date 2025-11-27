@@ -438,7 +438,7 @@ const AccountManagement = () => {
                 <option value="">Chọn trạm</option>
                 {stations.map((s) => (
                   <option key={s.stationId} value={s.stationId}>
-                    {s.address}
+                    {s.stationName || s.address}
                   </option>
                 ))}
               </select>

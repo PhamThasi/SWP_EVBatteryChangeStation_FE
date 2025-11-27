@@ -149,7 +149,7 @@ const authService = {
 
       console.log("🟢 Payload gửi BE:", payload);
 
-      const response = await axiosClient.post("/Account/Update", payload);
+      const response = await axiosClient.put("/Account/Update", payload);
       console.log("✅ Update profile response:", response);
       return response;
     } catch (error) {
